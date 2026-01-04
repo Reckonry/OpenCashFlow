@@ -1,0 +1,121 @@
+name: opencashflow-dev
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gi-db
+    environment:
+      - POSTGRES_DB=opencashflow
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build:
+      context: .
+      dockerfile: OpenCashFlow.API/Dockerfile
+    container_name: gi-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # ASP.NET
+      - ASPNETCORE_ENVIRONMENT=Development
+      # DB connection for EF Core
+      - DEFAULT_CONN_STRING=Host=db;Database=opencashflow;Username=postgres;Password=postgres
+      # JWT settings (match App)
+      - JwtSettings__SecretKey=dev-secret-change-me
+      - JwtSettings__Issuer=http://api:8080
+      - JwtSettings__Audience=http://app:8080
+      # CORS origins (host ports)
+      - Cors__AllowedOrigins__0=http://localhost:5200
+      - Cors__AllowedOrigins__1=http://localhost:5300
+      - Cors__AllowedOrigins__2=http://localhost:5400
+      - Cors__AllowCredentials=false
+      # Fallback AppUrl
+      - AppUrl=http://localhost:5200
+      # Auto-apply migrations on startup (dev only)
+      - AUTO_MIGRATE=true
+      # Email placeholders to satisfy DI
+      - EmailConfiguration__From=noreply@example.local
+      - EmailConfiguration__SmtpServer=smtp.example.local
+      - EmailConfiguration__Port=465
+      - EmailConfiguration__UserName=test
+      - EmailConfiguration__Password=test
+    ports:
+      - "5100:8080"
+    env_file:
+      - env/.env.api.development
+
+  app:
+    build:
+      context: .
+      dockerfile: OpenCashFlow.App/Dockerfile
+    container_name: gi-app
+    depends_on:
+      - api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # App talks to API via internal DNS
+      - Account__API=http://api:8080
+      # Redirects must be reachable by the browser on host
+      - Account__Login=http://localhost:5200/Login
+      - Account__FastLogin=http://localhost:5200/FastLogin
+      - Account__Logout=http://localhost:5200/Logout
+      - Account__AppUrl=http://localhost:5200/
+      - Account__CookieDomain=.localhost
+      - Account__SessionCookieDomain=.localhost
+      # JWT settings (must match API)
+      - JwtSettings__SecretKey=dev-secret-change-me
+      - JwtSettings__Issuer=http://api:8080
+      - JwtSettings__Audience=http://app:8080
+      # Email placeholders to satisfy DI
+      - EmailConfiguration__From=noreply@example.local
+      - EmailConfiguration__SmtpServer=smtp.example.local
+      - EmailConfiguration__Port=465
+      - EmailConfiguration__UserName=test
+      - EmailConfiguration__Password=test
+    ports:
+      - "5200:8080"
+
+  web:
+    build:
+      context: .
+      dockerfile: OpenCashFlow/Dockerfile
+    container_name: gi-web
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # Email placeholders to satisfy DI if used
+      - EmailConfiguration__From=noreply@example.local
+      - EmailConfiguration__SmtpServer=smtp.example.local
+      - EmailConfiguration__Port=465
+      - EmailConfiguration__UserName=test
+      - EmailConfiguration__Password=test
+    ports:
+      - "5300:8080"
+
+  landing:
+    build:
+      context: .
+      dockerfile: OpenCashFlow-Landing/Dockerfile
+    container_name: gi-landing
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # Email placeholders to satisfy DI
+      - EmailConfiguration__From=noreply@example.local
+      - EmailConfiguration__SmtpServer=smtp.example.local
+      - EmailConfiguration__Port=465
+      - EmailConfiguration__UserName=test
+      - EmailConfiguration__Password=test
+    ports:
+      - "5400:8080"
+
+volumes:
+  pgdata:

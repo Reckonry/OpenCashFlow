@@ -1,0 +1,106 @@
+name: opencashflow
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gi-db
+    environment:
+      - POSTGRES_DB=opencashflow
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build:
+      context: .
+      dockerfile: OpenCashFlow.API/Dockerfile
+    container_name: gi-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DEFAULT_CONN_STRING=Host=db;Database=opencashflow;Username=postgres;Password=postgres
+      - JwtSettings__SecretKey=${JWT_SECRET:-change-me}
+      - JwtSettings__Issuer=https://api.opencashflow.cloud
+      - JwtSettings__Audience=https://app.opencashflow.cloud
+      - Cors__AllowedOrigins__0=https://app.opencashflow.cloud
+      - Cors__AllowedOrigins__1=https://opencashflow.cloud
+      - Cors__AllowCredentials=false
+      - AppUrl=https://app.opencashflow.cloud
+      - EmailConfiguration__From=noreply@opencashflow.cloud
+      - EmailConfiguration__SmtpServer=smtps.aruba.it
+      - EmailConfiguration__Port=465
+      - EmailConfiguration__UserName=noreply@opencashflow.cloud
+      - EmailConfiguration__Password=${SMTP_PASSWORD:-set-me}
+    env_file:
+      - env/.env.api.production
+    ports:
+      - "5100:8080"
+
+  app:
+    build:
+      context: .
+      dockerfile: OpenCashFlow.App/Dockerfile
+    container_name: gi-app
+    depends_on:
+      - api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Account__API=http://api:8080
+      - Account__Login=https://app.opencashflow.cloud/Login
+      - Account__FastLogin=https://app.opencashflow.cloud/FastLogin
+      - Account__Logout=https://app.opencashflow.cloud/Logout
+      - Account__AppUrl=https://app.opencashflow.cloud/
+      - Account__CookieDomain=.opencashflow.cloud
+      - Account__SessionCookieDomain=.opencashflow.cloud
+      - JwtSettings__SecretKey=${JWT_SECRET:-change-me}
+      - JwtSettings__Issuer=https://api.opencashflow.cloud
+      - JwtSettings__Audience=https://app.opencashflow.cloud
+      - EmailConfiguration__From=noreply@opencashflow.cloud
+      - EmailConfiguration__SmtpServer=smtps.aruba.it
+      - EmailConfiguration__Port=465
+      - EmailConfiguration__UserName=noreply@opencashflow.cloud
+      - EmailConfiguration__Password=${SMTP_PASSWORD:-set-me}
+    ports:
+      - "5200:8080"
+
+  web:
+    build:
+      context: .
+      dockerfile: OpenCashFlow/Dockerfile
+    container_name: gi-web
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - EmailConfiguration__From=noreply@opencashflow.cloud
+      - EmailConfiguration__SmtpServer=smtps.aruba.it
+      - EmailConfiguration__Port=465
+      - EmailConfiguration__UserName=noreply@opencashflow.cloud
+      - EmailConfiguration__Password=${SMTP_PASSWORD:-set-me}
+    ports:
+      - "5300:8080"
+
+  landing:
+    build:
+      context: .
+      dockerfile: OpenCashFlow-Landing/Dockerfile
+    container_name: gi-landing
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - EmailConfiguration__From=noreply@opencashflow.cloud
+      - EmailConfiguration__SmtpServer=smtps.aruba.it
+      - EmailConfiguration__Port=465
+      - EmailConfiguration__UserName=noreply@opencashflow.cloud
+      - EmailConfiguration__Password=${SMTP_PASSWORD:-set-me}
+    ports:
+      - "5400:8080"
+
+volumes:
+  pgdata:

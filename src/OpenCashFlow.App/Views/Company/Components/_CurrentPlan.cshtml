@@ -1,0 +1,78 @@
+﻿@model Company
+@{
+    DateTime dataInizio = Model.StartingContract;    // Start date
+    DateTime dataFine = Model.EndingContract;        // End date
+    DateTime dataCorrente = DateTime.UtcNow.Date;       // Current date
+
+    // Calculate total days between start and end date
+    int giorniTotali = (int)(dataFine - dataInizio).TotalDays;
+
+    // Calculate elapsed days between start date and current date
+    int giorniTrascorsi = (int)(dataCorrente - dataInizio).TotalDays;
+
+    // Calculate percentage
+    double percentuale = (double)giorniTrascorsi / giorniTotali * 100;
+}
+
+<div class="card mb-4">
+    <!-- Current Plan -->
+    <h5 class="card-header">@Localizer["Current Plan"]</h5>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-1">
+                <div class="mb-3">
+                    <h6 class="mb-1">@Localizer["Your Current Plan is {0}", "Basic"] </h6>
+                    <p>A simple start for everyone</p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="mb-1">@Localizer["Active until {0}", Model.EndingContract.ToLongDateString()]</h6>
+                    <p>We will send you a notification upon Subscription expiration</p>
+                </div>
+                <div class="mb-3">
+                    @* <h6 class="mb-1"><span class="me-2">@Localizer["{0} {1} Per Month", Model.MonthlyPrice, Model.MonthlyPriceCurrency]</span> <span class="badge bg-label-primary">Popular</span></h6> *@
+                    <p>Standard plan for small to medium businesses</p>
+                </div>
+            </div>
+            <div class="col-md-6 mb-1">
+                @if (Model.EndingContract.Subtract(DateTime.Today).Days >= 50)
+                {
+                    <div class="alert alert-success mb-3" role="alert">
+                        <h5 class="alert-heading mb-1">@Localizer["There is plenty of time!"]</h5>
+                        <span>@Localizer["There is still plenty of time for your subscription."]</span>
+                    </div>
+                }
+                else if (Model.EndingContract.Subtract(DateTime.Today).Days <= 50 && Model.EndingContract.Subtract(DateTime.Today).Days > 29)
+                {
+                    <div class="alert alert-warning mb-3" role="alert">
+                        <h5 class="alert-heading mb-1">@Localizer["We need your attention!"]</h5>
+                        <span>@Localizer["Your plan requires update"]</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-danger mb-3" role="alert">
+                        <h5 class="alert-heading mb-1">@Localizer["Expiring soon!"]</h5>
+                        <span>@Localizer["Your subscription is expiring soon!"]</span>
+                    </div>
+                }
+
+                <div class="plan-statistics">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="mb-2">@Localizer["Days"]</h6>
+                        <h6 class="mb-2">@Localizer["{0} of {1} Days", DateTime.Today.Subtract(Model.StartingContract).Days, Model.EndingContract.Subtract(Model.StartingContract).Days]</h6>
+                    </div>
+                    <div class="progress">
+
+
+                        <div class="progress-bar w-@Convert.ToInt32(percentuale) @(percentuale > 75 ? "bg-warning" : "") @(percentuale > 90 ? "bg-danger" : "")" role="progressbar" style="width: @Convert.ToInt32(percentuale)%"
+                             aria-valuenow="@Convert.ToInt32(percentuale)" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <p class="mt-1 mb-0">@Localizer["{0} days remaining until your plan requires update", Model.EndingContract.Subtract(DateTime.Today).Days]</p>
+                </div>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary me-2 mt-2 waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#pricingModal">Upgrade Plan</button>
+            </div>
+        </div>
+    </div>
+</div>

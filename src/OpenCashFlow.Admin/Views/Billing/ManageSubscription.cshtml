@@ -1,0 +1,542 @@
+@model OpenCashFlow.Admin.Models.Billing.ManageSubscriptionViewModel
+@{
+    ViewData["Title"] ??= "Manage Subscription";
+    var sub = Model.Subscription;
+}
+
+@section PageStyles {
+<style>
+    .subscription-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem; }
+    .subscription-header h4 { margin-bottom: .5rem; font-weight: 700; }
+    .subscription-header p { opacity: .9; margin: 0; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .info-card { background: #fff; border-radius: 10px; padding: 1.25rem; border: 1px solid var(--bs-border-color); }
+    .info-card-label { font-size: .875rem; color: var(--bs-secondary-color); font-weight: 500; text-transform: uppercase; margin-bottom: .5rem; }
+    .info-card-value { font-size: 1.25rem; font-weight: 600; word-break: break-all; }
+    .action-card { background: #fff; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--bs-border-color); }
+    .action-card h5 { font-size: 1.125rem; margin-bottom: 1rem; font-weight: 600; }
+    .action-card .form-label { font-weight: 500; font-size: .875rem; }
+    .btn-stripe { background: #635bff; color: white; border: none; }
+    .btn-stripe:hover { background: #5145e6; color: white; }
+    .webhook-table { font-size: .875rem; }
+    .webhook-table td { padding: .5rem; vertical-align: middle; }
+    .badge-status { font-size: .75rem; padding: .35rem .65rem; }
+</style>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="mb-1">Manage Subscription</h4>
+        <p class="text-muted mb-0">Manage subscription, payments, and Stripe settings</p>
+    </div>
+    <a asp-action="Subscriptions" class="btn btn-outline-secondary">
+        <i class="ri-arrow-left-line"></i> Back to list
+    </a>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        <i class="ri-error-warning-line"></i>
+        <strong>Error:</strong> @Model.ErrorMessage
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="alert alert-success" role="alert">
+        <i class="ri-checkbox-circle-line"></i>
+        <strong>Success:</strong> @Model.SuccessMessage
+    </div>
+}
+
+@if (sub == null)
+{
+    <div class="alert alert-warning">
+        <i class="ri-information-line"></i>
+        Subscription not found or data unavailable.
+    </div>
+}
+else
+{
+    <!-- Subscription Header -->
+    <div class="subscription-header">
+        <h4>@sub.CompanyName</h4>
+        <p><strong>Plan:</strong> @sub.PlanName | <strong>Cycle:</strong> @sub.BillingCycle | <strong>Status:</strong> @sub.RenewalStatus</p>
+    </div>
+
+    <!-- Quick Info Grid -->
+    <div class="info-grid">
+        <div class="info-card">
+            <div class="info-card-label">Subscription ID</div>
+            <div class="info-card-value">@sub.SubscriptionID</div>
+        </div>
+        <div class="info-card">
+            <div class="info-card-label">Company ID</div>
+            <div class="info-card-value">@sub.TenantID</div>
+        </div>
+        <div class="info-card">
+            <div class="info-card-label">Cost</div>
+            <div class="info-card-value">€ @sub.Cost.ToString("N2")</div>
+        </div>
+        <div class="info-card">
+            <div class="info-card-label">Next billing</div>
+            <div class="info-card-value">@sub.NextBillingDate.ToString("dd/MM/yyyy")</div>
+        </div>
+    </div>
+
+    <!-- Management type badge -->
+    <div class="alert @(Model.IsManualSubscription ? "alert-info" : "alert-primary") mb-3">
+        @if (Model.IsManualSubscription)
+        {
+            <text><i class="ri-hand-coin-line"></i> <strong>Manual Subscription</strong> - This subscription is managed manually (bank transfer, cash, etc.) and does not use Stripe.</text>
+        }
+        else
+        {
+            <text><i class="ri-bank-card-line"></i> <strong>Stripe Subscription</strong> - This subscription is managed automatically via Stripe.</text>
+        }
+    </div>
+
+    @if (Model.IsManualSubscription)
+    {
+        <!-- MANUAL MANAGEMENT -->
+        <div class="action-card border-info">
+            <h5><i class="ri-calendar-check-line"></i> Extend Manual Subscription</h5>
+            <p class="text-muted">Extend the subscription period after receiving payment (bank transfer, cash, etc.)</p>
+            <form asp-action="ManualExtendSubscription" asp-route-id="@sub.SubscriptionID" method="post">
+                @Html.AntiForgeryToken()
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="months" class="form-label">Months to add</label>
+                        <select class="form-select" id="months" name="months" required>
+                            <option value="1">1 month</option>
+                            <option value="3">3 months</option>
+                            <option value="6">6 months</option>
+                            <option value="12" selected>12 months (1 year)</option>
+                            <option value="24">24 months (2 years)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <label for="reasonManual" class="form-label">Reason (optional)</label>
+                        <input type="text" class="form-control" id="reasonManual" name="reason" placeholder="e.g., Bank transfer received, invoice #1234">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success mt-3">
+                    <i class="ri-arrow-right-up-line"></i> Extend Subscription
+                </button>
+            </form>
+        </div>
+
+        <div class="alert alert-warning">
+            <i class="ri-information-line"></i>
+            <strong>Note:</strong> For manual subscriptions, the Stripe operations below are not available.
+            Use the form above to extend the period after receiving payment from the customer.
+        </div>
+    }
+    else
+    {
+        <!-- STRIPE MANAGEMENT -->
+
+        <!-- Stripe Links -->
+        @if (!string.IsNullOrWhiteSpace(Model.StripeDashboardUrl) || !string.IsNullOrWhiteSpace(Model.StripeCustomerUrl))
+        {
+            <div class="action-card">
+                <h5><i class="ri-external-link-line"></i> Stripe Dashboard Links</h5>
+                <div class="d-flex gap-2">
+                    @if (!string.IsNullOrWhiteSpace(Model.StripeDashboardUrl))
+                    {
+                        <a href="@Model.StripeDashboardUrl" target="_blank" class="btn btn-stripe">
+                            <i class="ri-link"></i> Open Subscription in Stripe
+                        </a>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.StripeCustomerUrl))
+                    {
+                        <a href="@Model.StripeCustomerUrl" target="_blank" class="btn btn-stripe">
+                            <i class="ri-user-line"></i> Open Customer in Stripe
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Sync Action -->
+    <div class="action-card">
+        <h5><i class="ri-refresh-line"></i> Stripe synchronization</h5>
+        <p class="text-muted">Force a refresh of the subscription data directly from Stripe.</p>
+        <form asp-action="SyncSubscription" asp-route-id="@sub.SubscriptionID" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-primary">
+                <i class="ri-refresh-line"></i> Sync Now
+            </button>
+        </form>
+    </div>
+
+    <!-- Extend Trial -->
+    <div class="action-card">
+        <h5><i class="ri-timer-line"></i> Extend Trial</h5>
+        <form asp-action="ExtendTrial" asp-route-id="@sub.SubscriptionID" method="post">
+            @Html.AntiForgeryToken()
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="days" class="form-label">Days to add</label>
+                    <input type="number" class="form-control" id="days" name="days" min="1" max="365" value="7" required>
+                </div>
+                <div class="col-md-8">
+                    <label for="reason" class="form-label">Reason (optional)</label>
+                    <input type="text" class="form-control" id="reason" name="reason" placeholder="e.g., Customer request for extended testing">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-warning mt-3">
+                <i class="ri-time-line"></i> Extend Trial
+            </button>
+        </form>
+    </div>
+
+    <!-- Apply Credit -->
+    <div class="action-card">
+        <h5><i class="ri-money-euro-circle-line"></i> Apply Credit</h5>
+        <form asp-action="ApplyCredit" asp-route-id="@sub.SubscriptionID" method="post">
+            @Html.AntiForgeryToken()
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="amount" class="form-label">Amount (EUR)</label>
+                    <input type="number" class="form-control" id="amount" name="amount" min="0.01" step="0.01" placeholder="10.00" required>
+                </div>
+                <div class="col-md-8">
+                    <label for="description" class="form-label">Description</label>
+                    <input type="text" class="form-control" id="description" name="description" placeholder="e.g., Promotional credit - Black Friday" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success mt-3">
+                <i class="ri-gift-line"></i> Apply Credit
+            </button>
+        </form>
+    </div>
+
+    <!-- Send Invoice -->
+    @if (!string.IsNullOrWhiteSpace(sub.StripeInvoiceID))
+    {
+        <div class="action-card">
+            <h5><i class="ri-file-list-line"></i> Send Invoice Manually</h5>
+            <p class="text-muted">Latest invoice: <code>@sub.StripeInvoiceID</code></p>
+            <form asp-action="SendInvoice" asp-route-id="@sub.SubscriptionID" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="stripeInvoiceId" value="@sub.StripeInvoiceID" />
+                <button type="submit" class="btn btn-info">
+                    <i class="ri-mail-send-line"></i> Send Invoice
+                </button>
+            </form>
+        </div>
+    }
+    } @* End Stripe/Manual if-else block *@
+
+    <!-- Change Plan -->
+    @if (Model.AvailablePlans.Any())
+    {
+        <div class="action-card border-warning">
+            <h5><i class="ri-arrow-left-right-line"></i> Change Plan</h5>
+            <p class="text-muted">
+                Current plan: <strong>@sub.PlanName</strong>
+                @if (!Model.IsManualSubscription)
+                {
+                    <text> | Plan change (@(sub.BillingCycle == BillingCycle.MONTHLY ? "monthly" : "annual")) will automatically update Stripe.</text>
+                }
+            </p>
+            <form asp-action="ChangePlan" asp-route-id="@sub.SubscriptionID" method="post">
+                @Html.AntiForgeryToken()
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="newPlanId" class="form-label">New Plan</label>
+                        <select class="form-select" id="newPlanId" name="newPlanId" required>
+                            <option value="">-- Select a plan --</option>
+                            @foreach (var plan in Model.AvailablePlans.Where(p => p.PlanID != sub.PlanID))
+                            {
+                                <option value="@plan.PlanID">
+                                    @plan.Name - €@plan.Price/@(plan.BillingCycle == BillingCycle.MONTHLY ? "month" : "year") @(plan.HasTrial ? $"(trial {plan.TrialDays} days)" : "")
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="reasonChangePlan" class="form-label">Reason (optional)</label>
+                        <input type="text" class="form-control" id="reasonChangePlan" name="reason" placeholder="e.g., Customer-requested upgrade">
+                    </div>
+                </div>
+                @if (!Model.IsManualSubscription)
+                {
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" id="prorate" name="prorate" value="true" checked>
+                        <label class="form-check-label" for="prorate">
+                            Apply proration (calculate credit/debit proportional to the period)
+                        </label>
+                    </div>
+                }
+                else
+                {
+                    <input type="hidden" name="prorate" value="false" />
+                }
+                <button type="submit" class="btn btn-warning mt-3">
+                    <i class="ri-refresh-line"></i> Change Plan
+                </button>
+            </form>
+        </div>
+    }
+
+    <!-- Cancel Subscription -->
+    <div class="action-card border-danger">
+        <h5 class="text-danger"><i class="ri-close-circle-line"></i> Cancel Subscription</h5>
+        <p class="text-muted">Warning: this action will cancel the subscription @(Model.IsManualSubscription ? "in the database" : "in Stripe and in the database").</p>
+        <form asp-action="AdminCancelSubscription" asp-route-id="@sub.SubscriptionID" method="post" onsubmit="return confirm('Are you sure you want to cancel this subscription?');">
+            @Html.AntiForgeryToken()
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="adminReason" class="form-label">Admin reason (required)</label>
+                    <textarea class="form-control" id="adminReason" name="adminReason" rows="2" required placeholder="e.g., Customer request via email, ToS violation, etc."></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label d-block">Cancellation type</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="immediately" id="endOfPeriod" value="false" checked>
+                        <label class="form-check-label" for="endOfPeriod">
+                            End of billing period
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="immediately" id="immediately" value="true">
+                        <label class="form-check-label" for="immediately">
+                            Immediate (end now)
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-danger mt-3">
+                <i class="ri-delete-bin-line"></i> Cancel Subscription
+            </button>
+        </form>
+    </div>
+
+    <!-- Payment Methods -->
+    @if (sub.PaymentMethods.Any())
+    {
+        <div class="action-card">
+            <h5><i class="ri-bank-card-line"></i> Payment Methods</h5>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Type</th>
+                            <th>Brand</th>
+                            <th>Last 4 digits</th>
+                            <th>Expiration</th>
+                            <th>Default</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var pm in sub.PaymentMethods)
+                        {
+                            <tr>
+                                <td><code>@pm.PaymentMethodId</code></td>
+                                <td>@pm.Type</td>
+                                <td>@pm.Brand</td>
+                                <td>@pm.Last4</td>
+                                <td>@(pm.ExpMonth.HasValue && pm.ExpYear.HasValue ? $"{pm.ExpMonth:D2}/{pm.ExpYear}" : "N/A")</td>
+                                <td>
+                                    @if (pm.IsDefault)
+                                    {
+                                        <span class="badge bg-success">Default</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <!-- Webhook Events -->
+    @if (sub.RecentWebhookEvents.Any())
+    {
+        <div class="action-card">
+            <h5><i class="ri-pulse-line"></i> Recent Webhook Events</h5>
+            <div class="table-responsive">
+                <table class="table table-sm webhook-table">
+                    <thead>
+                        <tr>
+                            <th>Event ID</th>
+                            <th>Type</th>
+                            <th>Received</th>
+                            <th>Processed</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var evt in sub.RecentWebhookEvents.Take(10))
+                        {
+                            <tr>
+                                <td><code class="small">@evt.EventId</code></td>
+                                <td><span class="badge bg-info">@evt.EventType</span></td>
+                                <td>@evt.ReceivedUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@(evt.ProcessedUtc.HasValue ? evt.ProcessedUtc.Value.ToString("dd/MM/yyyy HH:mm") : "-")</td>
+                                <td>
+                                    @if (evt.Success)
+                                    {
+                                        <span class="badge bg-success badge-status">Success</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger badge-status" title="@evt.ErrorMessage">Failed</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <!-- Additional Details -->
+    <div class="action-card">
+        <h5><i class="ri-information-line"></i> Additional Details</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Start Date:</dt>
+                    <dd class="col-sm-7">@sub.StartDate.ToString("dd/MM/yyyy")</dd>
+
+                    <dt class="col-sm-5">End Date:</dt>
+                    <dd class="col-sm-7">@sub.EndDate.ToString("dd/MM/yyyy")</dd>
+
+                    <dt class="col-sm-5">Billing Day:</dt>
+                    <dd class="col-sm-7">@sub.BillingDay</dd>
+
+                    <dt class="col-sm-5">Discount:</dt>
+                    <dd class="col-sm-7">@(sub.Discount.HasValue ? $"{sub.Discount.Value}%" : "None")</dd>
+                </dl>
+            </div>
+            <div class="col-md-6">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Promo Code:</dt>
+                    <dd class="col-sm-7">@(sub.PromoCode ?? "-")</dd>
+
+                    <dt class="col-sm-5">Discount Expiration:</dt>
+                    <dd class="col-sm-7">@(sub.DiscountExpiration.HasValue ? sub.DiscountExpiration.Value.ToString("dd/MM/yyyy") : "-")</dd>
+
+                    <dt class="col-sm-5">Cancellation Date:</dt>
+                    <dd class="col-sm-7">@(sub.CancellationDate.HasValue ? sub.CancellationDate.Value.ToString("dd/MM/yyyy") : "-")</dd>
+
+                    <dt class="col-sm-5">Cancellation Reason:</dt>
+                    <dd class="col-sm-7">@(sub.CancellationReason ?? "-")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stripe IDs Reference -->
+    <div class="action-card bg-light">
+        <h6 class="mb-3"><i class="ri-code-line"></i> Stripe References</h6>
+        <div class="row small">
+            <div class="col-md-4">
+                <strong>Subscription ID:</strong><br/>
+                <code>@(sub.StripeSubscriptionID ?? "N/A")</code>
+            </div>
+            <div class="col-md-4">
+                <strong>Customer ID:</strong><br/>
+                <code>@(sub.StripeCustomerID ?? "N/A")</code>
+            </div>
+            <div class="col-md-4">
+                <strong>Price ID:</strong><br/>
+                <code>@(sub.StripePriceID ?? "N/A")</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Trail -->
+    @if (Model.AuditLog.Any())
+    {
+        <div class="action-card">
+            <h5><i class="ri-history-line"></i> Audit Trail - Admin Actions</h5>
+            <p class="text-muted small">History of administrative actions performed on this subscription.</p>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Action</th>
+                            <th>Details</th>
+                            <th>Level</th>
+                            <th>Performed by</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var entry in Model.AuditLog)
+                        {
+                            <tr>
+                                <td class="small">@entry.Timestamp.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td>
+                                    @if (entry.Action.Contains("Created"))
+                                    {
+                                        <span class="badge bg-success"><i class="ri-add-circle-line"></i> @entry.Action</span>
+                                    }
+                                    else if (entry.Action.Contains("Updated") || entry.Action.Contains("Changed"))
+                                    {
+                                        <span class="badge bg-primary"><i class="ri-edit-line"></i> @entry.Action</span>
+                                    }
+                                    else if (entry.Action.Contains("Cancelled") || entry.Action.Contains("Deleted"))
+                                    {
+                                        <span class="badge bg-danger"><i class="ri-close-circle-line"></i> @entry.Action</span>
+                                    }
+                                    else if (entry.Action.Contains("Stripe Event"))
+                                    {
+                                        <span class="badge bg-info"><i class="ri-webhook-line"></i> @entry.Action</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@entry.Action</span>
+                                    }
+                                </td>
+                                <td class="small text-muted">@entry.Details</td>
+                                <td>
+                                    @if (entry.Level == "Information")
+                                    {
+                                        <span class="badge bg-light text-dark">Info</span>
+                                    }
+                                    else if (entry.Level == "Warning")
+                                    {
+                                        <span class="badge bg-warning">Warning</span>
+                                    }
+                                    else if (entry.Level == "Error")
+                                    {
+                                        <span class="badge bg-danger">Error</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@entry.Level</span>
+                                    }
+                                </td>
+                                <td class="small">
+                                    @if (!string.IsNullOrWhiteSpace(entry.PerformedBy))
+                                    {
+                                        <text>@entry.PerformedBy</text>
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="action-card bg-light">
+            <p class="text-muted mb-0"><i class="ri-information-line"></i> No admin actions recorded for this subscription.</p>
+        </div>
+    }
+}

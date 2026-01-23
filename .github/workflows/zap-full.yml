@@ -1,0 +1,260 @@
+name: ZAP Full Scan (Docker Compose)
+
+on:
+  # schedule:
+  #   - cron: "0 2 * * *" # nightly 02:00 UTC
+  workflow_dispatch:
+  pull_request:
+    branches: [ master ]
+  push:
+    tags:
+      # Global RC tags
+      - 'v*.*.*-RC'
+      - 'v*.*.*.*-RC'
+
+jobs:
+  zap-compose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      # URLs exposed by docker-compose (host published ports)
+      API_BASE_URL: http://localhost:5100
+      APP_BASE_URL: http://localhost:5200
+      WEB_BASE_URL: http://localhost:5300
+      LANDING_BASE_URL: http://localhost:5400
+
+      ZAP_API_TARGET: http://host.docker.internal:5100
+      ZAP_APP_TARGET: http://host.docker.internal:5200
+      ZAP_WEB_TARGET: http://host.docker.internal:5300
+      ZAP_LANDING_TARGET: http://host.docker.internal:5400
+
+      REPORTS_DIR: ${{ github.workspace }}/reports
+
+      # Quality gate thresholds (0 = no Medium/High allowed)
+      MAX_MEDIUM: "0"
+      MAX_HIGH: "0"
+
+      # Reports & ZAP image
+      # Docker Hub image that includes helper scripts (/zap/zap-*.py)
+      ZAP_IMAGE: zaproxy/zap-stable
+
+      # (Optional) ZAP context file in the repo for auth/sessions
+      CONTEXT_FILE: ${{ github.workspace }}/zap.context
+
+      ACT: "false"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare .env for docker-compose
+        run: |
+          # Variabili consumate dal tuo compose
+          cat > .env << 'EOF'
+          JWT_SECRET=test-secret-key-for-ci-only
+          SMTP_PASSWORD=dummy-password
+          EOF
+
+      - name: Start stack
+        run: |
+          set -euo pipefail
+          docker compose version
+          docker compose up -d --quiet-pull
+          mkdir -p "${REPORTS_DIR}"
+          docker compose ps
+
+      - name: Wait for services health
+        run: |
+          set -euo pipefail
+
+          wait_url () {
+            local url="$1" name="$2"
+            echo "⏳ Waiting for $name at $url"
+            # Consider it UP if ANY HTTP response is returned (even 404/401, etc.)
+            timeout 180 bash -c '
+              until code=$(curl -sS -o /dev/null -w "%{http_code}" "'"$url"'/healthz" || true); \
+                    [[ "$code" =~ ^[0-9]{3}$ ]] ; do
+                sleep 5
+              done
+            ' || {
+              # fallback: prova la root /
+              timeout 120 bash -c '
+                until code=$(curl -sS -o /dev/null -w "%{http_code}" "'"$url"'" || true); \
+                      [[ "$code" =~ ^[0-9]{3}$ ]] ; do
+                  sleep 5
+                done
+              '
+            }
+            echo "✅ $name reachable"
+          }
+
+          wait_url "${API_BASE_URL}" "API"
+          wait_url "${APP_BASE_URL}" "APP"
+          wait_url "${WEB_BASE_URL}" "WEB" || true
+          wait_url "${LANDING_BASE_URL}" "LANDING" || true
+
+      - name: Pre-pull ZAP image (amd64)
+        run: |
+          set -euo pipefail
+          echo "🛳️  Pulling ZAP image: ${ZAP_IMAGE} (platform linux/amd64)"
+          docker pull --platform linux/amd64 "${ZAP_IMAGE}"
+          echo "✅ Image ready"
+
+      - name: Run ZAP scans in parallel (API + APP)
+        run: |
+          set -euo pipefail
+
+          banner() { printf "\n\n==== %s ====\n\n" "$1"; }
+          hline() { printf '%*s\n' "${1:-40}" '' | tr ' ' '-'; }
+
+          CONTEXT_ARG=""
+          if [ -f "$CONTEXT_FILE" ]; then
+            cp "$CONTEXT_FILE" "${REPORTS_DIR}/"
+            CONTEXT_ARG="-c /zap/wrk/$(basename "$CONTEXT_FILE")"
+            echo "🔐 Using ZAP context: $(basename "$CONTEXT_FILE")"
+          else
+            echo "ℹ️  No ZAP context provided (anonymous scan)"
+          fi
+
+          run_scan() {
+            local label="$1" target_url="$2" html_out="$3" xml_out="$4"
+            local ts start dur
+            banner "▶️  Starting ${label} scan"
+            echo "Target: ${target_url}"
+            echo "HTML  : ${REPORTS_DIR}/${html_out}"
+            echo "XML   : ${REPORTS_DIR}/${xml_out}"
+            ts=$(date +%s)
+            docker run --rm --platform linux/amd64 --add-host host.docker.internal:host-gateway \
+              -v "${REPORTS_DIR}:/zap/wrk" \
+              "${ZAP_IMAGE}" \
+              /zap/zap-full-scan.py \
+                -I ${CONTEXT_ARG} \
+                -t "$target_url" \
+                -r "$html_out" \
+                -x "$xml_out" || true
+            dur=$(( $(date +%s) - ts ))
+            echo
+            echo "⏱️  ${label} finished in ${dur}s"
+            if [ -s "${REPORTS_DIR}/${html_out}" ]; then
+              echo "✅ Report generated: ${REPORTS_DIR}/${html_out}"
+            else
+              echo "⚠️  Report missing or empty: ${REPORTS_DIR}/${html_out}"
+            fi
+          }
+
+          # Run API and APP in parallel
+          run_scan "API" "${ZAP_API_TARGET}"  "zap-api-report.html"  "zap-api-report.xml" &
+          PID_API=$!
+
+          run_scan "APP" "${ZAP_APP_TARGET}"  "zap-app-report.html"  "zap-app-report.xml" &
+          PID_APP=$!
+
+          # Wait for both
+          wait $PID_API || true
+          wait $PID_APP || true
+
+          echo
+          hline 60
+          echo "📦 Reports directory:"; ls -lh "${REPORTS_DIR}" || true
+          hline 60
+
+      # (Optional) enable scans for Web / Landing
+      #- name: Run ZAP scan (WEB - optional)
+      #  run: |
+      #    set -euo pipefail
+      #    docker run --rm --platform linux/amd64 --add-host host.docker.internal:host-gateway \
+      #      -v "${REPORTS_DIR}:/zap/wrk" \
+      #      "${ZAP_IMAGE}" \
+      #      /zap/zap-full-scan.py \
+      #        -I \
+      #        -t "${ZAP_WEB_TARGET}" \
+      #        -r "zap-web-report.html" \
+      #        -x "zap-web-report.xml" || true
+
+      #- name: Run ZAP scan (LANDING - optional)
+      #  run: |
+      #    set -euo pipefail
+      #    docker run --rm --platform linux/amd64 --add-host host.docker.internal:host-gateway \
+      #      -v "${REPORTS_DIR}:/zap/wrk" \
+      #      "${ZAP_IMAGE}" \
+      #      /zap/zap-full-scan.py \
+      #        -I \
+      #        -t "${ZAP_LANDING_TARGET}" \
+      #        -r "zap-landing-report.html" \
+      #        -x "zap-landing-report.xml" || true
+
+      - name: Quality Gate (Medium/High thresholds)
+        run: |
+          set -euo pipefail
+          failed=0
+          summary_table="| Report | Medium | High | Status |\n|---|---:|---:|:--|\n"
+
+          for report in zap-api-report.html zap-app-report.html; do
+            file="${REPORTS_DIR}/${report}"
+            if [ ! -s "$file" ]; then
+              echo "⚠️  Skip (report missing or empty): $file"
+              summary_table+="| ${report} | - | - | ❔ missing |\n"
+              continue
+            fi
+            MEDIUM=$(grep -o "Medium" "$file" | wc -l | xargs || echo 0)
+            HIGH=$(grep -o "High" "$file" | wc -l | xargs || echo 0)
+            status="✅ pass"
+            if [ "$MEDIUM" -gt "$MAX_MEDIUM" ] || [ "$HIGH" -gt "$MAX_HIGH" ]; then
+              echo "❌ Quality gate FAILED for $report (Medium=$MEDIUM, High=$HIGH; thresholds M<=${MAX_MEDIUM}, H<=${MAX_HIGH})"
+              status="❌ fail"
+              failed=1
+            else
+              echo "📄 $report -> Medium=$MEDIUM, High=$HIGH (thresholds M<=${MAX_MEDIUM}, H<=${MAX_HIGH})"
+            fi
+            summary_table+="| ${report} | ${MEDIUM} | ${HIGH} | ${status} |\n"
+          done
+
+          echo
+          echo "=== Quality Gate Summary ==="
+          printf "%s\n" "$summary_table"
+
+          # Publish markdown summary if available
+          if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+            {
+              echo "## ZAP Quality Gate"
+              echo
+              echo "$summary_table"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "📝 Summary written to \$GITHUB_STEP_SUMMARY"
+          fi
+
+          [ "$failed" -eq 0 ] || exit 1
+
+      - name: Upload ZAP Reports
+        if: ${{ always() && env.ACT != 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-reports
+          path: reports/
+
+      # (Optional) send HTML reports to Slack: add secrets to enable
+      - name: Send reports to Slack (optional)
+        if: ${{ always() && env.ACT != 'true' && secrets.SLACK_BOT_TOKEN != '' && secrets.SLACK_CHANNEL_ID != '' }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: |
+          for f in "${REPORTS_DIR}"/*.html; do
+            [ -f "$f" ] || continue
+            curl -sS -F "file=@${f}" \
+                 -F "initial_comment=ZAP scan: $(basename "$f")" \
+                 -F "channels=$SLACK_CHANNEL_ID" \
+                 -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+                 https://slack.com/api/files.uploadV2 >/dev/null || true
+          done
+
+      - name: Show docker logs (on failure)
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs --no-color --timestamps --tail=300 || true
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

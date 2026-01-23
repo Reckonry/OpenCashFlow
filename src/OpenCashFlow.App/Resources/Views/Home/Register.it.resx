@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="RegisterTitle" xml:space="preserve">
+    <value>Registrazione</value>
+  </data>
+  <data name="RegisterHeading" xml:space="preserve">
+    <value>Crea il tuo account</value>
+  </data>
+  <data name="RegisterSubtitle" xml:space="preserve">
+    <value>Gestisci incassi e pagamenti in modo semplice e veloce.</value>
+  </data>
+  <data name="CompanyName" xml:space="preserve">
+    <value>Nome azienda</value>
+  </data>
+  <data name="EnterYourCompanyName" xml:space="preserve">
+    <value>Inserisci il nome dell'azienda</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="EnterYourEmail" xml:space="preserve">
+    <value>Inserisci la tua email</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="EnterYourPassword" xml:space="preserve">
+    <value>Inserisci la password</value>
+  </data>
+  <data name="IAgreeTo" xml:space="preserve">
+    <value>Accetto</value>
+  </data>
+  <data name="PrivacyPolicyAndTerms" xml:space="preserve">
+    <value>informativa privacy &amp; termini</value>
+  </data>
+  <data name="SignUpButton" xml:space="preserve">
+    <value>Registrati</value>
+  </data>
+  <data name="AlreadyHaveAnAccount" xml:space="preserve">
+    <value>Hai già un account?</value>
+  </data>
+  <data name="SignInInstead" xml:space="preserve">
+    <value>Accedi invece</value>
+  </data>
+  <data name="AuthIllustrationAlt" xml:space="preserve">
+    <value>Illustrazione di autenticazione</value>
+  </data>
+  <data name="MaskIllustrationAlt" xml:space="preserve">
+    <value>Illustrazione della maschera</value>
+  </data>
+</root>

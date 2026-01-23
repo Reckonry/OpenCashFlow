@@ -1,0 +1,128 @@
+@model IEnumerable<Payment_DocumentType_List_DTO>
+@{
+    ViewData["Title"] = Localizer["DocumentTypesTitle"].Value;
+    var gi = User?.FindFirst("TenantID")?.Value;
+    Guid myCompanyId = Guid.TryParse(gi, out var g) ? g : Guid.Empty;
+}
+
+@await Html.PartialAsync("Components/_Company_ViewHeader", ViewData)
+
+<div class="alert alert-info">
+    <i class="ri-information-line me-2"></i>@Localizer["DocumentTypesExplanation"]
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="card-title mb-0">@Localizer["DocumentTypesHeading"]</h5>
+        <a class="btn btn-sm btn-primary" href="/Company/Payment_DocumentTypes/Create">@Localizer["NewTypeButton"]</a>
+    </div>
+    @if (TempData["Error"] is string err && !string.IsNullOrWhiteSpace(err))
+    {
+        <div class="alert alert-danger m-3">@err</div>
+    }
+    <div class="table-responsive">
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>@Localizer["Name"]</th>
+                    <th>@Localizer["Description"]</th>
+                    <th>@Localizer["Visible"]</th>
+                    <th>@Localizer["Scope"]</th>
+                    <th class="text-end">@Localizer["Actions"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model ?? Enumerable.Empty<Payment_DocumentType_List_DTO>())
+                {
+                    var canEdit = item.TenantID.HasValue && item.TenantID.Value == myCompanyId;
+                    var typeName = SharedLocalizer[item.DocumentTypeName ?? ""].Value;
+                    var typeDesc = SharedLocalizer[item.DocumentTypeDescription ?? ""].Value;
+                    <tr>
+                        <td>@(string.IsNullOrEmpty(typeName) || typeName == item.DocumentTypeName ? item.DocumentTypeName : typeName)</td>
+                        <td>@(string.IsNullOrEmpty(typeDesc) || typeDesc == item.DocumentTypeDescription ? item.DocumentTypeDescription : typeDesc)</td>
+                        <td>
+                            @if (item.Visible)
+                            {
+                                <span class="badge bg-label-success">@Localizer["Visible"]</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-label-secondary">@Localizer["Hidden"]</span>
+                            }
+                        </td>
+                        <td>
+                            @if (item.TenantID == null)
+                            {
+                                <span class="badge bg-label-info">@Localizer["Global"]</span>
+                            }
+                            else if (item.TenantID == myCompanyId)
+                            {
+                                <span class="badge bg-label-primary">@Localizer["Personal"]</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (item.TenantID == myCompanyId)
+                            {
+                                <a class="btn btn-sm btn-outline-primary me-1" href="/Company/Payment_DocumentTypes/Edit/@item.DocumentTypeID">@SharedLocalizer["Edit"]</a>
+                                <button type="button" class="btn btn-sm btn-outline-danger btn-delete-doc-type" data-id="@item.DocumentTypeID" data-name="@item.DocumentTypeName">@SharedLocalizer["Delete"]</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal fade" id="confirmDeleteDocTypeModal" tabindex="-1" aria-labelledby="confirmDeleteDocTypeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="confirmDeleteDocTypeModalLabel"><i class="ri-alert-line me-2"></i>@Localizer["ConfirmDeletion"]</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>@Localizer["AreYouSureDelete"] <strong id="docTypeToDeleteName"></strong>?</p>
+        <p class="mb-0 text-muted">@Localizer["IfUsedWillBeSoftDeleted"]</p>
+      </div>
+      <div class="modal-footer">
+        <button id="btnConfirmDeleteDocType" type="submit" form="deleteDocTypeForm" class="btn btn-danger">
+          <i class="ri-delete-bin-7-line me-1"></i>@SharedLocalizer["YesDelete"]
+        </button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@SharedLocalizer["Discard"]</button>
+      </div>
+    </div>
+  </div>
+ </div>
+
+<!-- Delete post form -->
+<form id="deleteDocTypeForm" method="post" action="/Company/Payment_DocumentTypes/Delete">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="DocumentTypeID" id="DeleteDocumentTypeID" />
+ </form>
+
+@section PageScripts {
+    <script>
+        (function(){
+            let isDeleteModalOpen = false;
+            $(document).on('click', '.btn-delete-doc-type', function(){
+                if (isDeleteModalOpen) return;
+                isDeleteModalOpen = true;
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                $('#DeleteDocumentTypeID').val(id);
+                $('#docTypeToDeleteName').text(name);
+                const modalEl = document.getElementById('confirmDeleteDocTypeModal');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl, { backdrop: 'static', keyboard: false });
+                modal.show();
+                modalEl.addEventListener('hidden.bs.modal', function handleHidden(){
+                    isDeleteModalOpen = false;
+                    $('#DeleteDocumentTypeID').val('');
+                    $('#docTypeToDeleteName').text('');
+                    modalEl.removeEventListener('hidden.bs.modal', handleHidden);
+                });
+            });
+        })();
+    </script>
+}

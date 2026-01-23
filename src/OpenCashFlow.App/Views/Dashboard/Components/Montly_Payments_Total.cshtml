@@ -1,0 +1,55 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    var ssrAmount = (ViewBag.MonthlyPaymentsTotalText as string) ?? "—";
+    var today = DateTime.Today;
+}
+<!-- Daily Payments Total -->
+<div class="col-xxl-2 col-sm-6">
+    <div class="card h-100">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div class="avatar">
+                    <div class="avatar-initial bg-label-primary rounded-3">
+                        <i class="ri-shopping-cart-2-line ri-24px"></i>
+                    </div>
+                </div>
+                @*
+               <div class="d-flex align-items-center">
+                    <p class="mb-0 text-success me-1">+22%</p>
+                    <i class="ri-arrow-up-s-line text-success"></i>
+                </div>
+                *@
+            </div>
+            <div class="card-info mt-5">
+                <div id="monthly-total-value"
+                    data-url="/internal/Dashboard/MonthlyTotal?year=@today.Year&month=@today.Month">
+                    <h5 class="mb-1">@ssrAmount</h5>
+                </div>
+                <p>@Localizer["MonthlyPayments"]</p>
+                @*<div class="badge bg-label-secondary rounded-pill">Last 4 Month</div>*@
+            </div>
+        </div>
+    </div>
+</div>
+<!--/ Daily Payments Total -->
+<script>
+    (function () {
+        const container = document.getElementById('monthly-total-value');
+        if (!container) return;
+        const url = container.getAttribute('data-url');
+        const refresh = async () => {
+            try {
+                const res = await fetch(url, { credentials: 'same-origin' });
+                if (!res.ok) return;
+                const html = await res.text();
+                container.innerHTML = html;
+            } catch (e) { /* noop */ }
+        };
+        // Immediate refresh to get latest data (no visible delay)
+        refresh();
+        // Periodic refresh every 60s
+        setInterval(refresh, 60000);
+    })();
+</script>

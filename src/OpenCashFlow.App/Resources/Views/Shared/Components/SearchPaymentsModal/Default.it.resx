@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="All" xml:space="preserve">
+    <value>Tutti</value>
+  </data>
+  <data name="Discard" xml:space="preserve">
+    <value>Annulla</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>Data fine</value>
+  </data>
+  <data name="EntryType" xml:space="preserve">
+    <value>Tipo di incasso</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Caricamento</value>
+  </data>
+  <data name="MaxAmount" xml:space="preserve">
+    <value>Importo massimo</value>
+  </data>
+  <data name="MinAmount" xml:space="preserve">
+    <value>Importo minimo</value>
+  </data>
+  <data name="PaymentMethod" xml:space="preserve">
+    <value>Metodo di pagamento</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Cerca</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>Data inizio</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descrizione</value>
+  </data>
+  <data name="DocumentType" xml:space="preserve">
+    <value>Tipo di documento</value>
+  </data>
+</root>

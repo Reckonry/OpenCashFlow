@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CompanySettingsTitle" xml:space="preserve">
+    <value>Impostazioni azienda</value>
+  </data>
+  <data name="Company settings" xml:space="preserve">
+    <value>Company settings</value>
+  </data>
+  <data name="Are you sure you would like to deactivate your account?" xml:space="preserve">
+    <value>Sei sicuro di voler disattivare il tuo account?</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Annullato</value>
+  </data>
+  <data name="Company" xml:space="preserve">
+    <value>Azienda</value>
+  </data>
+  <data name="Customers categories" xml:space="preserve">
+    <value>Categorie clienti</value>
+  </data>
+  <data name="Customers statuses" xml:space="preserve">
+    <value>Stati clienti</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Deactivation Cancelled!!" xml:space="preserve">
+    <value>Disattivazione annullata!</value>
+  </data>
+  <data name="Deleted!" xml:space="preserve">
+    <value>Eliminato!</value>
+  </data>
+  <data name="Edit settings" xml:space="preserve">
+    <value>Modifica impostazioni</value>
+  </data>
+  <data name="Materials categories" xml:space="preserve">
+    <value>Categorie materiali</value>
+  </data>
+  <data name="Please confirm you want to delete account" xml:space="preserve">
+    <value>Conferma di voler eliminare l'account</value>
+  </data>
+  <data name="Projects statuses" xml:space="preserve">
+    <value>Stati progetti</value>
+  </data>
+  <data name="Select a value" xml:space="preserve">
+    <value>Seleziona un valore</value>
+  </data>
+  <data name="Task Templates" xml:space="preserve">
+    <value>Modelli attività</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Sì</value>
+  </data>
+  <data name="Your file has been deleted." xml:space="preserve">
+    <value>Il tuo file è stato eliminato.</value>
+  </data>
+</root>

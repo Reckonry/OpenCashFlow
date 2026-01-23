@@ -1,0 +1,32 @@
+@model Payment_DocumentType_Create_DTO
+@{
+    ViewData["Title"] = Localizer["DocumentTypeCreateTitle"].Value;
+}
+
+@await Html.PartialAsync("Components/_Company_ViewHeader", ViewData)
+
+<div class="card">
+  <h5 class="card-header">@Localizer["DocumentTypeCreateHeading"]</h5>
+  <div class="card-body">
+    <div class="alert alert-info mb-3">
+      <i class="ri-information-line me-2"></i>@Localizer["DocumentTypeExplanation"]
+    </div>
+    <div class="alert alert-secondary">@Localizer["NewTypeWillBeAssociatedToYourCompany"]</div>
+    <form method="post" asp-controller="Company" asp-action="Company_Payment_DocumentType_Create">
+      <div class="mb-3">
+        <label class="form-label" for="DocumentTypeName">@Localizer["DocumentTypeName"]</label>
+        <input class="form-control" asp-for="DocumentTypeName" placeholder="@Localizer["EnterDocumentTypeName"]" aria-label="@Localizer["DocumentTypeName"]" />
+        <span class="text-danger" asp-validation-for="DocumentTypeName"></span>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="DocumentTypeDescription">@Localizer["DocumentTypeDescription"]</label>
+        <input class="form-control" asp-for="DocumentTypeDescription" placeholder="@Localizer["EnterDocumentTypeDescription"]" aria-label="@Localizer["DocumentTypeDescription"]" />
+        <span class="text-danger" asp-validation-for="DocumentTypeDescription"></span>
+      </div>
+      <div class="mt-3">
+        <button type="submit" class="btn btn-success">@SharedLocalizer["Save"]</button>
+        <a class="btn btn-secondary" href="/Company/Payment_DocumentTypes">@SharedLocalizer["Cancel"]</a>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SecurityTitle" xml:space="preserve">
+    <value>Security - OpenCashFlow</value>
+  </data>
+  <data name="ApiKeyIllustrationAlt" xml:space="preserve">
+    <value>API key illustration</value>
+  </data>
+  <data name="API Key List &amp;amp; Access" xml:space="preserve">
+    <value>API Key List &amp;amp; Access</value>
+  </data>
+  <data name="An API key is a simple encrypted string that identifies an application without any principal. They are useful for accessing public data, and are used to associate API requests with your project for quota and billing." xml:space="preserve">
+    <value>An API key is a simple encrypted string that identifies an application without any principal. They are useful for accessing public data, and are used to associate API requests with your project for quota and billing.</value>
+  </data>
+  <data name="Choose Key Type" xml:space="preserve">
+    <value>Choose Key Type</value>
+  </data>
+  <data name="Choose the Api key type you want to create" xml:space="preserve">
+    <value>Choose the Api key type you want to create</value>
+  </data>
+  <data name="Create Key" xml:space="preserve">
+    <value>Create Key</value>
+  </data>
+  <data name="Create an API key" xml:space="preserve">
+    <value>Create an API key</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Name the API key" xml:space="preserve">
+    <value>Name the API key</value>
+  </data>
+  <data name="Security - OpenCashFlow" xml:space="preserve">
+    <value>Security - OpenCashFlow</value>
+  </data>
+  <data name="Server Key 1" xml:space="preserve">
+    <value>Server Key 1</value>
+  </data>
+</root>

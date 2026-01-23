@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CashLedgerTitle" xml:space="preserve"><value>Cash Ledger</value></data>
+  <data name="CashLedgerHeading" xml:space="preserve"><value>Cash Ledger</value></data>
+  <data name="CashLedgerExplanation" xml:space="preserve"><value>The cash ledger tracks all cash balance changes. You can add adjustments to modify the total cash on hand (e.g., withdrawals, deposits, cash count). This feature is visible and editable only by administrators.</value></data>
+  <data name="CurrentCashBalance" xml:space="preserve"><value>Current Cash Balance</value></data>
+  <data name="AddAdjustment" xml:space="preserve"><value>Add Adjustment</value></data>
+  <data name="LoadMore" xml:space="preserve"><value>Load more</value></data>
+  <data name="Amount" xml:space="preserve"><value>Amount</value></data>
+  <data name="RefType" xml:space="preserve"><value>Ref Type</value></data>
+  <data name="Reason" xml:space="preserve"><value>Reason</value></data>
+  <data name="CreatedAt" xml:space="preserve"><value>Created At</value></data>
+  <data name="By" xml:space="preserve"><value>By</value></data>
+  <data name="NewCashAdjustment" xml:space="preserve"><value>New Cash Adjustment</value></data>
+  <data name="AdjustmentExplanation" xml:space="preserve"><value>Adjustments modify the total cash on hand. Select whether to add or remove cash and enter the amount.</value></data>
+  <data name="AmountLabel" xml:space="preserve"><value>Amount</value></data>
+  <data name="AmountPlaceholder" xml:space="preserve"><value>0.00</value></data>
+  <data name="Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="SelectAdjustmentType" xml:space="preserve"><value>Select adjustment type</value></data>
+  <data name="EnterReason" xml:space="preserve"><value>Enter a reason</value></data>
+  <data name="InvalidAmount" xml:space="preserve"><value>Invalid amount</value></data>
+  <data name="ReasonRequired" xml:space="preserve"><value>Reason is required</value></data>
+  <data name="NetworkError" xml:space="preserve"><value>Network error</value></data>
+  <data name="GenericError" xml:space="preserve"><value>Error</value></data>
+  <data name="NoCashLedgerEntries" xml:space="preserve"><value>No entries</value></data>
+</root>

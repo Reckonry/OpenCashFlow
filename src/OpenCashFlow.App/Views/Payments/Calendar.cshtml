@@ -1,0 +1,234 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<SharedResource> SharedLocalizer
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer Localizer
+@{
+    ViewData["Title"] = "Payments Calendar";
+}
+
+@section PageStyles {
+    <link rel="stylesheet" href="~/vendor/libs/fullcalendar/fullcalendar.css" />
+    <link rel="stylesheet" href="~/vendor/css/pages/app-calendar.css" />
+    <style>
+        /* Custom colors for events */
+        .fc-event-income {
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: white !important;
+        }
+        .fc-event-outcome {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: white !important;
+        }
+        .fc-event-payments {
+            background-color: #696cff !important;
+            border-color: #696cff !important;
+            color: white !important;
+        }
+
+        /* Main calendar fix */
+        #calendar {
+            min-height: 600px;
+            height: 100%;
+        }
+
+        .app-calendar-wrapper {
+            height: calc(100vh - 150px);
+            min-height: 600px;
+        }
+
+        .app-calendar-content {
+            height: 100%;
+        }
+
+        /* Responsive improvements */
+        @@media (max-width: 991px) {
+            .app-calendar-sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100%;
+                z-index: 1050;
+                transition: left 0.3s ease-in-out;
+            }
+            .app-calendar-sidebar.show {
+                left: 0;
+            }
+            .app-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1049;
+            }
+            .app-overlay.show {
+                display: block;
+            }
+        }
+
+        /* Custom tooltip */
+        .payment-tooltip {
+            position: absolute;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 13px;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+        .payment-tooltip .tooltip-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .payment-tooltip .tooltip-detail {
+            margin: 3px 0;
+            font-size: 12px;
+        }
+    </style>
+}
+
+<div class="card app-calendar-wrapper">
+    <div class="row g-0">
+        <!-- Calendar Sidebar -->
+        <div class="col app-calendar-sidebar border-end" id="app-calendar-sidebar">
+            <div class="p-5 my-sm-0 mb-4">
+                <a href="/Payments" class="btn btn-primary w-100 waves-effect waves-light">
+                    <i class="ri-add-line me-1"></i>
+                    <span class="align-middle">Add Payment</span>
+                </a>
+            </div>
+            <div class="px-5 pb-2">
+                <small class="text-uppercase text-muted d-block mb-4">Filters</small>
+            </div>
+            <div class="p-5 pt-0">
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input select-all" type="checkbox" id="selectAll" checked>
+                        <label class="form-check-label" for="selectAll">View All</label>
+                    </div>
+                </div>
+                <div class="app-calendar-events-filter">
+                    <div class="mb-4">
+                        <div class="form-check form-check-success">
+                            <input class="form-check-input input-filter" type="checkbox" id="select-income" data-value="income" checked>
+                            <label class="form-check-label" for="select-income">@(SharedLocalizer["Income"].Value ?? "Income")</label>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="form-check form-check-danger">
+                            <input class="form-check-input input-filter" type="checkbox" id="select-outcome" data-value="outcome" checked>
+                            <label class="form-check-label" for="select-outcome">@(SharedLocalizer["Outcome"].Value ?? "Outcome")</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Calendar Sidebar -->
+
+        <!-- Calendar -->
+        <div class="col app-calendar-content">
+            <div class="card shadow-none border-0">
+                <div class="card-body pb-0">
+                    <!-- FullCalendar -->
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+        <!-- /Calendar -->
+        <div class="app-overlay"></div>
+    </div>
+</div>
+
+<!-- Event Details Sidebar -->
+<div class="offcanvas offcanvas-end event-sidebar" tabindex="-1" id="addEventSidebar" aria-labelledby="addEventSidebarLabel">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="addEventSidebarLabel">Payment Details</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="event-info">
+            <div class="mb-4">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="ri-calendar-line text-primary me-2 fs-4"></i>
+                    <h6 class="mb-0">Date</h6>
+                </div>
+                <p class="mb-0" id="eventDate">-</p>
+            </div>
+            <div class="mb-4">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="ri-file-list-3-line text-primary me-2 fs-4"></i>
+                    <h6 class="mb-0">Total Payments</h6>
+                </div>
+                <p class="mb-0" id="eventCount">-</p>
+            </div>
+            <div class="mb-4">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="ri-money-euro-circle-line text-primary me-2 fs-4"></i>
+                    <h6 class="mb-0">Total Amount</h6>
+                </div>
+                <p class="mb-0 fw-bold fs-5" id="eventAmount">-</p>
+            </div>
+            <div class="mb-4">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="ri-information-line text-primary me-2 fs-4"></i>
+                    <h6 class="mb-0">Type</h6>
+                </div>
+                <p class="mb-0" id="eventType">-</p>
+            </div>
+            <div class="d-grid gap-2">
+                <a href="#" class="btn btn-primary" id="viewPaymentsBtn">
+                    <i class="ri-eye-line me-2"></i>
+                    View Payments
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section PageScripts {
+    <script src="~/vendor/libs/moment/moment.js"></script>
+    <script src="~/vendor/libs/fullcalendar/fullcalendar.js"></script>
+
+    <script>
+        // Translations
+        const translations = {
+            income: "@(SharedLocalizer["Income"].Value ?? "Income")",
+            outcome: "@(SharedLocalizer["Outcome"].Value ?? "Outcome")",
+            payments: "Payments",
+            payment: "Payment",
+            amount: "Amount",
+            count: "Count",
+            type: "Type",
+            date: "Date"
+        };
+
+        // Format amount in Euro
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('it-IT', {
+                style: 'currency',
+                currency: 'EUR',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value);
+        }
+
+        // Format date
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('it-IT', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+    </script>
+
+    <script src="~/js/payments-calendar.js?v=3"></script>
+}

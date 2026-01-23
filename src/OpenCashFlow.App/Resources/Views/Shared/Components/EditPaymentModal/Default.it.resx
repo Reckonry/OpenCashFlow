@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Amount" xml:space="preserve">
+    <value>Importo</value>
+  </data>
+  <data name="EditTransaction" xml:space="preserve">
+    <value>Modifica transazione</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Caricamento</value>
+  </data>
+  <data name="SelectDocumentType" xml:space="preserve">
+    <value>Seleziona tipo documento</value>
+  </data>
+  <data name="SelectEntryType" xml:space="preserve">
+    <value>Seleziona tipo di voce</value>
+  </data>
+  <data name="SelectPaymentMethod" xml:space="preserve">
+    <value>Seleziona metodo di pagamento</value>
+  </data>
+  <data name="UpdateAndSave" xml:space="preserve">
+    <value>Aggiorna e salva</value>
+  </data>
+  <data name="Entry" xml:space="preserve">
+    <value>Entrata</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>Uscita</value>
+  </data>
+  <data name="PaymentMethod" xml:space="preserve">
+    <value>Metodo di pagamento</value>
+  </data>
+  <data name="DocumentType" xml:space="preserve">
+    <value>Tipo documento</value>
+  </data>
+</root>

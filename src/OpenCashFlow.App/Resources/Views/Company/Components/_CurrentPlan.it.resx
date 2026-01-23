@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Current Plan" xml:space="preserve">
+    <value>Piano attuale</value>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>Giorni</value>
+  </data>
+  <data name="Expiring soon!" xml:space="preserve">
+    <value>Scade presto!</value>
+  </data>
+  <data name="{0} {1} Per Month" xml:space="preserve">
+    <value>{0} {1} Per Month</value>
+  </data>
+  <data name="There is plenty of time!" xml:space="preserve">
+    <value>C'è molto tempo!</value>
+  </data>
+  <data name="There is still plenty of time for your subscription." xml:space="preserve">
+    <value>C'è ancora molto tempo per il tuo abbonamento.</value>
+  </data>
+  <data name="We need your attention!" xml:space="preserve">
+    <value>Abbiamo bisogno della tua attenzione!</value>
+  </data>
+  <data name="Your plan requires update" xml:space="preserve">
+    <value>Il tuo piano richiede un aggiornamento</value>
+  </data>
+  <data name="Your subscription is expiring soon!" xml:space="preserve">
+    <value>Il tuo abbonamento scade presto!</value>
+  </data>
+</root>

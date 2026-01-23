@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Add New Employee" xml:space="preserve">
+    <value>Aggiungi nuovo dipendente</value>
+  </data>
+  <data name="Apparently there are no employee" xml:space="preserve">
+    <value>Apparentemente non ci sono dipendenti</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Codice</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Disable account" xml:space="preserve">
+    <value>Disabilita account</value>
+  </data>
+  <data name="Employee Details" xml:space="preserve">
+    <value>Dettagli dipendente</value>
+  </data>
+  <data name="Enable Account" xml:space="preserve">
+    <value>Abilita account</value>
+  </data>
+  <data name="Internal Project" xml:space="preserve">
+    <value>Progetto interno</value>
+  </data>
+  <data name="Last projects worked on" xml:space="preserve">
+    <value>Ultimi progetti su cui si è lavorato</value>
+  </data>
+  <data name="Page" xml:space="preserve">
+    <value>Pagina</value>
+  </data>
+  <data name="Project" xml:space="preserve">
+    <value>Progetto</value>
+  </data>
+  <data name="Review your search input or add a new employee" xml:space="preserve">
+    <value>Controlla la ricerca o aggiungi un nuovo dipendente</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Stato</value>
+  </data>
+  <data name="TitleDescription" xml:space="preserve">
+    <value>Descrizione titolo</value>
+  </data>
+  <data name="of" xml:space="preserve">
+    <value>di</value>
+  </data>
+  <data name="EmployeeDetailsTitle" xml:space="preserve">
+    <value>Dettagli dipendente</value>
+  </data>
+  <data name="EmployeeImageAlt" xml:space="preserve">
+    <value>Immagine dipendente</value>
+  </data>
+  <data name="AvatarAlt" xml:space="preserve">
+    <value>Avatar</value>
+  </data>
+</root>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Add new Employee" xml:space="preserve">
+    <value>Add new Employee</value>
+  </data>
+  <data name="City of Birth" xml:space="preserve">
+    <value>City of Birth</value>
+  </data>
+  <data name="Date Of Birth" xml:space="preserve">
+    <value>Date Of Birth</value>
+  </data>
+  <data name="Discard" xml:space="preserve">
+    <value>Discard</value>
+  </data>
+  <data name="E-mail" xml:space="preserve">
+    <value>E-mail</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Employee Info" xml:space="preserve">
+    <value>Employee Info</value>
+  </data>
+  <data name="Insert a first name" xml:space="preserve">
+    <value>Insert a first name</value>
+  </data>
+  <data name="Insert a last name" xml:space="preserve">
+    <value>Insert a last name</value>
+  </data>
+  <data name="Insert a username" xml:space="preserve">
+    <value>Insert a username</value>
+  </data>
+  <data name="Insert a valid e-mail" xml:space="preserve">
+    <value>Insert a valid e-mail</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Loading</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="New Employee" xml:space="preserve">
+    <value>New Employee</value>
+  </data>
+  <data name="Other Info" xml:space="preserve">
+    <value>Other Info</value>
+  </data>
+  <data name="Phone number" xml:space="preserve">
+    <value>Phone number</value>
+  </data>
+  <data name="Security Info" xml:space="preserve">
+    <value>Security Info</value>
+  </data>
+  <data name="Select a role" xml:space="preserve">
+    <value>Select a role</value>
+  </data>
+  <data name="State of Birth" xml:space="preserve">
+    <value>State of Birth</value>
+  </data>
+  <data name="Surname" xml:space="preserve">
+    <value>Surname</value>
+  </data>
+  <data name="The email you wrote is invalid" xml:space="preserve">
+    <value>The email you wrote is invalid</value>
+  </data>
+  <data name="User basic" xml:space="preserve">
+    <value>User basic</value>
+  </data>
+  <data name="Username" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="EditEmployeeTitle" xml:space="preserve">
+    <value>Edit Employee</value>
+  </data>
+  <data name="SelectALanguage" xml:space="preserve">
+    <value>Select a language</value>
+  </data>
+  <data name="SelectACountry" xml:space="preserve">
+    <value>Select a country</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>Country</value>
+  </data>
+</root>

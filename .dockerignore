@@ -1,0 +1,19 @@
+# General
+.git
+.gitignore
+.DS_Store
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/node_modules/
+**/dist/
+
+# Logs
+Logs/
+**/Logs/
+
+# User secrets
+**/secrets.json
+**/*.user
+**/*.swp

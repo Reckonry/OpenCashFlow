@@ -1,0 +1,70 @@
+{
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "Start App + API",
+      "configurations": ["Start App", "Start API"],
+      "stopAll": true
+    },
+    {
+      "name": "Start Admin + API",
+      "configurations": ["Start Admin", "Start API"],
+      "stopAll": true
+    }
+  ],
+  "configurations": [
+    {
+      "name": "Start App",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/OpenCashFlow.App/bin/Debug/net9.0/OpenCashFlow.App.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/OpenCashFlow.App",
+      "console": "integratedTerminal",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "https://localhost:7001"
+      },
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      }
+    },
+    {
+      "name": "Start API",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/OpenCashFlow.API/bin/Debug/net9.0/OpenCashFlow.API.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/OpenCashFlow.API",
+      "console": "integratedTerminal",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "https://localhost:9001"
+      }
+    },
+    {
+      "name": "Start Admin",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/OpenCashFlow.Admin/bin/Debug/net9.0/OpenCashFlow.Admin.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/OpenCashFlow.Admin",
+      "console": "integratedTerminal",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "https://localhost:9006"
+      },
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      }
+    }
+  ]
+}

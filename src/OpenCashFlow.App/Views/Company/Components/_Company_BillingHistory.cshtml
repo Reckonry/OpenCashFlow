@@ -1,0 +1,102 @@
+﻿@model IEnumerable<Company_Invoice>
+
+@section VendorStyles {
+	<link rel="stylesheet" href="~/vendor/libs/datatables-bs5/datatables.bootstrap5.css">
+	<link rel="stylesheet" href="~/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css">
+	<link rel="stylesheet" href="~/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css">
+	<link rel="stylesheet" href="~/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css">
+	<link rel="stylesheet" href="~/vendor/libs/flatpickr/flatpickr.css" />
+	<!-- Row Group CSS -->
+	<link rel="stylesheet" href="~/vendor/libs/datatables-rowgroup-bs5/rowgroup.bootstrap5.css">
+	<!-- Form Validation -->
+	<link rel="stylesheet" href="~/vendor/libs/&#64;form-validation/form-validation.css" />
+}
+
+@section VendorScripts {
+	<script src="~/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+	<!-- Flat Picker -->
+	<script src="~/vendor/libs/moment/moment.js"></script>
+	<script src="~/vendor/libs/flatpickr/flatpickr.js"></script>
+	<!-- Form Validation -->
+	<script src="~/vendor/libs/&#64;form-validation/popular.js"></script>
+	<script src="~/vendor/libs/&#64;form-validation/bootstrap5.js"></script>
+	<script src="~/vendor/libs/&#64;form-validation/auto-focus.js"></script>
+}
+
+@section PageScripts {
+	<script>
+		$(document).ready(function () {
+			$('#invoices-table').DataTable({
+				lengthMenu: [5, 10, 25, 50, 100], // Options for number of records
+				pageLength: 10, // Default number of visible records per page
+				language: {
+					lengthMenu: "@Localizer["Showing _MENU_ record per page"]",
+					zeroRecords: "@Localizer["No element found"]",
+					info: "@Localizer["Showing from _START_ to _END_ of _TOTAL_ records"]",
+					infoEmpty: "@Localizer["No available record"]",
+					infoFiltered: "@Localizer["(Filter from _MAX_ total records)"]",
+					search: "@Localizer["Filter:"]",
+					paginate: {
+						previous: "@Localizer["Previous"]",
+						next: "@Localizer["Next"]"
+					}
+				}
+			});
+		});
+	</script>
+}
+
+<div class="card">
+	<h5 class="card-header">@Localizer["Billing History"]</h5>
+	<div class="card-datatable table-responsive">
+		<div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer">
+			<table class="invoice-list-table table border-top dataTable no-footer dtr-column" id="invoices">
+				<thead>
+					<tr>
+						<th>@Localizer["#NUM"]</th>
+						<th class="text-end">@Localizer["Total"]</th>
+						<th class="text-center">@Localizer["Payment Method"]</th>
+						<th>@Localizer["Payment Date"]</th>
+						<th>@Localizer["Issued Date"]</th>
+						<th>@Localizer["Actions"]</th>
+					</tr>
+				</thead>
+				<tbody>
+					@{
+						if (Model != null)
+						{
+							foreach (Company_Invoice invoice in Model)
+							{
+								<tr class="odd">
+									<td class="sorting_1">
+										<a href="~/Company/Invoices/View/@invoice.InvoiceID">#@invoice.InvoiceNumber</a>
+									</td>
+									<td class="text-end">
+										&euro; @invoice.TotalAmount
+										<div class="text-muted"><small>&euro; @invoice.TotalTaxes<span>(VAT)</span></small></div>
+									</td>
+									<td class="text-center">
+										@invoice.PaymentMethod
+										<div class="text-muted"><small>via @invoice.PaymentProcessor</small></div>
+									</td>
+									<td>@invoice.PaymentDate?.ToShortDateString()</td>
+									<td>@invoice.IssueDate.ToShortDateString()</td>
+									<td>
+										<div class="d-flex align-items-center">
+											<a href="javascript:;" data-bs-toggle="tooltip" class="text-body me-2" data-bs-placement="top" aria-label="@Localizer["Download"]" data-bs-original-title="@Localizer["Download"]">
+												<i class="ri ri-bill-line"></i>
+											</a>
+											<a href="javascript:;" data-bs-toggle="tooltip" class="text-body" data-bs-placement="top" aria-label="@Localizer["View"]" data-bs-original-title="@Localizer["View"]">
+												<i class="ri ri-eye-line"></i>
+											</a>
+										</div>
+									</td>
+								</tr>
+							}
+						}
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

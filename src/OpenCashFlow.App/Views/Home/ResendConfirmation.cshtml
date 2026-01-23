@@ -1,0 +1,56 @@
+@{
+    Layout = "_BlankLayout";
+    ViewData["Title"] = Localizer["ResendConfirmationTitle"].Value;
+    var username = (string?)ViewBag.Username ?? string.Empty;
+    var success = TempData["ResendConfirmationSuccess"] as bool? ?? false;
+}
+
+@section PageStyles {
+    <link rel="stylesheet" href="~/vendor/css/pages/page-auth.css">
+}
+
+<div class="authentication-wrapper authentication-cover">
+    <a href="/" class="auth-cover-brand d-flex align-items-center gap-2">
+        <span class="app-brand-logo demo">@await Html.PartialAsync("../_Partials/_Macros")</span>
+        <span class="app-brand-text demo text-heading fw-semibold">@TempData.Peek("appName")</span>
+    </a>
+
+    <div class="authentication-inner row m-0">
+        <div class="d-none d-lg-flex col-lg-7 col-xl-8 align-items-center justify-content-center p-12 pb-2">
+            <img src="~/img/illustrations/auth-forgot-password-illustration-light.png" class="auth-cover-illustration w-100" alt="@Localizer["AuthIllustrationAlt"]" data-app-light-img="illustrations/auth-forgot-password-illustration-light.png" data-app-dark-img="illustrations/auth-forgot-password-illustration-dark.png" />
+            <img src="~/img/illustrations/auth-cover-forgot-password-mask-light.png" class="authentication-image" alt="@Localizer["MaskIllustrationAlt"]" data-app-light-img="illustrations/auth-cover-forgot-password-mask-light.png" data-app-dark-img="illustrations/auth-cover-forgot-password-mask-dark.png" />
+        </div>
+
+        <div class="d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg position-relative py-sm-12 px-12 py-6">
+            <div class="w-px-400 mx-auto pt-5 pt-lg-0">
+                <h4 class="mb-1">@Localizer["ResendConfirmationHeading"]</h4>
+                <p class="mb-5">@Localizer["ResendConfirmationSubtitle"]</p>
+
+                @if (success)
+                {
+                    <div class="alert alert-success" role="alert">
+                        @Localizer["ConfirmationEmailResent"]
+                    </div>
+                }
+
+                @if (ViewBag.ErrorMessage != null)
+                {
+                    <div class="alert alert-danger" role="alert">@ViewBag.ErrorMessage</div>
+                }
+
+                <form method="POST" action="~/Account/ResendConfirmation">
+                    @Html.AntiForgeryToken()
+                    <div class="form-floating form-floating-outline mb-5">
+                        <input type="text" class="form-control" id="username" name="username" value="@username" placeholder="@Localizer["EnterYourEmailOrUsername"]" aria-label="@Localizer["EmailOrUsername"]" />
+                        <label for="username">@Localizer["EmailOrUsername"]</label>
+                    </div>
+                    <button class="btn btn-primary d-grid w-100" type="submit">@Localizer["ResendEmailButton"]</button>
+                </form>
+
+                <p class="text-center mt-3">
+                    <a href="/Account/LogIn">@Localizer["BackToLogin"]</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+    <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+  
+    <data name="Edit" xml:space="preserve">
+        <value>Edit</value>
+    </data>
+    <data name="Delete" xml:space="preserve">
+        <value>Delete</value>
+    </data>
+    <data name="Save" xml:space="preserve">
+        <value>Save</value>
+    </data>
+    <data name="Cancel" xml:space="preserve">
+        <value>Cancel</value>
+    </data>
+    <data name="Yes" xml:space="preserve">
+        <value>Yes</value>
+    </data>
+    <data name="No" xml:space="preserve">
+        <value>No</value>
+    </data>
+    <data name="Search" xml:space="preserve">
+        <value>Search</value>
+    </data>
+    <data name="ModalNotFound" xml:space="preserve">
+        <value>Modal not found</value>
+    </data>
+    <data name="TodayAt" xml:space="preserve">
+        <value>today at</value>
+    </data>
+    <data name="YesterdayAt" xml:space="preserve">
+        <value>yesterday at</value>
+    </data>
+    <data name="DayBeforeYesterdayAt" xml:space="preserve">
+        <value>the day before yesterday at</value>
+    </data>
+    <data name="At" xml:space="preserve">
+        <value>at</value>
+    </data>
+    <data name="Deleting" xml:space="preserve">
+        <value>Deleting...</value>
+    </data>
+    <data name="YesDelete" xml:space="preserve">
+        <value>Yes, delete</value>
+    </data>
+    <data name="DeleteError" xml:space="preserve">
+        <value>Error during deletion</value>
+    </data>
+    <data name="ServerConnectionError" xml:space="preserve">
+        <value>Server connection error</value>
+    </data>
+    <data name="Loading" xml:space="preserve">
+        <value>Loading...</value>
+    </data>
+    <data name="NoData" xml:space="preserve">
+        <value>No data available</value>
+    </data>
+    <data name="Editing" xml:space="preserve">
+        <value>Editing...</value>
+    </data>
+    <data name="EndDateMustBeAfterOrEqualToStartDate" xml:space="preserve">
+        <value>The end date must be greater than or equal to the start date</value>
+    </data>
+    <data name="MinAmountCannotBeNegative" xml:space="preserve">
+        <value>The minimum amount cannot be negative</value>
+    </data>
+    <data name="MaxAmountCannotBeNegative" xml:space="preserve">
+        <value>The maximum amount cannot be negative</value>
+    </data>
+    <data name="MaxAmountMustBeGreaterThanMin" xml:space="preserve">
+        <value>The maximum amount must be greater than or equal to the minimum amount</value>
+    </data>
+    <data name="FilterError" xml:space="preserve">
+        <value>Error on applying filter</value>
+    </data>
+      <data name="DailyTransactionsList" xml:space="preserve">
+        <value>Daily transactions list</value>
+    </data>
+      <data name="AddPayment" xml:space="preserve">
+        <value>Aggiungi Pagamento</value>
+    </data>
+    <data name="PaymentsList" xml:space="preserve">
+        <value>Payments List</value>
+    </data>
+    <data name="Entries" xml:space="preserve">
+        <value>Entries</value>
+    </data>
+    <data name="Exits" xml:space="preserve">
+        <value>Exits</value>
+    </data>
+    <data name="Total" xml:space="preserve">
+        <value>Total</value>
+    </data>
+    <data name="OnlyTodayAddPayment" xml:space="preserve">
+        <value>You can add payments only for today.</value>
+    </data>
+    <data name="ReturnToToday" xml:space="preserve">
+        <value>Return to today</value>
+    </data>
+    <data name="Payment" xml:space="preserve">
+        <value>Payment</value>
+    </data>
+    <data name="PaymentReapply" xml:space="preserve">
+        <value>Payment Reapplication</value>
+    </data>
+    <data name="PaymentUpdate" xml:space="preserve">
+        <value>Payment Update</value>
+    </data>
+    <data name="Void" xml:space="preserve">
+        <value>Void</value>
+    </data>
+    <data name="Refund" xml:space="preserve">
+        <value>Refund</value>
+    </data>
+    <data name="Adjustment" xml:space="preserve">
+        <value>Adjustment</value>
+    </data>
+    <data name="RefType" xml:space="preserve">
+        <value>Type</value>
+    </data>
+    <data name="Reason" xml:space="preserve">
+        <value>Reason</value>
+    </data>
+    <data name="CreatedAt" xml:space="preserve">
+        <value>Date</value>
+    </data>
+    <data name="By" xml:space="preserve">
+        <value>By</value>
+    </data>
+    <data name="Amount" xml:space="preserve">
+        <value>Amount</value>
+    </data>
+</root>

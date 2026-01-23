@@ -1,0 +1,461 @@
+@model OpenCashFlow.Admin.Models.Companies.CompanyDetailViewModel
+@using System.Linq
+@using Shared.DTOs.Billing
+@using Shared.Models
+
+@{
+    ViewData["Title"] = "Company Details";
+
+    var company = Model.Company;
+    var subscriptions = Model.Subscriptions.OrderByDescending(s => s.StartDate).ToList();
+    var activeSubscription = Model.ActiveSubscription;
+    var billingWarning = ViewData["BillingWarning"] as string;
+
+    var emails = company.CompanyEmails ?? new List<Company_Contact_Email>();
+    var phones = company.CompanyPhones ?? new List<Company_Contact_Phone>();
+    var addresses = company.CompanyAddresses ?? new List<Company_Address>();
+
+    var offcanvasId = "subscriptionDrawer";
+    var timelineEntries = BuildTimeline(activeSubscription);
+    var logs = BuildLogEntries(activeSubscription);
+}
+
+<div class="row g-4">
+    <div class="col-12 col-xl-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-start gap-2 flex-wrap">
+                <div>
+                    <h4 class="card-title mb-1">@company.CompanyName</h4>
+                    <div class="text-muted small">Company ID: @company.TenantID</div>
+                </div>
+                @if (activeSubscription != null)
+                {
+                    <div class="text-end">
+                        <span class="badge bg-label-primary">@activeSubscription.PlanName</span>
+                        <div class="text-muted small">Next renewal @activeSubscription.NextBillingDate.ToLocalTime().ToString("dd MMM yyyy")</div>
+                    </div>
+                }
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <h6 class="fw-semibold text-muted text-uppercase mb-2">Legal information</h6>
+                        <dl class="row mb-0 small">
+                            <dt class="col-sm-5">VAT ID</dt>
+                            <dd class="col-sm-7">@(!string.IsNullOrWhiteSpace(company.VAT) ? company.VAT : "—")</dd>
+                            <dt class="col-sm-5">SDI Code</dt>
+                            <dd class="col-sm-7">@(!string.IsNullOrWhiteSpace(company.SDI) ? company.SDI : "—")</dd>
+                            <dt class="col-sm-5">Status</dt>
+                            <dd class="col-sm-7">
+                                <span class="badge @(company.IsActive ? "bg-success" : "bg-secondary")">
+                                    @(company.IsActive ? "Active" : "Suspended")
+                                </span>
+                            </dd>
+                            <dt class="col-sm-5">Priority</dt>
+                            <dd class="col-sm-7">@GetPriorityLabel(company.PriorityLevel)</dd>
+                        </dl>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <h6 class="fw-semibold text-muted text-uppercase mb-2">Billing preferences</h6>
+                        <dl class="row mb-0 small">
+                            <dt class="col-sm-5">Preferred method</dt>
+                            <dd class="col-sm-7">@(!string.IsNullOrWhiteSpace(company.PreferredPaymentMethod) ? company.PreferredPaymentMethod : "Not set")</dd>
+                            <dt class="col-sm-5">Monthly spending limit</dt>
+                            <dd class="col-sm-7">
+                                @(company.MonthlyExpenseLimit.HasValue ? company.MonthlyExpenseLimit.Value.ToString("C0") : "—")
+                            </dd>
+                            <dt class="col-sm-5">Default currency</dt>
+                            <dd class="col-sm-7">@(!string.IsNullOrWhiteSpace(company.DefaultCurrency) ? company.DefaultCurrency : "—")</dd>
+                            <dt class="col-sm-5">Contract</dt>
+                            <dd class="col-sm-7">
+                                @company.StartingContract.ToLocalTime().ToString("dd MMM yyyy") – @company.EndingContract.ToLocalTime().ToString("dd MMM yyyy")
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                @if (addresses.Any())
+                {
+                    <hr class="my-4" />
+                    <h6 class="fw-semibold text-muted text-uppercase mb-3">Addresses</h6>
+                    <div class="row g-3 small">
+                        @foreach (var address in addresses)
+                        {
+                            <div class="col-12 col-md-6">
+                                <div class="border rounded p-3 h-100">
+                                    <div class="fw-medium">@address.Address</div>
+                                    @if (!string.IsNullOrWhiteSpace(address.AddressNum))
+                                    {
+                                        <div>Number: @address.AddressNum</div>
+                                    }
+                                    <div>@(address.FullAddress ?? $"{address.City} {address.State}")</div>
+                                    @if (!string.IsNullOrWhiteSpace(address.AddressNote))
+                                    {
+                                        <div class="text-muted small mt-2">@address.AddressNote</div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-4">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Contacts</h5>
+                <span class="badge bg-label-secondary">@emails.Count + @phones.Count</span>
+            </div>
+            <div class="card-body small">
+                @if (emails.Any())
+                {
+                    <div class="mb-3">
+                        <h6 class="fw-semibold text-muted text-uppercase">Email</h6>
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var email in emails)
+                            {
+                                <li class="d-flex align-items-center gap-2 py-1">
+                                    <i class="ri-mail-line text-primary"></i>
+                                    <a href="mailto:@email.Email" class="text-body">@email.Email</a>
+                                    @if (email.EmailConfirmed)
+                                    {
+                                        <span class="badge bg-label-success text-uppercase">Verified</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                @if (phones.Any())
+                {
+                    <div>
+                        <h6 class="fw-semibold text-muted text-uppercase">Phone</h6>
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var phone in phones)
+                            {
+                                <li class="d-flex align-items-center gap-2 py-1">
+                                    <i class="ri-phone-line text-success"></i>
+                                    <a href="tel:@(phone.FullPhone ?? phone.Phone)" class="text-body">@(!string.IsNullOrWhiteSpace(phone.FullPhone) ? phone.FullPhone : phone.Phone)</a>
+                                    @if (phone.PhoneConfirmed)
+                                    {
+                                        <span class="badge bg-label-success text-uppercase">Verified</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                @if (!emails.Any() && !phones.Any())
+                {
+                    <div class="text-muted">No contacts available.</div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Subscription</h5>
+                @if (activeSubscription != null)
+                {
+                    <span class="badge @GetStatusBadge(activeSubscription.RenewalStatus)">@GetStatusLabel(activeSubscription.RenewalStatus)</span>
+                }
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(billingWarning))
+                {
+                    <div class="alert alert-warning d-flex align-items-center small" role="alert">
+                        <i class="ri-alert-line me-2"></i>
+                        <span>@billingWarning</span>
+                    </div>
+                }
+
+                @if (activeSubscription == null)
+                {
+                    <p class="text-muted mb-0">No active subscription for this company.</p>
+                }
+                else
+                {
+                    <dl class="row small mb-0">
+                        <dt class="col-5">Plan</dt>
+                        <dd class="col-7">@activeSubscription.PlanName (@activeSubscription.PlanCode)</dd>
+                        <dt class="col-5">Cost</dt>
+                        <dd class="col-7">@activeSubscription.Cost.ToString("C")</dd>
+                        <dt class="col-5">Cycle</dt>
+                        <dd class="col-7">@activeSubscription.BillingCycle</dd>
+                        <dt class="col-5">Next renewal</dt>
+                        <dd class="col-7">@activeSubscription.NextBillingDate.ToLocalTime().ToString("dd MMM yyyy")</dd>
+                        <dt class="col-5">Trial</dt>
+                        <dd class="col-7">
+                            @(activeSubscription.PlanHasTrial
+                                ? $"Yes ({activeSubscription.PlanTrialDays ?? 0} days)"
+                                : "No")
+                        </dd>
+                    </dl>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="button"
+                                class="btn btn-outline-primary"
+                                data-bs-toggle="offcanvas"
+                                data-bs-target="#@offcanvasId"
+                                aria-controls="@offcanvasId">
+                            <i class="ri-eye-2-line me-1"></i> Subscription details
+                        </button>
+                        <a href="@Url.Action("Subscriptions", "Billing", new { TenantID = company.TenantID, IncludeAllCompanies = true })"
+                           class="btn btn-sm btn-outline-secondary">
+                            <i class="ri-history-line me-1"></i> All subscriptions
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (subscriptions.Count > 1)
+        {
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Subscription History</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm small">
+                            <thead>
+                                <tr>
+                                    <th>Plan</th>
+                                    <th>Period</th>
+                                    <th>Status</th>
+                                    <th>Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var sub in subscriptions.Take(5))
+                                {
+                                    <tr>
+                                        <td>
+                                            <div>@sub.PlanName</div>
+                                            <div class="text-muted small">@sub.PlanCode</div>
+                                        </td>
+                                        <td>
+                                            <div>@sub.StartDate.ToLocalTime().ToString("dd/MM/yyyy")</div>
+                                            <div class="text-muted small">@sub.EndDate.ToLocalTime().ToString("dd/MM/yyyy")</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge @GetStatusBadge(sub.RenewalStatus)">
+                                                @GetStatusLabel(sub.RenewalStatus)
+                                            </span>
+                                        </td>
+                                        <td>@sub.Cost.ToString("C")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (subscriptions.Count > 5)
+                    {
+                        <div class="text-center mt-2">
+                            <a href="@Url.Action("Subscriptions", "Billing", new { TenantID = company.TenantID, IncludeAllCompanies = true })"
+                               class="btn btn-sm btn-link">
+                                View all (@subscriptions.Count)
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (activeSubscription != null)
+{
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="@offcanvasId" aria-labelledby="@offcanvasId-Label">
+        <div class="offcanvas-header">
+            <div>
+                <h5 class="offcanvas-title" id="@offcanvasId-Label">@activeSubscription.PlanName</h5>
+                <div class="small text-muted">Subscription #@activeSubscription.SubscriptionID</div>
+            </div>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="mb-4">
+                <h6 class="fw-semibold text-muted text-uppercase mb-2">Renewal timeline</h6>
+                <ul class="timeline timeline-center">
+                    @foreach (var entry in timelineEntries)
+                    {
+                        <li class="timeline-item">
+                            <span class="timeline-indicator @entry.CssClass">
+                                <i class="@entry.Icon"></i>
+                            </span>
+                            <div class="timeline-event">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-1">@entry.Title</h6>
+                                    <small class="text-muted">@entry.Date.ToLocalTime().ToString("dd MMM yyyy")</small>
+                                </div>
+                                <p class="mb-0 small text-muted">@entry.Description</p>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="fw-semibold text-muted text-uppercase mb-2">Associated payment methods</h6>
+                <div class="border rounded p-3 small">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="ri-bank-card-line text-primary"></i>
+                        <span>
+                            @(!string.IsNullOrWhiteSpace(company.PreferredPaymentMethod)
+                                ? company.PreferredPaymentMethod
+                                : "Preferred method not set")
+                        </span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(company.IBAN))
+                    {
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="ri-exchange-dollar-line text-success"></i>
+                            <span>IBAN: @company.IBAN</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted">No IBAN on file.</div>
+                    }
+                </div>
+            </div>
+
+            <div>
+                <h6 class="fw-semibold text-muted text-uppercase mb-2">Event log</h6>
+                <div class="list-group list-group-flush">
+                    @foreach (var log in logs)
+                    {
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge @log.BadgeCss">@log.Type</span>
+                                    <span>@log.Message</span>
+                                </div>
+                                <small class="text-muted">@log.Date.ToLocalTime().ToString("dd MMM yyyy HH:mm")</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="mt-4">
+    <a class="btn btn-secondary" asp-action="IndexAsync">
+        <i class="ri-arrow-left-line me-1"></i> Back to list
+    </a>
+</div>
+
+@functions
+{
+    private static string GetPriorityLabel(int priorityLevel) => priorityLevel switch
+    {
+        >= 2 => "High",
+        1 => "Medium",
+        _ => "Low"
+    };
+
+    private static string GetStatusLabel(RenewalStatus status) => status switch
+    {
+        RenewalStatus.ACTIVE => "Active",
+        RenewalStatus.PAUSED => "Paused",
+        RenewalStatus.SUSPENDED => "Suspended",
+        RenewalStatus.EXPIRED => "Expired",
+        RenewalStatus.CANCELLED => "Canceled",
+        RenewalStatus.TRIAL => "Trial",
+        _ => status.ToString()
+    };
+
+    private static string GetStatusBadge(RenewalStatus status) => status switch
+    {
+        RenewalStatus.ACTIVE => "bg-success",
+        RenewalStatus.TRIAL => "bg-info text-dark",
+        RenewalStatus.PAUSED => "bg-warning text-dark",
+        RenewalStatus.SUSPENDED => "bg-warning text-dark",
+        RenewalStatus.EXPIRED => "bg-danger",
+        RenewalStatus.CANCELLED => "bg-secondary",
+        _ => "bg-label-secondary"
+    };
+
+    private static List<TimelineEntry> BuildTimeline(BillingSubscription_List_DTO? subscription)
+    {
+        var entries = new List<TimelineEntry>();
+        if (subscription == null)
+        {
+            return entries;
+        }
+
+        entries.Add(new TimelineEntry(
+            subscription.StartDate,
+            "Subscription activation",
+            $"Active since {subscription.StartDate.ToLocalTime():dd MMM yyyy}",
+            "ri-play-circle-line",
+            "timeline-indicator-success"));
+
+        entries.Add(new TimelineEntry(
+            subscription.NextBillingDate,
+            "Next renewal",
+            $"Billing day {subscription.BillingDay} - {subscription.BillingCycle}",
+            "ri-refresh-line",
+            "timeline-indicator-warning"));
+
+        if (subscription.CancellationDate.HasValue)
+        {
+            entries.Add(new TimelineEntry(
+                subscription.CancellationDate.Value,
+            "Cancellation",
+            subscription.CancellationReason ?? "Customer request",
+                "ri-close-circle-line",
+                "timeline-indicator-danger"));
+        }
+        else
+        {
+            entries.Add(new TimelineEntry(
+                subscription.EndDate,
+            "End of current period",
+                $"{subscription.EndDate.ToLocalTime():dd MMM yyyy}",
+                "ri-calendar-check-line",
+                "timeline-indicator-secondary"));
+        }
+
+        return entries.OrderBy(e => e.Date).ToList();
+    }
+
+    private static List<LogEntryViewModel> BuildLogEntries(BillingSubscription_List_DTO? subscription)
+    {
+        var logs = new List<LogEntryViewModel>();
+        if (subscription == null)
+        {
+            return logs;
+        }
+
+        logs.Add(new LogEntryViewModel("Creation", $"Subscription created on {subscription.DateIns.ToLocalTime():dd MMM yyyy}", subscription.DateIns, "bg-label-success"));
+
+        logs.Add(new LogEntryViewModel("Reminder", $"Last reminder sent on {subscription.LastReminderDate.ToLocalTime():dd MMM yyyy}", subscription.LastReminderDate, "bg-label-info"));
+
+        logs.Add(new LogEntryViewModel("Reminder", $"Next reminder scheduled for {subscription.NextReminderDate.ToLocalTime():dd MMM yyyy}", subscription.NextReminderDate, "bg-label-warning"));
+
+        if (subscription.DateEdit.HasValue)
+        {
+            logs.Add(new LogEntryViewModel("Update", $"Changes made on {subscription.DateEdit.Value.ToLocalTime():dd MMM yyyy}", subscription.DateEdit.Value, "bg-label-secondary"));
+        }
+
+        if (subscription.CancellationDate.HasValue)
+        {
+            logs.Add(new LogEntryViewModel("Cancellation", subscription.CancellationReason ?? "Customer request", subscription.CancellationDate.Value, "bg-label-danger"));
+        }
+
+        return logs.OrderByDescending(l => l.Date).ToList();
+    }
+
+    private record TimelineEntry(DateTime Date, string Title, string Description, string Icon, string CssClass);
+
+    private record LogEntryViewModel(string Type, string Message, DateTime Date, string BadgeCss);
+}

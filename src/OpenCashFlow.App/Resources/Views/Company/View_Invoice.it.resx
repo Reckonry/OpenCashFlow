@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="InvoicePreviewTitle" xml:space="preserve"><value>Anteprima - Fattura</value></data>
+  <data name="CompanyAddressLine1" xml:space="preserve"><value>Indirizzo</value></data>
+  <data name="CompanyAddressLine2" xml:space="preserve"><value>Città e CAP</value></data>
+  <data name="CompanyPhone" xml:space="preserve"><value>Telefono azienda</value></data>
+  <data name="DownloadButton" xml:space="preserve"><value>Scarica</value></data>
+  <data name="PrintButton" xml:space="preserve"><value>Stampa</value></data>
+  <data name="SalespersonNamePlaceholder" xml:space="preserve"><value>Nome venditore</value></data>
+  <data name="Bill To:" xml:space="preserve"><value>Fatturare a:</value></data>
+  <data name="Cost" xml:space="preserve"><value>Costo</value></data>
+  <data name="Date Issues:" xml:space="preserve"><value>Data di emissione:</value></data>
+  <data name="Date Paid" xml:space="preserve"><value>Data di pagamento</value></data>
+  <data name="Description" xml:space="preserve"><value>Descrizione</value></data>
+  <data name="Invoice" xml:space="preserve"><value>Fattura</value></data>
+  <data name="Invoice To:" xml:space="preserve"><value>Fattura per:</value></data>
+  <data name="Note:" xml:space="preserve"><value>Nota:</value></data>
+  <data name="Payment Method" xml:space="preserve"><value>Metodo di pagamento</value></data>
+  <data name="Price" xml:space="preserve"><value>Prezzo</value></data>
+  <data name="Qty" xml:space="preserve"><value>Qta</value></data>
+  <data name="Salesperson:" xml:space="preserve"><value>Venditore:</value></data>
+  <data name="Subtotal:" xml:space="preserve"><value>Subtotale:</value></data>
+  <data name="Tax:" xml:space="preserve"><value>Tassa:</value></data>
+  <data name="Total Due:" xml:space="preserve"><value>Totale dovuto:</value></data>
+  <data name="Total:" xml:space="preserve"><value>Totale:</value></data>
+  <data name="VAT:" xml:space="preserve"><value>IVA:</value></data>
+</root>

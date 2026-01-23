@@ -1,0 +1,170 @@
+@model OpenCashFlow.Admin.Models.Billing.BillingDashboardViewModel
+@{
+    ViewData["Title"] ??= "Billing Dashboard";
+    var kpi = Model.KPI;
+}
+
+@section PageStyles {
+<style>
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+    .kpi-card { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 14px rgba(0,0,0,.04); border: 1px solid var(--bs-border-color); transition: transform .15s ease, box-shadow .15s ease; }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+    .kpi-card.highlight { border-left: 4px solid var(--bs-primary); }
+    .kpi-card.warning { border-left: 4px solid var(--bs-warning); }
+    .kpi-card.danger { border-left: 4px solid var(--bs-danger); }
+    .kpi-card.success { border-left: 4px solid var(--bs-success); }
+    .kpi-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .kpi-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    .kpi-icon.primary { background: rgba(var(--bs-primary-rgb), .12); color: var(--bs-primary); }
+    .kpi-icon.warning { background: rgba(var(--bs-warning-rgb), .12); color: var(--bs-warning); }
+    .kpi-icon.danger { background: rgba(var(--bs-danger-rgb), .12); color: var(--bs-danger); }
+    .kpi-icon.success { background: rgba(var(--bs-success-rgb), .12); color: var(--bs-success); }
+    .kpi-icon.info { background: rgba(var(--bs-info-rgb), .12); color: var(--bs-info); }
+    .kpi-value { font-size: 2rem; font-weight: 700; line-height: 1; margin-bottom: .25rem; }
+    .kpi-label { font-size: .875rem; color: var(--bs-secondary-color); font-weight: 500; text-transform: uppercase; letter-spacing: .03em; }
+    .kpi-footer { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,.06); font-size: .875rem; color: var(--bs-secondary-color); }
+    .kpi-footer .badge { font-size: .75rem; padding: .25rem .5rem; }
+    .page-header { margin-bottom: 2rem; }
+    .page-header h4 { margin-bottom: .5rem; }
+    .page-header p { color: var(--bs-secondary-color); margin: 0; }
+    .alert { border-radius: 10px; border-color: rgba(0,0,0,.08); }
+    .revenue-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .section-title { font-size: 1.125rem; font-weight: 600; margin: 2rem 0 1rem; }
+</style>
+}
+
+<div class="page-header">
+    <h4>Billing Dashboard</h4>
+    <p>Real-time overview of billing and subscription KPIs</p>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        <i class="ri-error-warning-line"></i>
+        <strong>Error:</strong> @Model.ErrorMessage
+    </div>
+}
+
+@if (kpi != null)
+{
+    <div class="section-title">Key Metrics</div>
+    <div class="dashboard-grid">
+        <div class="kpi-card highlight">
+            <div class="kpi-header">
+                <div class="kpi-icon primary">
+                    <i class="ri-group-line"></i>
+                </div>
+            </div>
+            <div class="kpi-value">@kpi.TotalActiveSubscriptions</div>
+            <div class="kpi-label">Active Subscriptions</div>
+        </div>
+
+        <div class="kpi-card @(kpi.ActiveTrials > 0 ? "success" : "")">
+            <div class="kpi-header">
+                <div class="kpi-icon success">
+                    <i class="ri-flask-line"></i>
+                </div>
+            </div>
+            <div class="kpi-value">@kpi.ActiveTrials</div>
+            <div class="kpi-label">Active Trials</div>
+        </div>
+
+        <div class="kpi-card @(kpi.UpcomingRenewalsNext7Days > 0 ? "warning" : "")">
+            <div class="kpi-header">
+                <div class="kpi-icon warning">
+                    <i class="ri-calendar-check-line"></i>
+                </div>
+            </div>
+            <div class="kpi-value">@kpi.UpcomingRenewalsNext7Days</div>
+            <div class="kpi-label">Renewals in next 7 days</div>
+            @if (kpi.UpcomingRenewalsNext30Days > 0)
+            {
+                <div class="kpi-footer">
+                    <span class="badge bg-label-warning">@kpi.UpcomingRenewalsNext30Days in next 30 days</span>
+                </div>
+            }
+        </div>
+
+        <div class="kpi-card @(kpi.AttentionRequired > 0 ? "danger" : "")">
+            <div class="kpi-header">
+                <div class="kpi-icon danger">
+                    <i class="ri-alert-line"></i>
+                </div>
+            </div>
+            <div class="kpi-value">@kpi.AttentionRequired</div>
+            <div class="kpi-label">Needs Attention</div>
+            @if (kpi.AttentionRequired > 0)
+            {
+                <div class="kpi-footer">
+                    @if (kpi.FailedRenewals > 0)
+                    {
+                        <span class="badge bg-danger me-1">@kpi.FailedRenewals failed</span>
+                    }
+                    @if (kpi.ExpiringTrials > 0)
+                    {
+                        <span class="badge bg-warning me-1">@kpi.ExpiringTrials trials expiring</span>
+                    }
+                    @if (kpi.PendingCancellations > 0)
+                    {
+                        <span class="badge bg-secondary">@kpi.PendingCancellations cancellations</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="section-title">Recurring Revenue</div>
+    <div class="revenue-grid">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-icon info">
+                    <i class="ri-calendar-line"></i>
+                </div>
+            </div>
+            <div class="kpi-value">€@kpi.MonthlyRecurringRevenue.ToString("N2")</div>
+            <div class="kpi-label">Monthly MRR</div>
+            @if (kpi.MRRGrowthPercentage != 0)
+            {
+                <div class="kpi-footer">
+                    <span class="badge @(kpi.MRRGrowthPercentage > 0 ? "bg-success" : "bg-danger")">
+                        @(kpi.MRRGrowthPercentage > 0 ? "+" : "")@kpi.MRRGrowthPercentage.ToString("N2")% vs last month
+                    </span>
+                </div>
+            }
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-icon info">
+                    <i class="ri-calendar-2-line"></i>
+                </div>
+            </div>
+            <div class="kpi-value">€@kpi.QuarterlyRecurringRevenue.ToString("N2")</div>
+            <div class="kpi-label">Quarterly MRR</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-icon info">
+                    <i class="ri-calendar-event-line"></i>
+                </div>
+            </div>
+            <div class="kpi-value">€@kpi.YearlyRecurringRevenue.ToString("N2")</div>
+            <div class="kpi-label">Yearly MRR</div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="@Url.Action("Subscriptions", "Billing")" class="btn btn-primary">
+            <i class="ri-list-check"></i> View All Subscriptions
+        </a>
+    </div>
+}
+else if (string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-info" role="alert">
+        <i class="ri-information-line"></i>
+        No data available.
+    </div>
+}

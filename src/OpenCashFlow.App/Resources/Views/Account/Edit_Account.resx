@@ -1,0 +1,45 @@
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="EditAccountTitle" xml:space="preserve"><value>Edit Account</value></data>
+  <data name="AccountSettings" xml:space="preserve"><value>Account Settings</value></data>
+  <data name="FirstName" xml:space="preserve"><value>First Name</value></data>
+  <data name="EnterYourFirstName" xml:space="preserve"><value>Enter your first name</value></data>
+  <data name="LastName" xml:space="preserve"><value>Last Name</value></data>
+  <data name="EnterYourLastName" xml:space="preserve"><value>Enter your last name</value></data>
+  <data name="Email" xml:space="preserve"><value>Email</value></data>
+  <data name="EmailPlaceholder" xml:space="preserve"><value>john.doe@example.com</value></data>
+  <data name="Prefix" xml:space="preserve"><value>Prefix</value></data>
+  <data name="PhoneNumber" xml:space="preserve"><value>Phone Number</value></data>
+  <data name="EnterYourPhoneNumber" xml:space="preserve"><value>Enter your phone number</value></data>
+  <data name="Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Italian" xml:space="preserve"><value>Italian</value></data>
+  <data name="English" xml:space="preserve"><value>English</value></data>
+  <data name="French" xml:space="preserve"><value>French</value></data>
+  <data name="German" xml:space="preserve"><value>German</value></data>
+  <data name="Country" xml:space="preserve"><value>Country</value></data>
+  <data name="Italy" xml:space="preserve"><value>Italy</value></data>
+  <data name="France" xml:space="preserve"><value>France</value></data>
+  <data name="Germany" xml:space="preserve"><value>Germany</value></data>
+  <data name="UnitedKingdom" xml:space="preserve"><value>United Kingdom</value></data>
+  <data name="UnitedStates" xml:space="preserve"><value>United States</value></data>
+  <data name="Timezone" xml:space="preserve"><value>Timezone</value></data>
+  <data name="SelectTimezone" xml:space="preserve"><value>Select timezone</value></data>
+  <data name="SaveChanges" xml:space="preserve"><value>Save changes</value></data>
+  <data name="Reset" xml:space="preserve"><value>Reset</value></data>
+  <data name="ChangePassword" xml:space="preserve"><value>Change Password</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>New Password</value></data>
+  <data name="EnterNewPassword" xml:space="preserve"><value>Enter new password</value></data>
+  <data name="RepeatNewPassword" xml:space="preserve"><value>Repeat new password</value></data>
+  <data name="UpdatePassword" xml:space="preserve"><value>Update Password</value></data>
+</root>

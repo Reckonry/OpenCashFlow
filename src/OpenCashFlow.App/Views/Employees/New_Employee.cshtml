@@ -1,0 +1,435 @@
+﻿@using Shared.DTOs.Employees
+@model Employee_Create_DTO
+@{
+	ViewData["Title"] = Localizer["NewEmployeeTitle"].Value;
+}
+
+@section VendorStyles {
+	<link rel="stylesheet" href="~/vendor/libs/quill/typography.css">
+	<link rel="stylesheet" href="~/vendor/libs/quill/katex.css">
+	<link rel="stylesheet" href="~/vendor/libs/quill/editor.css">
+	<link rel="stylesheet" href="~/vendor/libs/select2/select2.css">
+	<link rel="stylesheet" href="~/vendor/libs/dropzone/dropzone.css">
+	<link rel="stylesheet" href="~/vendor/libs/flatpickr/flatpickr.css">
+}
+
+@section VendorScripts {
+	<script src="~/vendor/libs/quill/katex.js"></script>
+	<script src="~/vendor/libs/quill/quill.js"></script>
+	<script src="~/vendor/libs/select2/select2.js"></script>
+	<script src="~/vendor/libs/dropzone/dropzone.js"></script>
+	<script src="~/vendor/libs/jquery-repeater/jquery-repeater.js"></script>
+	<script src="~/vendor/libs/flatpickr/flatpickr.js"></script>
+}
+
+@section PageScripts {
+    <script src="~/js/app-ecommerce-product-add.js"></script>
+	
+	<script>
+        $(document).on('submit', '#createEmployeeForm', function (e) {
+            // 1. Reset errors
+            $('.text-danger').text('');
+            $('.is-invalid').removeClass('is-invalid');
+
+			let isValid = true;
+
+			// Required fields
+            const requiredFields = [
+                { id: '#UserFirstName', name: 'UserFirstName', message: '@Localizer["Insert a first name"]' },
+                { id: '#UserLastName', name: 'UserLastName', message: '@Localizer["Insert a last name"]' },
+                { id: '#Email', name: 'Email', message: '@Localizer["Insert a valid e-mail"]' },
+                { id: '#TmpNewPassword', name: 'TmpNewPassword', message: '@Localizer["Insert a password"]' },
+                { id: '#TmpNewPasswordRepeat', name: 'TmpNewPasswordRepeat', message: '@Localizer["Repeat the password"]' },
+            ];
+
+			requiredFields.forEach(f => {
+				const value = $(f.id).val()?.trim();
+				if (!value || value === '00000000-0000-0000-0000-000000000000') {
+					isValid = false;
+					$(f.id).addClass('is-invalid');
+					$(`span[data-valmsg-for='${f.name}']`).text(f.message);
+				}
+			});
+
+			// const emailVal = $('#Email').val()?.trim();
+			// const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+			// if (emailVal && !emailRegex.test(emailVal)) {
+			// 	isValid = false;
+			// 	$('#Email').addClass('is-invalid');
+			// 	$("span[data-valmsg-for='Email']").text('@Localizer["The email you wrote is invalid"]');
+			// }
+
+
+            // Password match
+            const pwd = $('#TmpNewPassword').val();
+            const rep = $('#TmpNewPasswordRepeat').val();
+            if (pwd !== rep) {
+                isValid = false;
+                $('#TmpNewPassword, #TmpNewPasswordRepeat').addClass('is-invalid');
+                $(`span[data-valmsg-for='TmpNewPasswordRepeat']`).text('@Localizer["Passwords do not match"]');
+            }
+
+			// Password strength validation
+			if (pwd && !isStrongPassword(pwd)) {
+				isValid = false;
+				$('#TmpNewPassword').addClass('is-invalid');
+				$(`span[data-valmsg-for='TmpNewPassword']`).text('@Localizer["PasswordNotMeetRequirements"]');
+			}
+
+			// If not valid, block submit
+			if (!isValid) {
+				e.preventDefault(); // <-- block only if there are errors
+				return false;
+			}
+
+			// Show loader (only if valid)
+			$('#SubmitButton').addClass('d-none');
+			$('#Loading').removeClass('d-none');
+		});
+	</script>
+
+	<script>
+		// new Cleave(".date-dob", {
+		// 	date: true, delimiter: "/",
+		// 	datePattern: ["d", "m", "Y"]
+		// });
+
+		// new Cleave('.input-mobile', {
+		// 	phone: true, phoneRegionCode: 'it', blocks: [3, 3, 3, 2]
+		// });
+
+		// new Cleave(".numeral-price", {
+		// 	numeral: true,
+		// 	numeralThousandsGroupStyle: 'thousand',
+		// 	numeralDecimalMark: ',',
+		// 	delimiter: '.'
+		// });
+
+	</script>
+	<script>
+		// Toggle password visibility
+		$(function () {
+			const toggle = (btnId, inputSelector) => {
+				$(btnId).on('click', function () {
+					const $inp = $(inputSelector);
+					const type = $inp.attr('type') === 'password' ? 'text' : 'password';
+					$inp.attr('type', type);
+					$(this).find('i').toggleClass('ri-eye-off-line ri-eye-line');
+				});
+			};
+			toggle('#togglePwd1', '#TmpNewPassword');
+			toggle('#togglePwd2', '#TmpNewPasswordRepeat');
+
+			// Password strength validation in real-time
+			$('#TmpNewPassword').on('input', function() {
+				const password = $(this).val();
+
+				// Check length (min 8 chars)
+				const hasLength = password.length >= 8;
+				updateRequirement('#req-length', hasLength);
+
+				// Check uppercase
+				const hasUppercase = /[A-Z]/.test(password);
+				updateRequirement('#req-uppercase', hasUppercase);
+
+				// Check lowercase
+				const hasLowercase = /[a-z]/.test(password);
+				updateRequirement('#req-lowercase', hasLowercase);
+
+				// Check digit
+				const hasDigit = /\d/.test(password);
+				updateRequirement('#req-digit', hasDigit);
+
+				// Check special character
+				const hasSpecial = /[^a-zA-Z0-9]/.test(password);
+				updateRequirement('#req-special', hasSpecial);
+			});
+
+			function updateRequirement(selector, isValid) {
+				const $elem = $(selector);
+				if (isValid) {
+					$elem.removeClass('text-muted').addClass('text-success');
+					$elem.find('i').removeClass('ri-checkbox-blank-circle-line').addClass('ri-checkbox-circle-fill');
+				} else {
+					$elem.removeClass('text-success').addClass('text-muted');
+					$elem.find('i').removeClass('ri-checkbox-circle-fill').addClass('ri-checkbox-blank-circle-line');
+				}
+			}
+		});
+	</script>
+	<script>
+		// Client-side password validation
+		function isStrongPassword(password) {
+			if (!password || password.length < 8) return false;
+			const hasUpper = /[A-Z]/.test(password);
+			const hasLower = /[a-z]/.test(password);
+			const hasDigit = /\d/.test(password);
+			const hasSpecial = /[^a-zA-Z0-9]/.test(password);
+			return hasUpper && hasLower && hasDigit && hasSpecial;
+		}
+	</script>
+}
+
+
+@Html.Raw(ViewBag.ResponseMessage)
+
+<div class="app-ecommerce">
+
+	<!-- Add Product -->
+	<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 row-gap-4">
+
+		<div class="d-flex flex-column justify-content-center">
+			<h4 class="mb-1">@Localizer["Add new Employee"]</h4>
+			<p class="mb-0">@Localizer["Subtitle"]</p>
+		</div>
+		<div class="d-flex align-content-center flex-wrap gap-4">
+		</div>
+	</div>
+
+    <form method="post" id="createEmployeeForm">
+		@Html.AntiForgeryToken()
+		<div class="row">
+
+			<!-- First column-->
+			<div class="col-12 col-lg-8">
+				<!-- Product Information -->
+				<div class="card mb-6">
+					<div class="card-header">
+						<h5 class="card-tile mb-0">@Localizer["User basic"]</h5>
+					</div>
+					<div class="card-body">
+						<div class="form-floating form-floating-outline mb-5">
+							<select class="form-select" asp-for="SelectedRoleID">
+                                <option value="">@Localizer["Select a role"]</option>
+                                @{
+                                    if (ViewBag.Roles is IEnumerable<Shared.DTOs.Identity.Role_List_DTO> roles)
+                                    {
+                                        foreach (var role in roles)
+                                        {
+                                            <option value="@role.ID">@Localizer["role_" + role.Name]</option>
+                                        }
+                                    }
+                                }
+                            </select>
+							<label>@Localizer["Role"]</label>
+                            <small><span asp-validation-for="SelectedRoleID" class="text-danger"></span></small>
+                        </div>
+						<div class="row mb-5 gx-5">
+							<div class="col">
+								<div class="form-floating form-floating-outline mb-5">
+									<input type="text" asp-for="UserFirstName" class="form-control form-lowercase" placeholder="@Localizer["Name"]" autocomplete="off" />
+									<label>@Localizer["Name"]</label>
+									<small><span asp-validation-for="UserFirstName" class="text-danger"></span></small>
+								</div>
+							</div>
+							<div class="col">
+								<div class="form-floating form-floating-outline mb-5">
+									<input type="text" asp-for="UserLastName" class="form-control form-lowercase" placeholder="@Localizer["Surname"]" autocomplete="off" />
+									<label>@Localizer["Surname"]</label>
+									<small><span asp-validation-for="UserLastName" class="text-danger"></span></small>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- /Product Information -->
+				<!-- Media -->
+				<div class="card mb-6">
+					<div class="card-header">
+						<h5 class="card-tile mb-0">@Localizer["Security Info"]</h5>
+					</div>
+					<div class="card-body">					
+						<div class="row mb-0 gx-5">
+							<div class="col">
+								<div class="mb-5">
+									<div class="input-group input-group-merge">
+										<span class="input-group-text"><i class="ri-phone-line"></i></span>
+										<div class="form-floating form-floating-outline">
+											<input type="text" class="form-control" asp-for="PhoneNumber" placeholder="@Localizer["Phone number"]">
+											<label>@Localizer["Phone number"]</label>
+										</div>
+									</div>
+									<small><span asp-validation-for="PhoneNumber" class="text-danger"></span></small>
+								</div>
+							</div>
+							<div class="col">
+								<div class="mb-5">
+									<div class="input-group input-group-merge">
+										<span class="input-group-text"><i class="ri-mail-open-line"></i></span>
+										<div class="form-floating form-floating-outline">
+											<input type="text" class="form-control" asp-for="Email" placeholder="@Localizer["E-mail"]">
+											<label>@Localizer["E-mail"]</label>
+										</div>
+									</div>
+									<small><span asp-validation-for="Email" class="text-danger"></span></small>
+								</div>
+							</div>
+						</div>
+
+						<div class="alert alert-info d-flex align-items-center mb-5" role="alert">
+							<i class="ri-information-line me-2"></i>
+							<div class="flex-grow-1">
+								<span>@Localizer["PasswordInfoMessage"]</span>
+							</div>
+						</div>
+
+						<div class="row mb-0 gx-5">
+							<div class="col">
+								<div class="mb-5">
+									<div class="input-group input-group-merge">
+										<span class="input-group-text"><i class="ri-lock-password-line"></i></span>
+										<div class="form-floating form-floating-outline">
+											<input type="password" class="form-control" asp-for="TmpNewPassword" placeholder="@Localizer["Password"]" autocomplete="new-password">
+											<label>@Localizer["Password"]</label>
+										</div>
+										<span class="input-group-text cursor-pointer" id="togglePwd1"><i class="ri-eye-off-line"></i></span>
+									</div>
+									<small><span asp-validation-for="TmpNewPassword" class="text-danger"></span></small>
+								</div>
+							</div>
+							<div class="col">
+								<div class="mb-5">
+									<div class="input-group input-group-merge">
+										<span class="input-group-text"><i class="ri-lock-password-line"></i></span>
+										<div class="form-floating form-floating-outline">
+											<input type="password" class="form-control" asp-for="TmpNewPasswordRepeat" placeholder="@Localizer["Repeat Password"]" autocomplete="new-password">
+											<label>@Localizer["Repeat Password"]</label>
+										</div>
+										<span class="input-group-text cursor-pointer" id="togglePwd2"><i class="ri-eye-off-line"></i></span>
+									</div>
+									<small><span asp-validation-for="TmpNewPasswordRepeat" class="text-danger"></span></small>
+								</div>
+							</div>
+						</div>
+
+						<!-- Password Requirements Hint -->
+						<div class="alert alert-warning mb-5" role="alert">
+							<strong>@Localizer["PasswordRequirements"]:</strong>
+							<ul class="mb-0 mt-2" id="passwordRequirementsList">
+								<li id="req-length" class="text-muted">
+									<i class="ri-checkbox-blank-circle-line me-1"></i>
+									<span>@Localizer["MinLength8Chars"]</span>
+								</li>
+								<li id="req-uppercase" class="text-muted">
+									<i class="ri-checkbox-blank-circle-line me-1"></i>
+									<span>@Localizer["AtLeastOneUppercase"]</span>
+								</li>
+								<li id="req-lowercase" class="text-muted">
+									<i class="ri-checkbox-blank-circle-line me-1"></i>
+									<span>@Localizer["AtLeastOneLowercase"]</span>
+								</li>
+								<li id="req-digit" class="text-muted">
+									<i class="ri-checkbox-blank-circle-line me-1"></i>
+									<span>@Localizer["AtLeastOneDigit"]</span>
+								</li>
+								<li id="req-special" class="text-muted">
+									<i class="ri-checkbox-blank-circle-line me-1"></i>
+									<span>@Localizer["AtLeastOneSpecial"]</span>
+								</li>
+							</ul>
+						</div>
+                    </div>
+				</div>
+			</div>
+			<!-- /Second column -->
+			<!-- Second column -->
+			<div class="col-12 col-lg-4">
+				<!-- Pricing Card -->
+				<div class="card mb-6">
+					<div class="card-header">
+						<h5 class="card-title mb-0">@Localizer["Other Info"]</h5>
+					</div>
+					<div class="card-body">
+						<!-- Gender -->
+						<div class="form-floating form-floating-outline mb-5">
+                            <select class="form-select" asp-for="Gender">
+								<option value="">@Localizer["Select gender"]</option>
+								@*  @foreach (GenderTypes value in (GenderTypes[])Enum.GetValues(typeof(GenderTypes)))
+                                    {
+                                        <option value="@value">@Localizer["gender_" + value.ToString()]</option>
+                                    } *@
+							</select>
+							<label>@Localizer["Gender"]</label>
+						</div>
+
+						<!-- Timezone -->
+						<div class="form-floating form-floating-outline mb-5">
+                            <select class="form-select" asp-for="Timezone">
+                                <option value="">@Localizer["Select a timezone"]</option>
+								@{
+									if (ViewBag.Timezones != null)
+									{
+										foreach (var item in ViewBag.Timezones)
+										{
+											<option value="@item.Display">@item.Display</option>
+										}
+									}
+								}
+							</select>
+							<label>@Localizer["Timezone"]</label>
+						</div>
+						<!-- Language -->
+						<div class="form-floating form-floating-outline mb-5">
+                            <select class="form-select" asp-for="Language">
+                                <option value="">@Localizer["SelectALanguage"]</option>
+								@{
+									if (ViewBag.Languages != null)
+									{
+										foreach (var item in ViewBag.Languages)
+										{
+											<option value="@item.Code">@item.Name</option>
+										}
+									}
+								}
+							</select>
+							<label>@Localizer["Language"]</label>
+							<small><span asp-validation-for="Language" class="text-danger"></span></small>
+						</div>
+						<!-- Country -->
+						<div class="form-floating form-floating-outline mb-5">
+                            <select class="form-select" asp-for="Country">
+                                <option value="">@Localizer["SelectACountry"]</option>
+								@{
+									if (ViewBag.Countries != null)
+									{
+										foreach (var item in ViewBag.Countries)
+										{
+											<option value="@item.Code">@item.Name</option>
+										}
+									}
+								}
+							</select>
+							<label>@Localizer["Country"]</label>
+							<small><span asp-validation-for="Country" class="text-danger"></span></small>
+						</div>
+						<!-- Instock switch -->
+						<div class="d-flex justify-content-between align-items-center border-top pt-4">
+							<p class="mb-0">@Localizer["Utente Attivo"]</p>
+							<div class="w-25 d-flex justify-content-end">
+								<div class="form-check form-switch me-n3 mb-0">
+									<input type="checkbox" class="form-check-input" checked />
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="d-grid gap-2">
+					<button id="SubmitButton" type="submit" class="btn btn-success waves-effect waves-light">
+						<i class="ri-add-large-line me-2"></i>@Localizer["Create"]
+					</button>
+					<button class="btn btn-raised btn-success waves-effect waves-light d-none" id="Loading" type="button" disabled="">
+						<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>@Localizer["Loading"]
+					</button>
+				</div>
+                <div class="d-grid gap-2 pt-3">
+                    <a href="~/Employees" class="btn btn-secondary text-white">
+                        <i class="ri-arrow-go-back-fill me-2"></i>@Localizer["Discard"]
+                    </a>
+                </div>
+            </div>
+            <!-- /Second column -->
+
+		</div>
+	</form>
+</div>

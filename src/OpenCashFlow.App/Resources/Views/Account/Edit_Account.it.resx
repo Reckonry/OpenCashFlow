@@ -1,0 +1,45 @@
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="EditAccountTitle" xml:space="preserve"><value>Modifica Account</value></data>
+  <data name="AccountSettings" xml:space="preserve"><value>Impostazioni Account</value></data>
+  <data name="FirstName" xml:space="preserve"><value>Nome</value></data>
+  <data name="EnterYourFirstName" xml:space="preserve"><value>Inserisci il tuo nome</value></data>
+  <data name="LastName" xml:space="preserve"><value>Cognome</value></data>
+  <data name="EnterYourLastName" xml:space="preserve"><value>Inserisci il tuo cognome</value></data>
+  <data name="Email" xml:space="preserve"><value>E-mail</value></data>
+  <data name="EmailPlaceholder" xml:space="preserve"><value>nome.cognome@esempio.com</value></data>
+  <data name="Prefix" xml:space="preserve"><value>Prefisso</value></data>
+  <data name="PhoneNumber" xml:space="preserve"><value>Numero di telefono</value></data>
+  <data name="EnterYourPhoneNumber" xml:space="preserve"><value>Numero di telefono</value></data>
+  <data name="Language" xml:space="preserve"><value>Lingua</value></data>
+  <data name="Italian" xml:space="preserve"><value>Italiano</value></data>
+  <data name="English" xml:space="preserve"><value>Inglese</value></data>
+  <data name="French" xml:space="preserve"><value>Francese</value></data>
+  <data name="German" xml:space="preserve"><value>Tedesco</value></data>
+  <data name="Country" xml:space="preserve"><value>Paese</value></data>
+  <data name="Italy" xml:space="preserve"><value>Italia</value></data>
+  <data name="France" xml:space="preserve"><value>Francia</value></data>
+  <data name="Germany" xml:space="preserve"><value>Germania</value></data>
+  <data name="UnitedKingdom" xml:space="preserve"><value>Regno Unito</value></data>
+  <data name="UnitedStates" xml:space="preserve"><value>Stati Uniti</value></data>
+  <data name="Timezone" xml:space="preserve"><value>Fuso orario</value></data>
+  <data name="SelectTimezone" xml:space="preserve"><value>Seleziona fuso orario</value></data>
+  <data name="SaveChanges" xml:space="preserve"><value>Salva modifiche</value></data>
+  <data name="Reset" xml:space="preserve"><value>Reimposta</value></data>
+  <data name="ChangePassword" xml:space="preserve"><value>Cambia Password</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>Nuova Password</value></data>
+  <data name="EnterNewPassword" xml:space="preserve"><value>Inserisci la nuova password</value></data>
+  <data name="RepeatNewPassword" xml:space="preserve"><value>Ripeti la nuova password</value></data>
+  <data name="UpdatePassword" xml:space="preserve"><value>Aggiorna Password</value></data>
+</root>

@@ -1,0 +1,60 @@
+﻿@model Company_Detail_DTO
+
+@{
+    ViewData["Title"] = Localizer["CompanyProfileTitle"].Value;
+}
+
+@section VendorStyles{
+    <link rel="stylesheet" href="~/vendor/libs/datatables-bs5/datatables.bootstrap5.css">
+    <link rel="stylesheet" href="~/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css">
+    <link rel="stylesheet" href="~/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css">
+    <link rel="stylesheet" href="~/vendor/libs/apex-charts/apex-charts.css" />
+}
+
+@section VendorScripts {
+    <script src="~/vendor/libs/datatables/jquery.dataTables.js"></script>
+    <script src="~/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+    <script src="~/vendor/libs/datatables-responsive/datatables.responsive.js"></script>
+    <script src="~/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.js"></script>
+    <script src="~/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.js"></script>
+    <script src="~/vendor/libs/apex-charts/apexcharts.js"></script>
+}
+
+@section PageStyles{
+    <link rel="stylesheet" href="~/vendor/css/pages/page-profile.css" />
+}
+
+@section PageScripts {
+    <script src="~/js/pages-profile-user.js"></script>
+}
+
+@* ************** Content ************** *@
+
+
+<div class="row">
+    <!-- User Sidebar -->
+    <div class="col-xl-4 col-lg-5 col-md-5 order-1 order-md-0">
+        <!-- User Card -->
+        @await Html.PartialAsync("Components/_Company_Details", Model)
+        <!-- /User Card -->
+        <!-- Plan Card -->
+        <!--await Html.PartialAsync("Components/_PlanType")-->
+        <!-- /Plan Card -->
+    </div>
+    <!--/ User Sidebar -->
+    <!-- User Content -->
+    <div class="col-xl-8 col-lg-7 col-md-7 order-0 order-md-1">
+        @await Html.PartialAsync("Components/_Company_ViewHeader", ViewData)
+        <!-- User Pills -->
+        <!--/ User Pills -->
+        <!-- Activity Timeline -->
+        <div class="card mb-4">
+            <h5 class="card-header">@Localizer["CompanyPerformance"]</h5>
+            <div class="card-body pb-0">
+                <div id="chart"></div>
+            </div>
+        </div>
+        <!-- /Activity Timeline -->
+    </div>
+    <!--/ User Content -->
+</div>

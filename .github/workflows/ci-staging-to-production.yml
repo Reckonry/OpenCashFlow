@@ -1,0 +1,250 @@
+name: CI - Staging ➜ Production Release (RC Gate + Artifacts)
+
+on:
+  push:
+    tags:
+      # Global production releases
+      - "v*.*.*"
+      - "v*.*.*.*"
+      # Per-component production releases
+      - "app-v*.*.*"
+      - "app-v*.*.*.*"
+      - "api-v*.*.*"
+      - "api-v*.*.*.*"
+      - "landing-v*.*.*"
+      - "landing-v*.*.*.*"
+      - "www-v*.*.*"
+      - "www-v*.*.*.*"
+      - "admin-v*.*.*"
+      - "admin-v*.*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Version tag to release (e.g., v1.2.3 or app-v1.2.3)"
+        required: true
+        type: string
+      create_release:
+        description: "Create a GitHub Release for this tag?"
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+env:
+  DOTNET_VERSION: "9.0.x"
+  TAG_NAME: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+
+jobs:
+  gate-has-rc:
+    name: 🚧 Gate – require existing RC tag
+    runs-on: ubuntu-latest
+    outputs:
+      rc_tag: ${{ steps.rcgate.outputs.rc_tag }}
+    steps:
+      - name: ⬇️ Checkout (tags)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔎 Verify matching RC exists
+        id: rcgate
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${TAG_NAME}"
+
+          # Parse: component + version
+          component=""
+          version=""
+          if [[ "$TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?)$ ]]; then
+            version="${BASH_REMATCH[1]}"
+          elif [[ "$TAG" =~ ^([a-zA-Z0-9_-]+)-v([0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?)$ ]]; then
+            component="${BASH_REMATCH[1]}"
+            version="${BASH_REMATCH[2]}"
+          else
+            echo "❌ Unsupported tag format: $TAG"
+            exit 1
+          fi
+
+          echo "Parsed -> component='$component' version='$version'"
+
+          # Candidate RC tags to validate against
+          candidates=()
+
+          if [[ -z "$component" ]]; then
+            # Global: must have generic RC (-RC)
+            candidates+=("v${version}-RC")
+          else
+            # Component-specific: accept -RC or plain (as configured)
+            candidates+=("${component}-v${version}-RC")
+            candidates+=("${component}-v${version}")
+          fi
+
+          echo "Looking for RC candidates: ${candidates[*]}"
+
+          git fetch --tags --force
+
+          found=""
+          for c in "${candidates[@]}"; do
+            if git rev-parse -q --verify "refs/tags/${c}" >/dev/null; then
+              found="$c"
+              break
+            fi
+            if git ls-remote --tags origin | grep -E "refs/tags/${c}$" >/dev/null; then
+              found="$c"
+              break
+            fi
+          done
+
+          if [[ -z "$found" ]]; then
+            echo "❌ No RC tag found for this version. Create an RC first: ${candidates[*]}"
+            exit 2
+          fi
+
+          echo "✅ RC found: $found"
+          echo "rc_tag=$found" >> "$GITHUB_OUTPUT"
+
+  prod-release:
+    name: 🚀 Production Release (Artifacts Only)
+    needs: gate-has-rc
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout (full)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔎 Determine scope (global vs component)
+        id: scope
+        shell: bash
+        run: |
+          TAG="${TAG_NAME}"
+          DEPLOY_APP=0
+          DEPLOY_API=0
+          DEPLOY_LANDING=0
+          DEPLOY_WWW=0
+          DEPLOY_ADMIN=0
+
+          if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+            # Global production: all components
+            DEPLOY_APP=1
+            DEPLOY_API=1
+            DEPLOY_LANDING=1
+            DEPLOY_ADMIN=1
+            DEPLOY_WWW=1
+          elif [[ "$TAG" =~ ^app-v.*$ ]]; then
+            DEPLOY_APP=1
+          elif [[ "$TAG" =~ ^api-v.*$ ]]; then
+            DEPLOY_API=1
+          elif [[ "$TAG" =~ ^landing-v.*$ ]]; then
+            DEPLOY_LANDING=1
+          elif [[ "$TAG" =~ ^www-v.*$ ]]; then
+            DEPLOY_WWW=1
+          elif [[ "$TAG" =~ ^admin-v.*$ ]]; then
+            DEPLOY_ADMIN=1
+          else
+            echo "❌ Unrecognized production tag"; exit 1
+          fi
+
+          echo "DEPLOY_APP=$DEPLOY_APP"           >> $GITHUB_OUTPUT
+          echo "DEPLOY_API=$DEPLOY_API"           >> $GITHUB_OUTPUT
+          echo "DEPLOY_LANDING=$DEPLOY_LANDING"   >> $GITHUB_OUTPUT
+          echo "DEPLOY_WWW=$DEPLOY_WWW"           >> $GITHUB_OUTPUT
+          echo "DEPLOY_ADMIN=$DEPLOY_ADMIN"       >> $GITHUB_OUTPUT
+
+      # ---------- DOWNLOAD ARTIFACTS FROM RC RUN ----------
+      - name: ⬇️ Download App publish artifact from RC
+        if: steps.scope.outputs.DEPLOY_APP == '1'
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: ci-master-to-staging.yml
+          workflow_conclusion: success
+          name: app-publish
+          path: OpenCashFlow.App/publish
+          search_artifacts: true
+
+      - name: ⬇️ Download API publish artifact from RC
+        if: steps.scope.outputs.DEPLOY_API == '1'
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: ci-master-to-staging.yml
+          workflow_conclusion: success
+          name: api-publish
+          path: OpenCashFlow.Api/publish
+          search_artifacts: true
+
+      - name: ⬇️ Download Landing publish artifact from RC
+        if: steps.scope.outputs.DEPLOY_LANDING == '1'
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: ci-master-to-staging.yml
+          workflow_conclusion: success
+          name: landing-publish
+          path: OpenCashFlow.Landing/publish
+          search_artifacts: true
+
+      - name: ⬇️ Download WWW publish artifact from RC
+        if: steps.scope.outputs.DEPLOY_WWW == '1'
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: ci-master-to-staging.yml
+          workflow_conclusion: success
+          name: www-publish
+          path: OpenCashFlow.Core/publish
+          search_artifacts: true
+
+      - name: ⬇️ Download Admin publish artifact from RC
+        if: steps.scope.outputs.DEPLOY_ADMIN == '1'
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: ci-master-to-staging.yml
+          workflow_conclusion: success
+          name: admin-publish
+          path: OpenCashFlow.Admin/publish
+          search_artifacts: true
+
+      # ---------- OPTIONAL: COPY EMAIL TEMPLATES INTO PUBLISH ----------
+      - name: 📧 Copy EmailTemplates into API publish output (if present)
+        if: steps.scope.outputs.DEPLOY_API == '1'
+        run: |
+          if [ -d "OpenCashFlow.Api/EmailTemplates" ]; then
+            cp -r OpenCashFlow.Api/EmailTemplates OpenCashFlow.Api/publish/
+          fi
+
+      # ---------- CREATE GITHUB RELEASE ----------
+      - name: 🏷️ Create GitHub Release (Production)
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.create_release == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: "Production Release ${{ env.TAG_NAME }}"
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            🚀 **Production Release ${{ env.TAG_NAME }}**
+
+            This release was promoted from RC: **${{ needs.gate-has-rc.outputs.rc_tag }}**
+
+            ## Components Included:
+            ${{ steps.scope.outputs.DEPLOY_APP == '1' && '✅ APP' || '⏸️ APP' }}
+            ${{ steps.scope.outputs.DEPLOY_API == '1' && '✅ API' || '⏸️ API' }}
+            ${{ steps.scope.outputs.DEPLOY_LANDING == '1' && '✅ LANDING' || '⏸️ LANDING' }}
+            ${{ steps.scope.outputs.DEPLOY_WWW == '1' && '✅ WWW' || '⏸️ WWW' }}
+            ${{ steps.scope.outputs.DEPLOY_ADMIN == '1' && '✅ ADMIN' || '⏸️ ADMIN' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

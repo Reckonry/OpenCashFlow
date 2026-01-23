@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="DocumentTypeCreateTitle" xml:space="preserve"><value>Nuovo tipo di documento</value></data>
+  <data name="DocumentTypeCreateHeading" xml:space="preserve"><value>Nuovo tipo di documento</value></data>
+  <data name="DocumentTypeExplanation" xml:space="preserve"><value>Crea un nuovo tipo di documento per categorizzare i tuoi incassi. Potrai utilizzare questo tipo quando registri nuovi pagamenti.</value></data>
+  <data name="NewTypeWillBeAssociatedToYourCompany" xml:space="preserve"><value>Il nuovo tipo sarà associato alla tua azienda.</value></data>
+  <data name="DocumentTypeName" xml:space="preserve"><value>Nome tipo di documento</value></data>
+  <data name="DocumentTypeDescription" xml:space="preserve"><value>Descrizione tipo di documento</value></data>
+  <data name="EnterDocumentTypeName" xml:space="preserve"><value>es. Fattura, Ricevuta, Nota di credito</value></data>
+  <data name="EnterDocumentTypeDescription" xml:space="preserve"><value>es. Documento fiscale per la vendita</value></data>
+</root>

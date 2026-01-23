@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "datatables@1.13.8",
+      "destination": "wwwroot/vendor/libs/datatables/",
+      "files": [
+        "js/jquery.dataTables.min.js"
+      ]
+    },
+    {
+      "library": "datatables.net-responsive@2.5.0",
+      "destination": "wwwroot/vendor/libs/datatables-responsive/",
+      "files": [
+        "js/dataTables.responsive.min.js"
+      ]
+    },
+    {
+      "library": "datatables.net-responsive-bs5@2.5.0",
+      "destination": "wwwroot/vendor/libs/datatables-responsive-bs5/",
+      "files": [
+        "js/responsive.bootstrap5.min.js"
+      ]
+    },
+    {
+      "library": "datatables.net-select@1.7.0",
+      "destination": "wwwroot/vendor/libs/datatables-checkboxes-jquery/",
+      "files": [
+        "js/dataTables.select.min.js"
+      ]
+    }
+  ]
+}

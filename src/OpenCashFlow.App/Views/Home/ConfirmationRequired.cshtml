@@ -1,0 +1,70 @@
+﻿@model Register_DTO
+@{
+    Layout = "_BlankLayout";
+    ViewData["Title"] = Localizer["ConfirmationRequiredTitle"].Value;
+}
+
+@section VendorStyles {
+    <link rel="stylesheet" href="~/vendor/libs/&#64;form-validation/form-validation.css" />
+}
+
+@section VendorScripts {
+    <script src="~/vendor/libs/&#64;form-validation/popular.js"></script>
+    <script src="~/vendor/libs/&#64;form-validation/bootstrap5.js"></script>
+    <script src="~/vendor/libs/&#64;form-validation/auto-focus.js"></script>
+}
+
+@section PageStyles {
+    <link rel="stylesheet" href="~/vendor/css/pages/page-auth.css">
+}
+
+@section PageScripts {
+    <script src="~/js/pages-auth.js"></script>
+}
+@* ************** Content ************** *@
+
+<div class="authentication-wrapper authentication-cover">
+    <!-- Logo -->
+    <a href="/" class="auth-cover-brand d-flex align-items-center gap-2">
+        <span class="app-brand-logo demo">@await Html.PartialAsync("../_Partials/_Macros")</span>
+        <span class="app-brand-text demo text-heading fw-semibold">@TempData.Peek("appName")</span>
+    </a>
+    <!-- /Logo -->
+    <div class="authentication-inner row m-0">
+
+        <!-- /Left Text -->
+        <div class="d-none d-lg-flex col-lg-7 col-xl-8 align-items-center justify-content-center p-12 pb-2">
+            <img src="~/img/illustrations/auth-register-illustration-light.png" class="auth-cover-illustration w-100" alt="@Localizer["AuthIllustrationAlt"]" data-app-light-img="illustrations/auth-register-illustration-light.png" data-app-dark-img="illustrations/auth-register-illustration-dark.png" />
+            <img src="~/img/illustrations/auth-cover-register-mask-light.png" class="authentication-image" alt="@Localizer["MaskIllustrationAlt"]" data-app-light-img="illustrations/auth-cover-register-mask-light.png" data-app-dark-img="illustrations/auth-cover-register-mask-dark.png" />
+        </div>
+        <!-- /Left Text -->
+        <!-- Confirm Account -->
+        <div class="d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg position-relative py-sm-12 px-12 py-6">
+            <div class="w-px-400 mx-auto pt-5 pt-lg-0">
+                <h4 class="mb-1">@Localizer["ConfirmationHeading"]</h4>
+                <p class="mb-5">@Localizer["ConfirmationSubtitle"]</p>
+
+                <div class="alert alert-solid-success mb-5" role="alert">
+                    <i class="ri-mail-check-line me-2"></i>
+                    @Localizer["EmailSentMessage"]
+                </div>
+
+                <p class="text-center mb-5">
+                    @Localizer["CheckInboxMessage"]
+                </p>
+
+                <a href="~/Login" class="btn btn-primary d-grid w-100" style="text-transform: none;">
+                    @Localizer["GoToLoginButton"]
+                </a>
+
+                <p class="text-center mt-5">
+                    <span>@Localizer["DidntReceiveEmail"]</span>
+                    <a href="~/ResendConfirmation">
+                        <span>@Localizer["ResendEmail"]</span>
+                    </a>
+                </p>
+            </div>
+        </div>
+        <!-- /Confirm Account -->
+    </div>
+</div>

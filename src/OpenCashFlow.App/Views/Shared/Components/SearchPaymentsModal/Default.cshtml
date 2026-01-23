@@ -1,0 +1,125 @@
+﻿@using Shared.Models.DTOs
+@model Shared.DTOs.Payment_Filter_DTO
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUser" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-simple modal-edit-user">
+		<div class="modal-content">
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			<div class="modal-body p-0">
+				<div class="text-center mb-6">
+					<h4 class="mb-2">@Localizer[""]Payments Search</h4>
+					<p class="mb-6">@Localizer[""]From here you can search saved transactions.</p>
+				</div>
+				<form id="searchPaymentsForm" class="row g-4" method="post">
+					<!-- Range date -->
+					<div class="col-md-6">
+						<div class="form-floating form-floating-outline">
+							<input type="date" asp-for="FromDate" class="form-control"
+								value="@Model?.FromDate?.ToString("yyyy-MM-dd")" />
+							<label asp-for="FromDate">@Localizer["StartDate"]</label>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-floating form-floating-outline">
+							<input type="date" asp-for="ToDate" class="form-control"
+								value="@Model?.ToDate?.ToString("yyyy-MM-dd")" />
+							<label asp-for="ToDate">@Localizer["EndDate"]</label>
+						</div>
+					</div>
+
+					<!-- Amount range -->
+					<div class="col-md-6">
+						<div class="form-floating form-floating-outline">
+							<input type="number" step="0.01" asp-for="MinAmount" class="form-control"
+								value="@Model?.MinAmount" />
+							<label asp-for="MinAmount">@Localizer["MinAmount"]</label>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-floating form-floating-outline">
+							<input type="number" step="0.01" asp-for="MaxAmount" class="form-control"
+								value="@Model?.MaxAmount" />
+							<label asp-for="MaxAmount">@Localizer["MaxAmount"]</label>
+						</div>
+					</div>
+
+					<!-- Entry Type (Income/Outcome) -->
+					<div class="col-md-6">
+						<div class="form-floating form-floating-outline">
+							<select asp-for="EntryType" class="form-select">
+								<option value="">@Localizer["All"]</option>
+								<option value="Income">@SharedLocalizer["Income"]</option>
+								<option value="Outcome">@SharedLocalizer["Outcome"]</option>
+							</select>
+							<label asp-for="EntryType">@Localizer["EntryType"]</label>
+						</div>
+					</div>
+
+					<!-- Document Type -->
+					<div class="col-md-6">
+						<div class="form-floating form-floating-outline">
+							<select asp-for="DocumentTypeID" class="form-select">
+								<option value="">@Localizer["All"]</option>
+								@{
+									if (ViewBag.DocumentTypeList != null)
+									{
+										foreach (Payment_DocumentType_List_DTO item in ViewBag.DocumentTypeList)
+										{
+											<option value="@item.DocumentTypeID.ToString()">
+												@SharedLocalizer[item.DocumentTypeDescription!]
+											</option>
+										}
+									}
+								}
+							</select>
+							<label asp-for="DocumentTypeID">@Localizer["DocumentType"]</label>
+						</div>
+					</div>
+
+					<!-- Payment Method -->
+					<div class="col-md-6">
+						<div class="form-floating form-floating-outline">
+							<select asp-for="PaymentMethodID" class="form-select">
+								<option value="">@Localizer["All"]</option>
+								@{
+									if (ViewBag.PaymentMethodList != null)
+									{
+										foreach (Payment_Method_List_DTO item in ViewBag.PaymentMethodList)
+										{
+											<option value="@item.PaymentMethodID.ToString()">
+												@SharedLocalizer[item.PaymentMethodName]
+											</option>
+										}
+									}
+								}
+							</select>
+							<label asp-for="PaymentMethodID">@Localizer["PaymentMethod"]</label>
+						</div>
+					</div>
+					<!-- Description  -->
+					<div class="col-md-12">
+						<div class="form-floating form-floating-outline">
+							<input type="text" asp-for="Description" class="form-control" value="@Model?.Description" />
+							<label asp-for="Description">@Localizer["Description"]</label>
+						</div>
+					</div>
+
+					<!-- Buttons -->
+					<div class="col-12 text-center d-flex justify-content-center gap-4">
+						<button type="submit" class="btn btn-primary"
+							id="SubmitButtonSearch">@Localizer["Search"]</button>
+						<button class="btn btn-raised btn-success d-none" id="LoadingSearch" type="button" disabled="">
+							<span class="spinner-border spinner-border-sm me-2" role="status"
+								aria-hidden="true"></span>@Localizer["Loading"]
+						</button>
+						<button type="button" class="btn btn-outline-secondary" id="DiscardSearch"
+							data-bs-dismiss="modal">
+							@Localizer["Discard"]
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

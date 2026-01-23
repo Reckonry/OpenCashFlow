@@ -1,0 +1,191 @@
+@model List<Shared.DTOs.Admin.User_List_DTO>
+@{
+    ViewData["Title"] = "User Management";
+    var filters = ViewBag.Filters as Shared.DTOs.Admin.User_Filter_DTO;
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Admin User Management</h1>
+            <p class="text-muted">Manage users, roles, and system permissions</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Index">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Search</label>
+                        <input type="text" name="Search" class="form-control" placeholder="Username, email, name..." value="@filters?.Search" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Status</label>
+                        <select name="IsActive" class="form-select">
+                            <option value="">All</option>
+                            <option value="true" selected="@(filters?.IsActive == true)">Active</option>
+                            <option value="false" selected="@(filters?.IsActive == false)">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Locked</label>
+                        <select name="IsLocked" class="form-select">
+                            <option value="">All</option>
+                            <option value="true" selected="@(filters?.IsLocked == true)">Yes</option>
+                            <option value="false" selected="@(filters?.IsLocked == false)">No</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">Filter</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="mb-3">
+        <a asp-action="Create" class="btn btn-success">
+            <i class="ri-add-line"></i> New User
+        </a>
+    </div>
+
+    <!-- Users table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Company</th>
+                            <th>Roles</th>
+                            <th>Status</th>
+                            <th>Last Login</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model == null || !Model.Any())
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    No users found
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var user in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@user.Username</strong>
+                                        @if (user.EmailConfirmed)
+                                        {
+                                            <i class="ri-checkbox-circle-line text-success ms-1" title="Email confirmed"></i>
+                                        }
+                                    </td>
+                                    <td>@user.FullName</td>
+                                    <td>@user.Email</td>
+                                    <td>@(user.CompanyName ?? "-")</td>
+                                    <td>
+                                        @if (user.Roles != null && user.Roles.Any())
+                                        {
+                                            @foreach (var role in user.Roles)
+                                            {
+                                                <span class="badge bg-info me-1">@role</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No roles</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (user.IsLocked)
+                                        {
+                                            <span class="badge bg-danger">Locked</span>
+                                        }
+                                        else if (user.IsActive)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (user.LastLoginDate.HasValue)
+                                        {
+                                            @user.LastLoginDate.Value.ToString("dd/MM/yyyy HH:mm")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Never</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@user.UserID" class="btn btn-sm btn-primary">
+                                            <i class="ri-eye-line"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@user.UserID" class="btn btn-sm btn-warning">
+                                            <i class="ri-edit-line"></i>
+                                        </a>
+                                        <a asp-controller="AuditLog"
+                                           asp-action="Index"
+                                           asp-route-UserID="@user.UserID"
+                                           class="btn btn-sm btn-outline-secondary"
+                                           title="Audit log">
+                                            <i class="ri-file-chart-line"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (ViewBag.TotalPages > 1)
+            {
+                <nav class="mt-3">
+                    <ul class="pagination justify-content-center">
+                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                <a class="page-link" href="?Page=@i&Search=@filters?.Search&IsActive=@filters?.IsActive&IsLocked=@filters?.IsLocked">@i</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            }
+
+            <div class="text-center text-muted small mt-2">
+                Total users: @ViewBag.TotalCount
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,45 @@
+@model IEnumerable<Company_Detail_DTO>
+@{
+    ViewData["Title"] = "Company List";
+}
+<div class="container mt-5">
+    <h2>Company List</h2>
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Subscription</th>
+                <th>Responsible</th>
+                <th>VAT ID</th>
+                <th>Registration Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null) {
+                @foreach (var company in Model.OrderBy(x => x.EndingContract).ThenBy(x => x.DateIns))
+                {
+                    <tr>
+                        <td>
+                            <a class="btn btn-sm btn-primary me-5" asp-action="ViewCompany" asp-route-id="@company.TenantID">View</a>
+                            @company.CompanyName
+                        </td>
+                        <td>
+                            @if (company.EndingContract < DateTime.UtcNow)
+                            {
+                                <span class="badge rounded-pill bg-label-danger">Expired</span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill bg-label-success">Active</span>
+                            }
+                            <small>@company.EndingContract.ToShortDateString()</small>
+                        </td>
+                        <td>@company.AttorneyFullName</td>
+                        <td>@company.VAT</td>
+                        <td>@company.DateIns.ToShortDateString()</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

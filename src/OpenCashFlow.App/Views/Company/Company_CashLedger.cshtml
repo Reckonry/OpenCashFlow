@@ -1,0 +1,377 @@
+﻿@{
+  ViewData["Title"] = Localizer["CashLedgerTitle"].Value;
+}
+
+@section PageScripts {
+  <script>
+    function formatAmountIt(value) {
+      const n = typeof value === 'string' ? Number(value) : value;
+      if (!Number.isFinite(n)) return value ?? '';
+      return n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function parseAsUtc(input) {
+      if (!input) return new Date();
+
+      const str = String(input);
+
+      // Handle .NET high-precision timestamps by removing excess milliseconds
+      if (str.includes('Z') && str.includes('.')) {
+        // Extract parts: "2025-09-24T07:08:40.8969250Z" -> "2025-09-24T07:08:40.896Z"
+        const parts = str.split('.');
+        if (parts.length === 2) {
+          const datePart = parts[0]; // "2025-09-24T07:08:40"
+          const msPart = parts[1].replace('Z', ''); // "8969250"
+          const truncatedMs = msPart.substring(0, 3); // "896"
+          const result = `${datePart}.${truncatedMs}Z`;
+          return new Date(result);
+        }
+      }
+
+      // Handle strings without timezone - treat as UTC
+      if (/^\d{4}-\d{2}-\d{2}T/.test(str) && !(/[Z+\-]\d{2}:?\d{2}$/.test(str))) {
+        return new Date(str + "Z");
+      }
+
+      return new Date(str);
+    }
+    function friendlyDateTime(dateString) {
+      const date = parseAsUtc(dateString);
+      if (isNaN(date)) return "";
+      return date.toLocaleString("it-IT", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+    function applyFriendlyDates(root) {
+      try {
+        const scope = root && root.querySelectorAll ? root : document;
+        const nodes = scope.querySelectorAll('.js-payment-date[data-payment-utc]');
+        nodes.forEach(function (node) {
+          const raw = node.getAttribute('data-payment-utc');
+          if (!raw) return;
+          const text = friendlyDateTime(raw).trim();
+          if (!text) return;
+          node.textContent = text;
+        });
+      } catch (e) {
+        console && console.debug && console.debug('applyFriendlyDates error', e);
+      }
+    }
+    function loadCurrent() {
+      $.getJSON('/internal/Payment/GetCashBalance', function (resp) {
+        if (resp && resp.success) {
+          const val = Number(resp.amount);
+          $('#CompanyCashCurrent').text('\u20AC ' + formatAmountIt(val));
+        }
+      });
+    }
+    let _skip = 0, _take = 50; let _loading = false;
+    const txtError = '@Localizer["GenericError"]';
+    const txtNetworkError = '@Localizer["NetworkError"]';
+    const txtInvalidAmount = '@Localizer["InvalidAmount"]';
+    const txtReasonRequired = '@Localizer["ReasonRequired"]';
+    function loadLedger(append = false) {
+      if (_loading) return; _loading = true;
+      $.get('/Company/CashLedger/List', { skip: _skip, take: _take }, function (resp) {
+        if (resp && resp.success) {
+          if (!append) $('#cash-ledger-body').html('');
+          $('#cash-ledger-body').append(resp.html);
+          applyFriendlyDates($('#cash-ledger-body')[0]);
+          _skip += _take;
+          if ($('#NoCashLedgerEntries').length) $('#loadMore').addClass('d-none');
+        } else { alert(resp.message || txtError); }
+      }).always(function () { _loading = false; });
+    }
+    function openAdjustModal() {
+      $('#adjustDelta').val('');
+      $('#adjustReason').val('');
+      $('#adjustDeltaError').text('');
+      $('#adjustTypeError').text('');
+      $('#adjustReasonError').text('');
+      // Set default to "Add" (add)
+      $('#adjustAdd').prop('checked', true).trigger('change');
+      const modalEl = document.getElementById('adjustModal');
+      bootstrap.Modal.getOrCreateInstance(modalEl, { backdrop: 'static', keyboard: false }).show();
+      initAdjustAmountValidation();
+    }
+    function sanitizeAmount(raw) {
+      if (typeof raw !== 'string') raw = String(raw || '');
+      // Convert dot to comma
+      let v = raw.replace(/\./g, ',');
+      // Keep only digits and one comma (no signs)
+      v = v.replace(/[^0-9,]/g, '');
+      const parts = v.split(',');
+      if (parts.length > 2) {
+        v = parts[0] + ',' + parts.slice(1).join('').replace(/,/g, '');
+      }
+      // Max 2 decimals
+      const p = v.split(',');
+      if (p.length === 2) {
+        p[1] = p[1].slice(0, 2);
+        v = p[0] + ',' + p[1];
+      }
+      // Remove leading zeros (but allow "0" and "0,xx")
+      v = v.replace(/^0+(?=\d)/, '');
+      return v;
+    }
+    function insertAtCaret(el, text) {
+      const start = el.selectionStart || 0;
+      const end = el.selectionEnd || 0;
+      const before = el.value.slice(0, start);
+      const after = el.value.slice(end);
+      el.value = before + text + after;
+      const pos = start + text.length;
+      el.setSelectionRange(pos, pos);
+      $(el).trigger('input');
+    }
+    function initAdjustAmountValidation() {
+      const $amount = $('#adjustDelta');
+      $amount.off('keydown.adjustAmount input.adjustAmount paste.adjustAmount');
+
+      // Clear errors on field change
+      $('input[name="adjustType"]').off('change.adjustAmount').on('change.adjustAmount', function () {
+        $('#adjustTypeError').text('');
+      });
+      $('#adjustReason').off('input.adjustAmount').on('input.adjustAmount', function () {
+        $('#adjustReasonError').text('');
+      });
+
+      // Intercept keydown to block invalid characters and handle "." -> ","
+      $amount.on('keydown.adjustAmount', function (e) {
+        const allowedNavigation = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Tab'];
+        const isDigit = /\d/.test(e.key);
+        const el = this;
+        const caret = el.selectionStart || 0;
+
+        // Convert "." to "," in real time
+        if (e.key === '.') {
+          e.preventDefault();
+          if (el.value.indexOf(',') === -1) {
+            insertAtCaret(el, ',');
+          }
+          return;
+        }
+
+        // Always allow navigation keys
+        if (allowedNavigation.includes(e.key)) return;
+
+        // Allow comma only if not already present
+        if (e.key === ',') {
+          if (el.value.indexOf(',') !== -1) {
+            e.preventDefault();
+          }
+          return;
+        }
+
+        // Allow digits but limit decimals to 2 if caret is after the comma
+        if (isDigit) {
+          const commaIdx = el.value.indexOf(',');
+          if (commaIdx !== -1 && caret > commaIdx) {
+            const dec = el.value.slice(commaIdx + 1);
+            const selLen = (el.selectionEnd || caret) - caret;
+            if (dec.length >= 2 && selLen === 0) {
+              e.preventDefault();
+              return;
+            }
+          }
+          return;
+        }
+
+        // Block everything else
+        e.preventDefault();
+      });
+
+      // Normalize input (pasting, drag&drop, IME input) and clear errors
+      $amount.on('input.adjustAmount', function () {
+        $('#adjustDeltaError').text('');
+        const caret = this.selectionStart || 0;
+        const beforeLen = this.value.length;
+        const sanitized = sanitizeAmount(this.value);
+        if (sanitized !== this.value) {
+          this.value = sanitized;
+          const diff = this.value.length - beforeLen;
+          const newPos = Math.max(0, caret + diff);
+          this.setSelectionRange(newPos, newPos);
+        }
+      });
+
+      // Handle paste
+      $amount.on('paste.adjustAmount', function (e) {
+        e.preventDefault();
+        const text = (e.originalEvent || e).clipboardData.getData('text');
+        const clean = sanitizeAmount(text);
+        insertAtCaret(this, clean);
+      });
+    }
+    function submitAdjust() {
+      // Reset errors
+      $('#adjustDeltaError').text('');
+      $('#adjustTypeError').text('');
+      $('#adjustReasonError').text('');
+
+      let isValid = true;
+
+      // Validate amount
+      const rawVal = ($('#adjustDelta').val() ?? '').toString().trim();
+      const normalized = rawVal.replace(',', '.');
+      const decimalRegex = /^\d+(?:\.\d{1,2})?$/;
+
+      if (!normalized || !decimalRegex.test(normalized)) {
+        $('#adjustDeltaError').text(txtInvalidAmount);
+        isValid = false;
+      }
+
+      const amount = Number(normalized);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        $('#adjustDeltaError').text(txtInvalidAmount);
+        isValid = false;
+      }
+
+      // Validate adjustment type
+      const adjustType = $('input[name="adjustType"]:checked').val();
+      if (!adjustType) {
+        $('#adjustTypeError').text('@Localizer["SelectAdjustmentType"]');
+        isValid = false;
+      }
+
+      // Validate reason
+      const reason = ($('#adjustReason').val() ?? '').trim();
+      if (!reason) {
+        $('#adjustReasonError').text(txtReasonRequired);
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
+      // Apply sign based on type (remove = negative)
+      const delta = adjustType === 'remove' ? -amount : amount;
+
+      $.ajax({
+        url: '/Company/CashLedger/Adjust',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ delta: delta, reason: reason }),
+        success: function (resp) {
+          if (resp && resp.success) {
+            _skip = 0; loadCurrent(); loadLedger(false);
+            bootstrap.Modal.getInstance(document.getElementById('adjustModal')).hide();
+          } else { alert(resp.message || txtError); }
+        },
+        error: function () { alert(txtNetworkError); }
+      });
+    }
+    $(function () { loadCurrent(); loadLedger(false); $('#loadMore').on('click', function () { loadLedger(true); }); });
+  </script>
+}
+
+@await Html.PartialAsync("/Views/Company/Components/_Company_ViewHeader.cshtml")
+
+<div class="alert alert-warning">
+  <i class="ri-shield-keyhole-line me-2"></i>@Localizer["CashLedgerExplanation"]
+</div>
+
+<div class="card mb-6" id="company-cash-summary">
+  <div class="card-widget-separator-wrapper">
+    <div class="card-body card-widget-separator">
+      <div class="row gy-4 gy-sm-1">
+        <div class="col-sm-6 col-lg-4">
+          <div class="d-flex justify-content-between align-items-start card-widget-1 pb-4 pb-sm-0">
+            <div>
+              <h4 class="mb-0" id="CompanyCashCurrent"></h4>
+              <p class="mb-0">@Localizer["CurrentCashBalance"]</p>
+            </div>
+            <div class="avatar me-sm-6">
+              <span class="avatar-initial rounded-3">
+                <i class="icon-base ri ri-wallet-line text-heading icon-26px"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-8 text-end">
+          <button type="button" class="btn btn-success" onclick="openAdjustModal()"
+            aria-label="@Localizer["AddAdjustment"]">
+            <i class="ri-add-large-line me-2"></i>@Localizer["AddAdjustment"]
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">@Localizer["CashLedgerHeading"]</h5>
+    <div>
+      <button type="button" id="loadMore" class="btn btn-outline-secondary btn-sm" aria-label="@Localizer["LoadMore"]">
+        <i class="ri-arrow-down-line me-1"></i>@Localizer["LoadMore"]
+      </button>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th style="width: 150px;">@Localizer["Amount"]</th>
+          <th>@Localizer["RefType"]</th>
+          <th>@Localizer["Reason"]</th>
+          <th>@Localizer["CreatedAt"]</th>
+          <th>@Localizer["By"]</th>
+        </tr>
+      </thead>
+      <tbody id="cash-ledger-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="adjustModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">@Localizer["NewCashAdjustment"]</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info mb-3">
+          <i class="ri-information-line me-2"></i>@Localizer["AdjustmentExplanation"]
+        </div>
+        <div class="row g-3">
+          <div class="col-12 col-md-4">
+            <label for="adjustDelta" class="form-label">@Localizer["AmountLabel"]</label>
+            <input type="text" inputmode="decimal" pattern="[0-9]+([,][0-9]{0,2})?" class="form-control"
+              id="adjustDelta" placeholder="@Localizer["AmountPlaceholder"]" aria-label="@Localizer["AmountLabel"]"
+              autocomplete="off" style="height: 38px;" />
+            <span id="adjustDeltaError" class="text-danger small"></span>
+          </div>
+          <div class="col-12 col-md-8">
+            <label class="form-label">@Localizer["SelectAdjustmentType"]</label>
+            <div class="btn-group w-100" role="group" aria-label="Adjustment Type" style="height: 38px;">
+              <input type="radio" class="btn-check" name="adjustType" id="adjustAdd" value="add" autocomplete="off">
+              <label class="btn btn-outline-success d-flex align-items-center justify-content-center" for="adjustAdd"
+                style="height: 38px;">@Localizer["Add"]</label>
+
+              <input type="radio" class="btn-check" name="adjustType" id="adjustRemove" value="remove"
+                autocomplete="off">
+              <label class="btn btn-outline-danger d-flex align-items-center justify-content-center" for="adjustRemove"
+                style="height: 38px;">@Localizer["Remove"]</label>
+            </div>
+            <span id="adjustTypeError" class="text-danger small"></span>
+          </div>
+        </div>
+        <div class="mb-3 mt-3">
+          <label for="adjustReason" class="form-label">@Localizer["Reason"]</label>
+          <input type="text" class="form-control" id="adjustReason" maxlength="200"
+            placeholder="@Localizer["EnterReason"]" aria-label="@Localizer["Reason"]" />
+          <span id="adjustReasonError" class="text-danger small"></span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-label-secondary"
+          data-bs-dismiss="modal">@SharedLocalizer["Cancel"]</button>
+        <button type="button" class="btn btn-primary" onclick="submitAdjust()">@SharedLocalizer["Save"]</button>
+      </div>
+    </div>
+  </div>
+</div>

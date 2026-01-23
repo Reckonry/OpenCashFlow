@@ -1,0 +1,26 @@
+﻿@{
+    // The "data-payment-id" string will be populated by JS
+    // to know which record to delete when clicking "Yes, delete!"
+}
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border‐warning">
+            <div class="modal-header bg-danger text-white pb-4">
+                <h5 class="modal-title text-white" id="confirmDeleteModalLabel">
+                    <i class="ri-alert-line me-2"></i>@Localizer["ConfirmDeletion"]
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="@Localizer["Close"]"></button>
+            </div>
+            <div class="modal-body">
+                <p>@Localizer["ConfirmDeleteTransaction"]</p>
+            </div>
+            <div class="modal-footer">
+                <button id="btnConfirmDelete" type="button" class="btn btn-danger">
+                    <i class="ri-delete-bin-7-line me-1"></i>@Localizer["YesDelete"]
+                </button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@Localizer["Discard"]</button>
+            </div>
+        </div>
+    </div>
+</div>

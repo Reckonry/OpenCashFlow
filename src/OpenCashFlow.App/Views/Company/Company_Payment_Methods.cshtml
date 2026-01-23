@@ -1,0 +1,128 @@
+@model IEnumerable<Payment_Method_List_DTO>
+@{
+    ViewData["Title"] = Localizer["PaymentMethodsTitle"].Value;
+    var gi = User?.FindFirst("TenantID")?.Value;
+    Guid myCompanyId = Guid.TryParse(gi, out var g) ? g : Guid.Empty;
+}
+
+@await Html.PartialAsync("Components/_Company_ViewHeader", ViewData)
+
+<div class="alert alert-info">
+    <i class="ri-information-line me-2"></i>@Localizer["PaymentMethodsExplanation"]
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="card-title mb-0">@Localizer["PaymentMethodsHeading"]</h5>
+        <a class="btn btn-sm btn-primary" href="/Company/Payment_Methods/Create">@Localizer["NewMethodButton"]</a>
+    </div>
+    @if (TempData["Error"] is string err && !string.IsNullOrWhiteSpace(err))
+    {
+        <div class="alert alert-danger m-3">@err</div>
+    }
+    <div class="table-responsive">
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>@Localizer["Name"]</th>
+                    <th>@Localizer["Description"]</th>
+                    <th>@Localizer["Visible"]</th>
+                    <th>@Localizer["Scope"]</th>
+                    <th class="text-end">@Localizer["Actions"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model ?? Enumerable.Empty<Payment_Method_List_DTO>())
+                {
+                    var canEdit = item.TenantID.HasValue && item.TenantID.Value == myCompanyId;
+                    var methodName = SharedLocalizer[item.PaymentMethodName ?? ""].Value;
+                    var methodDesc = SharedLocalizer[item.PaymentMethodDescription ?? ""].Value;
+                    <tr>
+                        <td>@(string.IsNullOrEmpty(methodName) || methodName == item.PaymentMethodName ? item.PaymentMethodName : methodName)</td>
+                        <td>@(string.IsNullOrEmpty(methodDesc) || methodDesc == item.PaymentMethodDescription ? item.PaymentMethodDescription : methodDesc)</td>
+                        <td>
+                            @if (item.Visible)
+                            {
+                                <span class="badge bg-label-success">@Localizer["Visible"]</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-label-secondary">@Localizer["Hidden"]</span>
+                            }
+                        </td>
+                        <td>
+                            @if (item.TenantID == null)
+                            {
+                                <span class="badge bg-label-info">@Localizer["Global"]</span>
+                            }
+                            else if (item.TenantID == myCompanyId)
+                            {
+                                <span class="badge bg-label-primary">@Localizer["Personal"]</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (item.TenantID == myCompanyId)
+                            {
+                                <a class="btn btn-sm btn-outline-primary me-1" href="/Company/Payment_Methods/Edit/@item.PaymentMethodID">@SharedLocalizer["Edit"]</a>
+                                <button type="button" class="btn btn-sm btn-outline-danger btn-delete-method" data-id="@item.PaymentMethodID" data-name="@item.PaymentMethodName">@SharedLocalizer["Delete"]</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal fade" id="confirmDeleteMethodModal" tabindex="-1" aria-labelledby="confirmDeleteMethodModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="confirmDeleteMethodModalLabel"><i class="ri-alert-line me-2"></i>@Localizer["ConfirmDeletion"]</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>@Localizer["AreYouSureDelete"] <strong id="methodToDeleteName"></strong>?</p>
+        <p class="mb-0 text-muted">@Localizer["IfUsedWillBeSoftDeleted"]</p>
+      </div>
+      <div class="modal-footer">
+        <button id="btnConfirmDeleteMethod" type="submit" form="deleteMethodForm" class="btn btn-danger">
+          <i class="ri-delete-bin-7-line me-1"></i>@SharedLocalizer["YesDelete"]
+        </button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@SharedLocalizer["Discard"]</button>
+      </div>
+    </div>
+  </div>
+ </div>
+
+<!-- Delete post form -->
+<form id="deleteMethodForm" method="post" action="/Company/Payment_Methods/Delete">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="PaymentMethodID" id="DeletePaymentMethodID" />
+ </form>
+
+@section PageScripts {
+    <script>
+        (function(){
+            let isDeleteModalOpen = false;
+            $(document).on('click', '.btn-delete-method', function(){
+                if (isDeleteModalOpen) return;
+                isDeleteModalOpen = true;
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                $('#DeletePaymentMethodID').val(id);
+                $('#methodToDeleteName').text(name);
+                const modalEl = document.getElementById('confirmDeleteMethodModal');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl, { backdrop: 'static', keyboard: false });
+                modal.show();
+                modalEl.addEventListener('hidden.bs.modal', function handleHidden(){
+                    isDeleteModalOpen = false;
+                    $('#DeletePaymentMethodID').val('');
+                    $('#methodToDeleteName').text('');
+                    modalEl.removeEventListener('hidden.bs.modal', handleHidden);
+                });
+            });
+        })();
+    </script>
+}

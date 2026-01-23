@@ -1,0 +1,256 @@
+﻿@using System.Security.Claims;
+@using Shared.DTOs.Employees
+@model Employee_Detail_DTO
+
+@{
+    ViewData["Title"] = Localizer["EmployeeDetailsTitle"].Value;
+}
+@section VendorStyles {
+    <link rel="stylesheet" href="~/vendor/libs/apex-charts/apex-charts.css" />
+}
+
+@section VendorScripts {
+}
+
+@section PageStyles {
+    <link rel="stylesheet" href="~/vendor/css/pages/page-profile.dist.css" />
+}
+
+@section PageScripts {
+    <script src="~/js/pages-profile.dist.js"></script>
+
+}
+
+
+@await Html.PartialAsync("Components/_ViewHeader", Model, ViewData)
+
+@Html.Raw(ViewBag.ResponseMessage)
+
+<div class="row">
+    <div class="col-xl-4 col-lg-5 col-md-5">
+        <!-- About User -->
+        @await Html.PartialAsync("Components/_EmployeeDetails", Model, ViewData)
+        <!--/ About User -->
+        @{
+            // if (Model?.User?.IsApproved ?? false)
+            // {
+            //     if (User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Administrator) ||
+            //     User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Employer) ||
+            //     User.FindFirst(nameof(Core_Const.EMPL.EMPL_LOCK))?.Value == true.ToString())
+            //     {
+            //         <div class="d-grid gap-2 mx-auto pb-3">
+            //             <button class="btn btn-warning btn-lg waves-effect waves-light" type="button">
+            //                 <i class="ti ti-accessible-off me-2"></i> @Localizer["Disable account"]
+            //             </button>
+            //         </div>
+            //     }
+            // }
+            // else
+            // {
+            //     if (User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Administrator) ||
+            //     User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Employer) ||
+            //     User.FindFirst(nameof(Core_Const.EMPL.EMPL_UNLO))?.Value == true.ToString())
+            //     {
+            //         <div class="d-grid gap-2 mx-auto pb-3">
+            //             <button class="btn btn-success btn-lg waves-effect waves-light" type="button">
+            //                 <i class="ti ti-accessible me-2"></i> @Localizer["Enable Account"]
+            //             </button>
+            //         </div>
+            //     }
+            // }
+        }
+    </div>
+    <div class="col-xl-8 col-lg-7 col-md-7">
+        @* <div class="card">
+
+            <div class="card-header header-elements" id="cardHeader">
+                <div id="divTitle">
+                    <h5 class="m-0 me-2">@Localizer["Employee Info"]</h5>
+                    <p class="m-0">
+                        @Localizer["TitleDescription"]
+                    </p>
+                </div>
+            </div>
+
+
+            
+                  <div class="table-responsive px-4 pb-4">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>@Localizer["Project"]</th>
+                            <th>@Localizer["Customer"]</th>
+                            <th>@Localizer["Status"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var item in Model.Projects)
+                        {
+                            <tr class="odd">
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <a href="~/Projects/View/@item?.ProjectID">
+
+                                            @if (!string.IsNullOrEmpty(item?.ProjectCode))
+                                            {
+                                                <small class="emp_post text-truncate text-muted">@Localizer["Code"]: @item.ProjectCode</small>
+                                                <br />
+                                            }
+                                            <span class="project_name h5 mb-0"><span class="text-muted">@Localizer["Project"]:</span> @item?.ProjectName</span>
+                                        </a>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (item.InternalProject.HasValue && item.InternalProject == true)
+                                    {
+                                        <div class="d-flex justify-content-start align-items-center">
+                                            <div class="avatar-wrapper">
+                                                <div class="avatar me-2">
+                                                    <div class="avatar avatar-sm me-3">
+                                                        @if (string.IsNullOrEmpty(ViewBag.CompanyAvatar?.ToString()))
+                                                        {
+                                                            var avatar = AvatarGenerator.GetAvatar(ViewBag.CompanyName);
+                                                            <span class="avatar-initial rounded-circle" style="background-color:#ffffff; color:#000000; border:1px solid #c6c6c6;">
+                                                                @avatar.Initials
+                                                            </span>
+                                                        }
+                                                        else
+                                                        {
+                                                                <img src="@Url.Content(ViewBag.CompanyAvatar?.ToString())" alt="@Localizer["AvatarAlt"]" class="rounded-circle">
+                                                        }
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex flex-column">
+                                                <span class="emp_name text-truncate">
+                                                    <i>@ViewBag.CompanyName</i>
+                                                </span>
+                                                <small class="emp_post text-truncate text-muted"><i>@Localizer["Internal Project"]</i></small>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        @if (string.IsNullOrEmpty(item.CustomerID.ToString()))
+                                        {
+                                            <span>-/-</span>
+                                        }
+                                        else
+                                        {
+                                            <div class="d-flex justify-content-start align-items-center">
+                                                <div class="avatar-wrapper">
+                                                    <div class="avatar me-2">
+                                                        <div class="avatar avatar-sm me-3">
+                                                            @if (string.IsNullOrEmpty(item.CustomerLogo?.ToString()))
+                                                            {
+                                                                var avatar = AvatarGenerator.GetAvatar(item.CustomerCompanyName + " " + item.CustomerSurname + " " + item.CustomerName);
+                                                                <span class="avatar-initial rounded-circle" style="background-color:@avatar.BgColor; color:@avatar.TextColor">
+                                                                    @avatar.Initials
+                                                                </span>
+                                                            }
+                                                            else
+                                                            {
+                        <img src="@Url.Content(item.CustomerLogo?.ToString())" alt="@Localizer["AvatarAlt"]" class="rounded-circle">
+                                                            }
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+
+                                                <div class="d-flex flex-column">
+                                                    <span class="emp_name text-truncate">
+                                                        @item.CustomerCompanyName
+                                                    </span>
+                                                    <small class="emp_post text-truncate text-muted">@item.CustomerSurname @item.CustomerName</small>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                </td>
+                                <td>
+                                    @if (item?.CustomStatusID != null)
+                                    {
+                                        <span class="badge @item.StatusColor">@Localizer[item.StatusName ?? ""]</span>
+                                    }
+                                </td>
+
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @if (Model.Projects.Count <= 0)
+                {
+                    <div class="text-center">
+                        <img src="~/img/Parts/search_NoResults.svg" style="max-height:280px">
+                        <h4>@Localizer["Apparently there are no employee"]</h4>
+                        @if (!string.IsNullOrEmpty(ViewBag.SearchString))
+                        {
+                            <p>@Localizer["Review your search input or add a new employee"]</p>
+                        }
+                        @{
+                            if (User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Administrator) ||
+                            User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Employer) ||
+                            User.FindFirst(nameof(Core_Const.EMPL.EMPL_NEW))?.Value == true.ToString())
+                            {
+                                <div class=" pb-3">
+                                    <a class="btn btn-success waves-effect waves-light" href="~/Employees/New">
+                                        <i class="fa-solid fa-plus me-2"></i> @Localizer["Add New Employee"]
+                                    </a>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+                <div class="d-flex justify-content-between mx-0 row pt-3 px-2">
+
+                    <div class="col-sm-12 col-md-6 ">
+                        <div class="dataTables_info" id="DataTables_Table_0_info" role="status" aria-live="polite">
+                            @Localizer["Page"] @(Model.Projects?.PageCount < Model.Projects?.PageNumber ? 0 : Model.Projects?.PageNumber) @Localizer["of"] @Model.Projects?.PageCount
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12 col-md-6 text-end">
+                        @Html.PagedListPager(Model.Projects, page => Url.Content($"~/Employees/View/{Model.Employee.ID}/Page/{page}"),
+                                 new PagedListRenderOptions
+                        {
+                            DisplayLinkToIndividualPages = true,
+                            DisplayPageCountAndCurrentLocation = false,
+                            MaximumPageNumbersToDisplay = 10,
+                            LiElementClasses = new string[] { "page-item" },
+                            PageClasses = new string[] { "page-link" },
+                            ContainerDivClasses = new[] { "dataTables_paginate paging_simple_numbers" },
+                            UlElementClasses = new[] { "pagination justify-content-end " }
+                        })
+                    </div>
+
+
+
+                </div>
+            </div>
+            <!-- Offcanvas to add new user --> 
+        </div>*@
+
+        <div class="card mb-6">
+            <div class="card-body">
+                <h5 class="mb-6">@Localizer["Password Reset"]</h5>
+                <p class="mb-4">@Localizer["PasswordResetSubTitle"]</p>
+                <p class="w-75">
+                    @Localizer["PasswordResetDescription"]
+                    <a href="javascript:void(0);">Learn more.</a>
+                </p>
+                <form asp-controller="Authentication"
+                      asp-action="SendPasswordReset" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="userId" value="@Model.UserID" />
+                    <button type="submit" class="btn btn-primary mt-2 waves-effect waves-light">
+                        @Localizer["Send password reset E-Mail"]
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>

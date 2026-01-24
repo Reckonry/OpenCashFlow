@@ -1,4 +1,4 @@
-![OpenCashFlow](.github/OCF-Banner.png)
+![OpenCashFlow](.github/OCF_Banner.png)
 
 # 💰 OpenCashFlow
 

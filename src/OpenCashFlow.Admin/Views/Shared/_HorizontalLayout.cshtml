@@ -1,79 +1,55 @@
 @{
-  Layout = "_CommonMasterLayout";
+    Layout = "_CommonMasterLayout";
 
-  TempData["menuHorizontal"] = true;
-  ViewData["navbarFull"] = true;
+    TempData["menuHorizontal"] = true;
+    ViewData["navbarFull"] = true;
 
-  @* Display elements *@
-  ViewData["isNavbar"] = (ViewData["isNavbar"] ??= true);
-  ViewData["isMenu"] = (ViewData["isMenu"] ??= true);
-  ViewData["isFlex"] = (ViewData["isFlex"] ??= false);
-  ViewData["isFooter"] = (ViewData["isFooter"] ??= true);
+    ViewData["isNavbar"] = (ViewData["isNavbar"] ??= true);
+    ViewData["isMenu"] = (ViewData["isMenu"] ??= true);
+    ViewData["isFlex"] = (ViewData["isFlex"] ??= false);
+    ViewData["isFooter"] = (ViewData["isFooter"] ??= true);
 
-  @* HTML Classes *@
-  ViewData["menuFixed"] = (ViewData["menuFixed"] ?? "layout-menu-fixed");
-  @* ViewData["navbarFixed"] = (ViewData["navbarFixed"] ?? "layout-navbar-fixed"); *@
-  @* ViewData["footerFixed"] = (ViewData["footerFixed"] ?? "layout-footer-fixed"); *@
-
-  @*Content classes *@
-  ViewData["container"] = (ViewData["container"] ?? "container-xxl");
-  ViewData["containerNav"] = (ViewData["containerNav"] ?? "container-xxl");
-  TempData.Keep();
+    ViewData["container"] = (ViewData["container"] ?? "container-xl");
+    ViewData["containerNav"] = (ViewData["containerNav"] ?? "container-xl");
+    TempData.Keep();
 }
 
+@section VendorStyles { @RenderSection("VendorStyles", required: false) }
 
-@section VendorStyles{ @RenderSection("VendorStyles", required: false)}
+@section PageStyles { @RenderSection("PageStyles", required: false) }
 
-@section PageStyles{ @RenderSection("PageStyles", required: false)}
+@section VendorScripts { @RenderSection("VendorScripts", required: false) }
 
-@section VendorScripts{ @RenderSection("VendorScripts", required: false)}
+@section PageScripts { @RenderSection("PageScripts", required: false) }
 
-@section PageScripts{ @RenderSection("PageScripts", required: false)}
+@{
+    bool isNavbar = Convert.ToBoolean(ViewData["isNavbar"]);
+    bool isMenu = Convert.ToBoolean(ViewData["isMenu"]);
+    bool isFooter = Convert.ToBoolean(ViewData["isFooter"]);
+    bool isFlex = Convert.ToBoolean(ViewData["isFlex"]);
+}
 
-<div class='layout-wrapper layout-navbar-full layout-horizontal layout-without-menu'>
-  <div class='layout-container'>
-
-    <!-- Navbar -->
-    @if (Convert.ToBoolean(@ViewData["isNavbar"]))
+<div class="page">
+    @if (isNavbar)
     {
-      @await Html.PartialAsync("Sections/Navbar/_Navbar")
+        @await Html.PartialAsync("Sections/Navbar/_Navbar")
     }
-    <!-- / Navbar -->
 
-    <!-- Layout page -->
-    <div class="layout-page">
+    @if (isMenu)
+    {
+        @await Html.PartialAsync("Sections/Menu/_HorizontalMenu")
+    }
 
-      <!-- Content wrapper -->
-      <div class="content-wrapper">
+    <div class="page-wrapper">
+        <main id="content" class="page-body">
+            <div class='@ViewData["container"] @(isFlex ? "d-flex align-items-stretch flex-grow-1 p-0" : "")'>
+                @RenderBody()
+            </div>
+        </main>
 
-        @if (Convert.ToBoolean(@ViewData["isMenu"]))
+        @if (isFooter)
         {
-          @await Html.PartialAsync("Sections/Menu/_HorizontalMenu")
+            @await Html.PartialAsync("Sections/Footer/_Footer")
         }
-        <!-- Content -->
-        <div class='@ViewData["container"] @((Convert.ToBoolean(@ViewData["isFlex"])) ? "d-flex align-items-stretch flex-grow-1 p-0" : "flex-grow-1 container-p-y")'>
-          @RenderBody()
-        </div>
-        <!-- / Content -->
-
-        <!-- Footer -->
-        @if (Convert.ToBoolean(@ViewData["isFooter"]))
-        {
-          @await Html.PartialAsync("Sections/Footer/_Footer")
-        }
-        <!-- / Footer -->
-        <div class="content-backdrop fade"></div>
-      </div>
-      <!--/ Content wrapper -->
     </div>
-    <!-- / Layout page -->
-  </div>
 </div>
-
-<!-- Overlay -->
-@if (Convert.ToBoolean(@ViewData["isMenu"]))
-{
-  <div class="layout-overlay layout-menu-toggle"></div>
-}
-<!-- Drag Target Area To SlideIn Menu On Small Screens -->
-<div class="drag-target"></div>

@@ -5,101 +5,78 @@
     string currentAction = Convert.ToString(ViewContext.RouteData.Values["action"])?.ToLower() ?? "";
 }
 
-<!-- Menu -->
-@* ! Do this simple *@
-<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+<aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
+    <div class="container-fluid">
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#sidebar-menu"
+            aria-controls="sidebar-menu"
+            aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-    @* ! Hide app brand if navbar-full *@
-    <div class='app-brand demo @((@ViewData["navbarFull"] != null && Convert.ToBoolean(@ViewData["navbarFull"])) ? "d-xl-none" : "")'>
-        <a href="/" class="app-brand-link">
-            <span class="app-brand-logo demo">  </span>
-            <span class="app-brand-text demo menu-text fw-semibold ms-2">@TempData.Peek("appName")</span>
-        </a>
+        <div class="navbar-brand navbar-brand-autodark">
+            <a href="/" class="d-flex align-items-center gap-2" aria-label="@TempData.Peek("appName")">
+                <span class="navbar-brand-image">@await Html.PartialAsync("../_Partials/_Macros")</span>
+                <span class="fw-semibold">@TempData.Peek("appName")</span>
+            </a>
+        </div>
 
-        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8.47365 11.7183C8.11707 12.0749 8.11707 12.6531 8.47365 13.0097L12.071 16.607C12.4615 16.9975 12.4615 17.6305 12.071 18.021C11.6805 18.4115 11.0475 18.4115 10.657 18.021L5.83009 13.1941C5.37164 12.7356 5.37164 11.9924 5.83009 11.5339L10.657 6.707C11.0475 6.31653 11.6805 6.31653 12.071 6.707C12.4615 7.09747 12.4615 7.73053 12.071 8.121L8.47365 11.7183Z" fill-opacity="0.9" />
-                <path d="M14.3584 11.8336C14.0654 12.1266 14.0654 12.6014 14.3584 12.8944L18.071 16.607C18.4615 16.9975 18.4615 17.6305 18.071 18.021C17.6805 18.4115 17.0475 18.4115 16.657 18.021L11.6819 13.0459C11.3053 12.6693 11.3053 12.0587 11.6819 11.6821L16.657 6.707C17.0475 6.31653 17.6805 6.31653 18.071 6.707C18.4615 7.09747 18.4615 7.73053 18.071 8.121L14.3584 11.8336Z" fill-opacity="0.4" />
-            </svg>
-        </a>
+        <div class="collapse navbar-collapse" id="sidebar-menu">
+            <ul class="navbar-nav pt-lg-3">
+                <li class="nav-item">
+                    <a class='nav-link@(currentPage.EndsWith("/") || currentPage.StartsWith("dashboard") ? " active" : "")' href="/">
+                        <span class="nav-link-title">@Localizer["Dashboards"]</span>
+                    </a>
+                </li>
+
+                <li class="nav-item mt-3">
+                    <div class="nav-link text-uppercase text-muted">@Localizer["AppsPages"]</div>
+                </li>
+                <li class="nav-item">
+                    <a class='nav-link@(currentPage.StartsWith("payments") && !currentAction.StartsWith("calendar") ? " active" : "")' href="~/Payments">
+                        <span class="nav-link-title">Incassi</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class='nav-link@((currentPage.StartsWith("payments") && currentAction.StartsWith("calendar")) ? " active" : "")' href="~/Payments/Calendar">
+                        <span class="nav-link-title">Calendario Incassi</span>
+                    </a>
+                </li>
+                @if (User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Administrator"))
+                {
+                    <li class="nav-item">
+                        <a class='nav-link@((currentPage.StartsWith("company") && !currentAction.StartsWith("settings")) ? " active" : "")' href="~/Company">
+                            <span class="nav-link-title">Azienda</span>
+                        </a>
+                    </li>
+                }
+                @if (User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Administrator"))
+                {
+                    <li class="nav-item">
+                        <a class='nav-link@(currentPage.StartsWith("employees") ? " active" : "")' href="~/Employees">
+                            <span class="nav-link-title">Dipendenti</span>
+                        </a>
+                    </li>
+                }
+
+                <li class="nav-item mt-3">
+                    <div class="nav-link text-uppercase text-muted">Misc</div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href='@TempData.Peek("support")' target="_blank">
+                        <span class="nav-link-title">Support</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href='@TempData.Peek("documentation")' target="_blank">
+                        <span class="nav-link-title">Documentation</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
-
-    <div class="menu-inner-shadow"></div>
-
-    @* ! Full version menu-items *@
-    <ul class="menu-inner py-1">
-        <!-- Dashboards -->
-        <li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("dashboard") ? " active open" : "")'>
-            <a href="/" class="menu-link">
-                <i class="menu-icon tf-icons ri-home-smile-line"></i>
-                <div>@Localizer["Dashboards"]</div>
-                @* <div class="badge bg-danger rounded-pill ms-auto">5</div> *@
-            </a>
-        </li>
-
-        <!-- Apps & Pages -->
-        <li class="menu-header fw-medium mt-5">
-            <span class="menu-header-text">@Localizer["AppsPages"]</span>
-        </li>
-        <li class='menu-item@(currentPage.StartsWith("payments") && !currentAction.StartsWith("calendar") ? " active" : "")'>
-            <a href="~/Payments" class="menu-link">
-                <i class="menu-icon tf-icons ri-cash-line"></i>
-                <div>Incassi</div>
-            </a>
-        </li>
-        <li class='menu-item@((currentPage.StartsWith("payments") && currentAction.StartsWith("calendar")) ? " active" : "")'>
-            <a href="~/Payments/Calendar" class="menu-link">
-                <i class="menu-icon tf-icons ri-calendar-line"></i>
-                <div>Calendario Incassi</div>
-            </a>
-        </li>
-        @if (User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Administrator"))
-        {
-            <li class='menu-item@((currentPage.StartsWith("company") && !currentAction.StartsWith("settings")) ? " active" : "")'>
-                <a href="~/Company" class="menu-link">
-                    <i class="menu-icon tf-icons ri-building-2-line"></i>
-                    <div>Azienda</div>
-                </a>
-            </li>
-        }
-        @if (User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Administrator"))
-        {
-            <li class='menu-item@(currentPage.StartsWith("employees") ? " active" : "")'>
-                <a href="~/Employees" class="menu-link">
-                    <i class="menu-icon tf-icons ri-user-line"></i>
-                    <div>Dipendenti</div>
-                </a>
-            </li>
-        }
-        <!--<li class='menu-item@(currentPage.StartsWith("reports") ? " active" : "")'>
-            <a href="~/Reports" class="menu-link">
-                <i class="menu-icon tf-icons ri-donut-chart-line"></i>
-                <div>Reports</div>
-            </a>
-        </li>-->
-        <!--<li class='menu-item@((currentPage.StartsWith("company") && currentAction.StartsWith("settings")) ? " active" : "")'>
-            <a href="~/Company/Settings" class="menu-link">
-                <i class="menu-icon tf-icons ri-drag-drop-line"></i>
-                <div>Impostazioni</div>
-            </a>
-        </li>-->
-        <!-- Misc -->
-        <li class="menu-header fw-medium mt-5">
-            <span class="menu-header-text" data-i18n="Misc">Misc</span>
-        </li>
-        <li class="menu-item">
-            <a href='@TempData.Peek("support")' target="_blank" class="menu-link">
-                <i class="menu-icon tf-icons ri-lifebuoy-line"></i>
-                <div data-i18n="Support">Support</div>
-            </a>
-        </li>
-        <li class="menu-item">
-            <a href='@TempData.Peek("documentation")' target="_blank" class="menu-link">
-                <i class="menu-icon tf-icons ri-article-line"></i>
-                <div>Documentation</div>
-            </a>
-        </li>
-    </ul>
-
 </aside>
-<!-- / Menu -->

@@ -1,25 +1,10 @@
 @{
-  TempData.Keep();
-  @* ViewData["navbarDetached"] = (ViewData["navbarDetached"] ?? "navbar-detached"); *@
-  ViewData["navbarDetached"] = (ViewData["navbarDetached"] ??= null);
-  ViewData["containerNav"] = (ViewData["containerNav"] ??= "container-fluid");
+    TempData.Keep();
+    ViewData["containerNav"] = (ViewData["containerNav"] ??= "container-xl");
 }
-@if (@ViewData["navbarDetached"] != null)
-{
-  <nav
-  class='layout-navbar @((@ViewData["navbarDetached"] != null) ? @ViewData["navbarDetached"] : "") @((@ViewData["navbarDetached"] != null) ? @ViewData["containerNav"] : "") navbar navbar-expand-xl align-items-center bg-navbar-theme'
-  id="layout-navbar">
-  @await Html.PartialAsync("Sections/Navbar/_NavbarPartial")
-</nav>
-}
-else
-{
-  <nav
-  class='layout-navbar @((@ViewData["navbarDetached"] != null) ? @ViewData["navbarDetached"] : "") @((@ViewData["navbarDetached"] != null) ? @ViewData["containerNav"] : "") navbar navbar-expand-xl align-items-center bg-navbar-theme'
-  id="layout-navbar">
-  <div class='@((@ViewData["navbarDetached"] == null) ? @ViewData["containerNav"] : "")'>
-    @await Html.PartialAsync("Sections/Navbar/_NavbarPartial")
-  </div>
-</nav>
 
-}
+<header class="navbar navbar-expand-md d-print-none">
+    <div class='@ViewData["containerNav"]'>
+        @await Html.PartialAsync("Sections/Navbar/_NavbarPartial")
+    </div>
+</header>

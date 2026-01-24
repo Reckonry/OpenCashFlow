@@ -1,6 +1,12 @@
 @inject IHttpContextAccessor httpContextAccessor
 @inject IWebHostEnvironment Env
 
+@{
+    bool isFront = ViewData["isFront"] is bool isFrontValue && isFrontValue;
+    ViewData["main"] = isFront ? "front-" : "";
+    ViewData["frontVar"] = isFront ? "Front" : "";
+    string bodyClass = isFront ? "body-marketing body-gradient" : "";
+}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -19,8 +25,6 @@
         <meta name="robots" content="noindex,nofollow,noarchive" />
     }
     <meta name="description" content="" />
-
-
 
     <!-- Favicons -->
     <link rel="icon" type="image/png" href="~/favicon.png" />
@@ -43,22 +47,21 @@
     <!-- Core Styles -->
     @await Html.PartialAsync("Sections/_Styles" + ViewData["frontVar"])
 
-
     <!-- Vendor Styles -->
     @RenderSection("VendorStyles", required: false)
 
     <!-- Page Styles -->
     @RenderSection("PageStyles", required: false)
 
-    <!-- Include Scripts for customizer, helper, analytics, config -->
+    <!-- Optional head scripts -->
     @await Html.PartialAsync("Sections/_ScriptsIncludes" + ViewData["frontVar"])
 </head>
 
-<body>
-    <script src="/js/tabler-theme.min.js?1768011137"></script>
+<body class="@bodyClass">
+    <a href="#content" class="visually-hidden skip-link">Skip to main content</a>
+    <script src="~/js/tabler-theme.min.js" asp-append-version="true"></script>
 
     <!-- Layout Content -->
-    
     @RenderBody()
 
     @if (Env.IsDevelopment() || Env.EnvironmentName.Equals("Staging", StringComparison.OrdinalIgnoreCase))
@@ -73,7 +76,7 @@
                 bottom: 10px;
                 left: -30px;
                 transform: rotate(45deg);
-                background-color: #dc3545; /* Rosso Bootstrap */
+                background-color: #dc3545;
                 color: white;
                 padding: 5px 40px;
                 font-size: 12px;
@@ -91,8 +94,6 @@
 
     <!-- Vendor Scripts -->
     @RenderSection("VendorScripts", required: false)
-
-    <script src='~/js/@ViewData["main"]main.js'></script>
 
     <!-- Page Scripts-->
     @RenderSection("PageScripts", required: false)

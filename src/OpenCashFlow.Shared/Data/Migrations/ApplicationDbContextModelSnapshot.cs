@@ -2,21 +2,18 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Shared.Data;
 
 #nullable disable
 
-namespace Shared.Migrations
+namespace Shared.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251014145849_AddStripeLookupIndexes")]
-    partial class AddStripeLookupIndexes
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,6 +21,79 @@ namespace Shared.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Shared.Models.Admin.Admin_AuditLog", b =>
+                {
+                    b.Property<Guid>("AuditLogID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(0);
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnOrder(4);
+
+                    b.Property<string>("AdditionalInfo")
+                        .HasColumnType("text")
+                        .HasColumnOrder(12);
+
+                    b.Property<string>("Changes")
+                        .HasColumnType("text")
+                        .HasColumnOrder(7);
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnOrder(1);
+
+                    b.Property<string>("IPAddress")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnOrder(8);
+
+                    b.Property<string>("Resource")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("ResourceID")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnOrder(3);
+
+                    b.Property<string>("Severity")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnOrder(11);
+
+                    b.Property<Guid?>("TenantID")
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(13);
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnOrder(10);
+
+                    b.Property<string>("UserAgent")
+                        .HasColumnType("text")
+                        .HasColumnOrder(9);
+
+                    b.Property<Guid?>("UserID")
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(5);
+
+                    b.Property<string>("Username")
+                        .HasColumnType("varchar(256)")
+                        .HasColumnOrder(6);
+
+                    b.HasKey("AuditLogID");
+
+                    b.HasIndex("EventType", "Timestamp");
+
+                    b.HasIndex("Resource", "ResourceID");
+
+                    b.HasIndex("UserID", "Timestamp");
+
+                    b.ToTable("Admin_AuditLog");
+                });
 
             modelBuilder.Entity("Shared.Models.Cash.CashBalance", b =>
                 {
@@ -323,7 +393,7 @@ namespace Shared.Migrations
                         new
                         {
                             TenantID = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CompanyName = "Scunio SRL",
+                            CompanyName = "Company SRL",
                             CompanySecret = "bS8gmD_6L7zsADdQ17Q-MeeWB1yB5G4k0Q2Wy72yaFdEEJVzy2DhcinmWR3Tx45e68Bn8_b1t-1F35Co9uf_Bg",
                             ContractAcepted = false,
                             DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
@@ -402,10 +472,6 @@ namespace Shared.Migrations
                         .HasColumnType("uuid")
                         .HasColumnOrder(902);
 
-                    b.Property<Guid?>("TenantID")
-                        .HasColumnType("uuid")
-                        .HasColumnOrder(0);
-
                     b.Property<string>("GeoHash")
                         .HasColumnType("varchar(256)")
                         .HasColumnOrder(19);
@@ -425,6 +491,10 @@ namespace Shared.Migrations
                     b.Property<string>("State")
                         .HasColumnType("varchar(256)")
                         .HasColumnOrder(16);
+
+                    b.Property<Guid?>("TenantID")
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(0);
 
                     b.Property<string>("ZIP")
                         .HasColumnType("varchar(256)")
@@ -499,10 +569,6 @@ namespace Shared.Migrations
                         .HasColumnType("uuid")
                         .HasColumnOrder(902);
 
-                    b.Property<Guid?>("TenantID")
-                        .HasColumnType("uuid")
-                        .HasColumnOrder(0);
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnOrder(802);
@@ -518,6 +584,10 @@ namespace Shared.Migrations
                     b.Property<bool>("IsPrimary")
                         .HasColumnType("boolean")
                         .HasColumnOrder(36);
+
+                    b.Property<Guid?>("TenantID")
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(0);
 
                     b.HasKey("BillingAddressID");
 
@@ -568,10 +638,6 @@ namespace Shared.Migrations
                         .HasColumnType("uuid")
                         .HasColumnOrder(50);
 
-                    b.Property<Guid?>("TenantID")
-                        .HasColumnType("uuid")
-                        .HasColumnOrder(0);
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnOrder(802);
@@ -583,6 +649,10 @@ namespace Shared.Migrations
                     b.Property<string>("IsDeletedWhy")
                         .HasColumnType("text")
                         .HasColumnOrder(804);
+
+                    b.Property<Guid?>("TenantID")
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(0);
 
                     b.HasKey("ContactEmailID");
 
@@ -629,10 +699,6 @@ namespace Shared.Migrations
                         .HasColumnType("uuid")
                         .HasColumnOrder(902);
 
-                    b.Property<Guid?>("TenantID")
-                        .HasColumnType("uuid")
-                        .HasColumnOrder(0);
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnOrder(802);
@@ -652,6 +718,10 @@ namespace Shared.Migrations
                     b.Property<bool>("PhoneConfirmed")
                         .HasColumnType("boolean")
                         .HasColumnOrder(51);
+
+                    b.Property<Guid?>("TenantID")
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(0);
 
                     b.HasKey("ContactPhoneID");
 
@@ -737,10 +807,6 @@ namespace Shared.Migrations
                         .HasColumnType("uuid")
                         .HasColumnOrder(902);
 
-                    b.Property<Guid>("TenantID")
-                        .HasColumnType("uuid")
-                        .HasColumnOrder(0);
-
                     b.Property<string>("InvoiceNumber")
                         .IsRequired()
                         .HasColumnType("varchar(256)")
@@ -781,6 +847,10 @@ namespace Shared.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnOrder(27);
 
+                    b.Property<Guid>("TenantID")
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(0);
+
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("numeric(18,2)")
                         .HasColumnOrder(45);
@@ -808,10 +878,6 @@ namespace Shared.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("TenantID")
-                        .HasColumnType("uuid")
-                        .HasColumnOrder(0);
-
                     b.Property<Guid>("InvoiceID")
                         .HasColumnType("uuid");
 
@@ -820,6 +886,10 @@ namespace Shared.Migrations
 
                     b.Property<decimal?>("TaxPercent")
                         .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("TenantID")
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(0);
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("numeric(18,2)");
@@ -854,10 +924,6 @@ namespace Shared.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(50)")
                         .HasColumnOrder(16);
-
-                    b.Property<Guid>("TenantID")
-                        .HasColumnType("uuid")
-                        .HasColumnOrder(1);
 
                     b.Property<string>("InvoiceID")
                         .IsRequired()
@@ -899,6 +965,10 @@ namespace Shared.Migrations
                     b.Property<double>("TaxDetails")
                         .HasColumnType("numeric(18,3)")
                         .HasColumnOrder(15);
+
+                    b.Property<Guid>("TenantID")
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(1);
 
                     b.Property<string>("TransactionID")
                         .HasColumnType("varchar(150)")
@@ -985,10 +1055,6 @@ namespace Shared.Migrations
                         .HasColumnType("text")
                         .HasColumnOrder(72);
 
-                    b.Property<Guid>("TenantID")
-                        .HasColumnType("uuid")
-                        .HasColumnOrder(0);
-
                     b.Property<string>("InternalNotes")
                         .HasColumnType("text")
                         .HasColumnOrder(70);
@@ -1049,6 +1115,10 @@ namespace Shared.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnOrder(73);
 
+                    b.Property<Guid>("TenantID")
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(0);
+
                     b.Property<double?>("TimeCost")
                         .HasColumnType("numeric(18,3)")
                         .HasColumnOrder(20);
@@ -1066,19 +1136,10 @@ namespace Shared.Migrations
                         {
                             UserID = new Guid("00000000-0000-0000-0000-000000000001"),
                             DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                            TenantID = new Guid("00000000-0000-0000-0000-000000000001"),
                             IsDeleted = false,
                             OutOfReports = false,
-                            RequireShiftCheckIn = true
-                        },
-                        new
-                        {
-                            UserID = new Guid("00000000-0000-0000-0000-000000000002"),
-                            DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                            TenantID = new Guid("00000000-0000-0000-0000-000000000001"),
-                            IsDeleted = false,
-                            OutOfReports = false,
-                            RequireShiftCheckIn = true
+                            RequireShiftCheckIn = true,
+                            TenantID = new Guid("00000000-0000-0000-0000-000000000001")
                         });
                 });
 
@@ -1138,10 +1199,6 @@ namespace Shared.Migrations
                         .HasColumnType("timestamp")
                         .HasColumnOrder(13);
 
-                    b.Property<Guid>("TenantID")
-                        .HasColumnType("uuid")
-                        .HasColumnOrder(1);
-
                     b.Property<DateTime>("LastReminderDate")
                         .HasColumnType("timestamp")
                         .HasColumnOrder(18);
@@ -1183,12 +1240,16 @@ namespace Shared.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnOrder(26);
 
+                    b.Property<Guid>("TenantID")
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(1);
+
                     b.HasKey("SubscriptionID");
+
+                    b.HasIndex("PlanID");
 
                     b.HasIndex("TenantID")
                         .IsUnique();
-
-                    b.HasIndex("PlanID");
 
                     b.HasIndex(new[] { "StripeInvoiceID" }, "IX_Companies_Subscriptions_StripeInvoiceID");
 
@@ -1672,7 +1733,7 @@ namespace Shared.Migrations
                             AccessFailedCount = 0,
                             Country = "IT",
                             DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                            Email = "baron_luca@hotmail.it",
+                            Email = "baron_luca@nestia.local",
                             EmailConfirmed = true,
                             FailedPasswordAnswerAttemptCount = 0,
                             Gender = "Male",
@@ -1682,10 +1743,10 @@ namespace Shared.Migrations
                             LockoutEnabled = false,
                             Nationality = "Italian",
                             PasswordAnswer = "dewafev[pi[w",
-                            PasswordHash = "1J9y+7vb6zYOykos49K6UIWBs6yTIR52f6yJVE55N18=",
+                            PasswordHash = "1J9y+7vb6zYOykos44K6UIWBs6yTIR52f6yJVE55N13=",
                             PasswordQuestion = "a",
                             PasswordSalt = "4cB1NmkERk/TiMqrc2DONA==",
-                            PhoneNumber = "3518081790",
+                            PhoneNumber = "1234567890",
                             PhoneNumberConfirmed = true,
                             PhoneNumberPrefix = "+39",
                             PrivacyPolicyAcepted = false,
@@ -1694,37 +1755,7 @@ namespace Shared.Migrations
                             UserFirstName = "Luca",
                             UserLastName = "Baron",
                             UserMustChangePassword = false,
-                            UserName = "Codewriter90x"
-                        },
-                        new
-                        {
-                            UserID = new Guid("00000000-0000-0000-0000-000000000002"),
-                            AccessFailedCount = 0,
-                            Country = "IT",
-                            DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                            Email = "lorenzosalami1998@gmail.com",
-                            EmailConfirmed = true,
-                            FailedPasswordAnswerAttemptCount = 0,
-                            Gender = "Male",
-                            IsApproved = true,
-                            IsDeleted = false,
-                            Language = "IT",
-                            LockoutEnabled = false,
-                            Nationality = "Italian",
-                            PasswordAnswer = "dewafev[pi[w",
-                            PasswordHash = "1J9y+7vb6zYOykos49K6UIWBs6yTIR52f6yJVE55N18=",
-                            PasswordQuestion = "a",
-                            PasswordSalt = "4cB1NmkERk/TiMqrc2DONA==",
-                            PhoneNumber = "3933049076",
-                            PhoneNumberConfirmed = true,
-                            PhoneNumberPrefix = "+39",
-                            PrivacyPolicyAcepted = false,
-                            QuickLoginPinHash = "edjJX2/CU8gLFoHEWzgNBH5848+Z+OLGTczG7PrEujI=",
-                            TwoFactorEnabled = false,
-                            UserFirstName = "Lorenzo",
-                            UserLastName = "Salami",
-                            UserMustChangePassword = false,
-                            UserName = "LSalami"
+                            UserName = "Nestia User"
                         });
                 });
 
@@ -1912,17 +1943,7 @@ namespace Shared.Migrations
                         },
                         new
                         {
-                            UserID = new Guid("00000000-0000-0000-0000-000000000002"),
-                            RoleID = new Guid("00000000-0000-0000-0000-000000000001")
-                        },
-                        new
-                        {
                             UserID = new Guid("00000000-0000-0000-0000-000000000001"),
-                            RoleID = new Guid("00000000-9999-9999-9999-000000000009")
-                        },
-                        new
-                        {
-                            UserID = new Guid("00000000-0000-0000-0000-000000000002"),
                             RoleID = new Guid("00000000-9999-9999-9999-000000000009")
                         });
                 });
@@ -2044,10 +2065,6 @@ namespace Shared.Migrations
                         .HasColumnType("varchar(256)")
                         .HasColumnOrder(11);
 
-                    b.Property<Guid>("TenantID")
-                        .HasColumnType("uuid")
-                        .HasColumnOrder(1);
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnOrder(800);
@@ -2067,6 +2084,10 @@ namespace Shared.Migrations
                     b.Property<Guid>("RequestId")
                         .HasColumnType("uuid")
                         .HasColumnOrder(2);
+
+                    b.Property<Guid>("TenantID")
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(1);
 
                     b.Property<Guid>("UserID")
                         .HasColumnType("uuid")
@@ -2159,10 +2180,6 @@ namespace Shared.Migrations
                         .HasColumnType("uuid")
                         .HasColumnOrder(902);
 
-                    b.Property<Guid?>("TenantID")
-                        .HasColumnType("uuid")
-                        .HasColumnOrder(701);
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnOrder(800);
@@ -2174,6 +2191,10 @@ namespace Shared.Migrations
                     b.Property<string>("IsDeletedWhy")
                         .HasColumnType("text")
                         .HasColumnOrder(802);
+
+                    b.Property<Guid?>("TenantID")
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(701);
 
                     b.Property<bool>("Visible")
                         .HasColumnType("boolean")
@@ -2209,10 +2230,10 @@ namespace Shared.Migrations
                             DocumentTypeID = new Guid("00000000-0000-0000-0000-000000000002"),
                             DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
                             DisplayOrder = 0,
-                            DocumentTypeDescription = "ricevuta che puo essere cancellata",
-                            DocumentTypeName = "Secondo tipo di ricevuta",
-                            TenantID = new Guid("00000000-0000-0000-0000-000000000001"),
+                            DocumentTypeDescription = "Receipt that can be deleted",
+                            DocumentTypeName = "Second receipt type",
                             IsDeleted = false,
+                            TenantID = new Guid("00000000-0000-0000-0000-000000000001"),
                             Visible = true
                         },
                         new
@@ -2220,10 +2241,10 @@ namespace Shared.Migrations
                             DocumentTypeID = new Guid("00000000-0000-0000-0000-000000000003"),
                             DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
                             DisplayOrder = 0,
-                            DocumentTypeDescription = "ricevuta che NON puo essere cancellata",
-                            DocumentTypeName = "terzo tipo di ricevuta",
-                            TenantID = new Guid("00000000-0000-0000-0000-000000000002"),
+                            DocumentTypeDescription = "Receipt that cannot be deleted",
+                            DocumentTypeName = "Third receipt type",
                             IsDeleted = false,
+                            TenantID = new Guid("00000000-0000-0000-0000-000000000002"),
                             Visible = true
                         });
                 });
@@ -2259,10 +2280,6 @@ namespace Shared.Migrations
                         .HasColumnType("uuid")
                         .HasColumnOrder(902);
 
-                    b.Property<Guid?>("TenantID")
-                        .HasColumnType("uuid")
-                        .HasColumnOrder(701);
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnOrder(800);
@@ -2288,6 +2305,10 @@ namespace Shared.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(256)")
                         .HasColumnOrder(10);
+
+                    b.Property<Guid?>("TenantID")
+                        .HasColumnType("uuid")
+                        .HasColumnOrder(701);
 
                     b.Property<bool>("Visible")
                         .HasColumnType("boolean")
@@ -2323,10 +2344,10 @@ namespace Shared.Migrations
                             PaymentMethodID = new Guid("00000000-0000-0000-0000-000000000004"),
                             DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
                             DisplayOrder = 0,
-                            TenantID = new Guid("00000000-0000-0000-0000-000000000002"),
                             IsDeleted = false,
                             PaymentMethodDescription = "Cash payments",
                             PaymentMethodName = "Cash",
+                            TenantID = new Guid("00000000-0000-0000-0000-000000000002"),
                             Visible = true
                         });
                 });
@@ -2460,6 +2481,49 @@ namespace Shared.Migrations
                     b.ToTable("Plans_Features");
                 });
 
+            modelBuilder.Entity("Shared.Models.Stripe.Stripe_Webhook_Event", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EventId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTime?>("ProcessedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ReceivedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Success")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId")
+                        .IsUnique();
+
+                    b.ToTable("Stripe_Webhook_Events", (string)null);
+                });
+
             modelBuilder.Entity("Shared.Models.Company_Address", b =>
                 {
                     b.HasOne("Shared.Models.Company", null)
@@ -2529,15 +2593,15 @@ namespace Shared.Migrations
 
             modelBuilder.Entity("Shared.Models.Company_Subscription", b =>
                 {
-                    b.HasOne("Shared.Models.Company", "Company")
-                        .WithOne("Company_Subscription")
-                        .HasForeignKey("Shared.Models.Company_Subscription", "TenantID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Shared.Models.Plan", "Plan")
                         .WithMany()
                         .HasForeignKey("PlanID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Shared.Models.Company", "Company")
+                        .WithOne("Company_Subscription")
+                        .HasForeignKey("Shared.Models.Company_Subscription", "TenantID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

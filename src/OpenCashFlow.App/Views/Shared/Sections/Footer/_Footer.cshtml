@@ -1,0 +1,28 @@
+@{
+    TempData.Keep();
+    ViewData["containerNav"] = (ViewData["containerNav"] ??= "container-xl");
+}
+
+<footer class="footer footer-transparent d-print-none">
+    <div class='@ViewData["containerNav"]'>
+        <div class="row align-items-center flex-column flex-md-row">
+            <div class="col-auto">
+                <ul class="list-inline list-inline-dots mb-0">
+                    <li class="list-inline-item">
+                        &copy; <script>document.write(new Date().getFullYear())</script> <a href='@TempData.Peek("authorUrl")' target="_blank" class="link-secondary">@TempData.Peek("authorName")</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-auto ms-md-auto mt-2 mt-md-0">
+                <ul class="list-inline list-inline-dots mb-0">
+                    <li class="list-inline-item">
+                        <a href='@TempData.Peek("documentation")' target="_blank" class="link-secondary">Documentation</a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href='@TempData.Peek("support")' target="_blank" class="link-secondary">Support</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>

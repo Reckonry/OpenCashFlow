@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Example ZAP Context with form-based authentication (GENERIC).
+
+  This file is provided as a REFERENCE ONLY for configuring ZAP authentication.
+  It does NOT describe any real application or environment.
+
+  Replace all placeholders (<...>) with values specific to your setup.
+
+  Notes:
+  - Target URL is local-only (localhost).
+  - Credentials are placeholders.
+  - Field names must match the real login form.
+-->
+
+<context>
+  <name>example-app</name>
+  <desc>Generic example context with form-based authentication</desc>
+
+  <includeRegexes>
+    <regex>http://localhost:7000/.*</regex>
+  </includeRegexes>
+
+  <excludeRegexes>
+  </excludeRegexes>
+
+  <sessionManagement>
+    <method>cookieBasedSessionManagement</method>
+  </sessionManagement>
+
+  <authentication>
+    <method>formBasedAuthentication</method>
+    <parameters>
+      <!-- Adjust URLs and request body to exactly match the real login form -->
+      <loginPageUrl>http://localhost:7000/&lt;login_path&gt;</loginPageUrl>
+      <loginRequestUrl>http://localhost:7000/&lt;login_path&gt;</loginRequestUrl>
+
+      <!-- Replace field names with the real form parameters.
+           Keep {%username%} and {%password%} tokens unchanged. -->
+      <loginRequestBody>&lt;username_field&gt;={%username%}&amp;&lt;password_field&gt;={%password%}</loginRequestBody>
+    </parameters>
+
+    <verification>
+      <method>responseRegexAuthenticationVerifier</method>
+      <parameters>
+        <!-- Replace with strings that reliably indicate login state -->
+        <loggedInRegex>&lt;logged_in_indicator&gt;</loggedInRegex>
+        <loggedOutRegex>&lt;logged_out_indicator&gt;</loggedOutRegex>
+      </parameters>
+    </verification>
+  </authentication>
+
+  <users>
+    <user>
+      <name>example-user</name>
+      <credentials>
+        <username>&lt;example_username&gt;</username>
+        <password>&lt;example_password&gt;</password>
+      </credentials>
+      <enabled>true</enabled>
+    </user>
+  </users>
+</context>

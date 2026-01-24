@@ -1,0 +1,46 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer Localizer
+@using System.Security.Claims
+@{
+    string? firstName = User?.FindFirst(ClaimTypes.Name)?.Value;
+    firstName ??= Localizer["DefaultUserName"].Value;
+}
+<!-- Gamification Card -->
+<div class="col-12 col-xxl-8">
+    <div class="card h-100">
+        <div class="row g-0 align-items-center">
+
+            <div class="col-md-7">
+                <div class="card-body">
+                    <h3 class="card-title mb-2">
+                        @Localizer["Welcome"] <span class="fw-bold">@firstName!</span>
+                    </h3>
+
+                    <p class="text-secondary mb-4">
+                        @Localizer["ReadyToRecordPaymentsQuestion"]
+                    </p>
+
+                    <a class="btn btn-primary" asp-controller="Payments" asp-action="Index">
+                        <i class="ri-arrow-right-line me-2"></i>
+                        @Localizer["GoToPayments"]
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-5 text-center text-md-end">
+                <div class="card-body pb-0">
+                    <img src="~/img/illustrations/illustration-john-light.png"
+                         height="180"
+                         class="img-fluid"
+                         alt='@Localizer["ViewProfileAlt"]'
+                         data-app-light-img="illustrations/illustration-john-light.png"
+                         data-app-dark-img="illustrations/illustration-john-dark.png" />
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!--/ Gamification Card -->

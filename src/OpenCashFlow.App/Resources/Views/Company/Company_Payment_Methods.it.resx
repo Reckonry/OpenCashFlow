@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PaymentMethodsTitle" xml:space="preserve"><value>Metodi di pagamento</value></data>
+  <data name="PaymentMethodsHeading" xml:space="preserve"><value>Metodi di pagamento</value></data>
+  <data name="PaymentMethodsExplanation" xml:space="preserve"><value>Qui puoi creare e gestire i tuoi metodi di pagamento personalizzati. I metodi di pagamento ti permettono di tenere traccia di come vengono effettuati gli incassi (es. Contanti, Bonifico, Carta di credito, ecc.).</value></data>
+  <data name="NewMethodButton" xml:space="preserve"><value>Nuovo metodo</value></data>
+  <data name="Name" xml:space="preserve"><value>Nome</value></data>
+  <data name="Description" xml:space="preserve"><value>Descrizione</value></data>
+  <data name="Visible" xml:space="preserve"><value>Visibile</value></data>
+  <data name="Hidden" xml:space="preserve"><value>Nascosto</value></data>
+  <data name="Scope" xml:space="preserve"><value>Ambito</value></data>
+  <data name="Actions" xml:space="preserve"><value>Azioni</value></data>
+  <data name="Global" xml:space="preserve"><value>Globale</value></data>
+  <data name="Personal" xml:space="preserve"><value>Personale</value></data>
+  <data name="ConfirmDeletion" xml:space="preserve"><value>Conferma eliminazione</value></data>
+  <data name="AreYouSureDelete" xml:space="preserve"><value>Sei sicuro di voler eliminare</value></data>
+  <data name="IfUsedWillBeSoftDeleted" xml:space="preserve"><value>Se già utilizzato, verrà disattivato invece di essere rimosso.</value></data>
+</root>

@@ -1,0 +1,494 @@
+@model OpenCashFlow.Admin.Models.Billing.BillingSubscriptionsListViewModel
+@using Shared.DTOs.Billing
+@using Shared.Models
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Primitives
+
+@{
+    var filters = Model.Filters;
+    var statusOptions = Enum.GetValues(typeof(RenewalStatus)).Cast<RenewalStatus>().ToList();
+    ViewData["Title"] ??= "Plans & Subscriptions";
+    var selectedStatuses = filters.Statuses ?? new List<RenewalStatus>();
+    var selectedStatusesCount = selectedStatuses.Count;
+    string statusesLabel = selectedStatusesCount == 0 ? "All statuses" : (selectedStatusesCount == 1 ? GetStatusLabel(selectedStatuses.First()) : $"Selected ({selectedStatusesCount})");
+    var statusValue = filters.Status?.ToString();
+    var companyIdValue = filters.TenantID?.ToString();
+    var billingCycleValue = filters.BillingCycle?.ToString();
+    var hasTrialValue = filters.HasTrial.HasValue ? filters.HasTrial.Value.ToString().ToLowerInvariant() : null;
+    var activeOnValue = filters.ActiveOn.HasValue ? filters.ActiveOn.Value.ToLocalTime().ToString("yyyy-MM-dd") : null;
+    var startFromValue = filters.StartFrom.HasValue ? filters.StartFrom.Value.ToLocalTime().ToString("yyyy-MM-dd") : null;
+    var startToValue = filters.StartTo.HasValue ? filters.StartTo.Value.ToLocalTime().ToString("yyyy-MM-dd") : null;
+    var endFromValue = filters.EndFrom.HasValue ? filters.EndFrom.Value.ToLocalTime().ToString("yyyy-MM-dd") : null;
+    var endToValue = filters.EndTo.HasValue ? filters.EndTo.Value.ToLocalTime().ToString("yyyy-MM-dd") : null;
+    var nextBillingFromValue = filters.NextBillingFrom.HasValue ? filters.NextBillingFrom.Value.ToLocalTime().ToString("yyyy-MM-dd") : null;
+    var nextBillingToValue = filters.NextBillingTo.HasValue ? filters.NextBillingTo.Value.ToLocalTime().ToString("yyyy-MM-dd") : null;
+    var savedViews = Model.SavedViews;
+    var billingCycles = Enum.GetValues(typeof(BillingCycle)).Cast<BillingCycle>().ToList();
+    var hasAdvancedFilters =
+        filters.ActiveOn.HasValue ||
+        filters.StartFrom.HasValue ||
+        filters.StartTo.HasValue ||
+        filters.EndFrom.HasValue ||
+        filters.EndTo.HasValue ||
+        filters.NextBillingFrom.HasValue ||
+        filters.NextBillingTo.HasValue ||
+        filters.TenantID.HasValue ||
+        filters.BillingCycle.HasValue ||
+        (selectedStatuses.Count > 1) ||
+        filters.HasTrial.HasValue;
+}
+
+@section PageStyles{
+    <style>
+        .card-header{ padding-bottom:.75rem; border-bottom:1px solid var(--bs-border-color); }
+        .billing-title{ display:flex; align-items:center; gap:.5rem; }
+        .billing-title .info{ cursor:pointer; opacity:.7; }
+        .filters-toolbar .form-control,
+        .filters-toolbar .form-select{ height:2.05rem; }
+        .filters-toolbar .btn{ padding:.35rem .6rem; }
+        .filters-toolbar .input-group-text{ height:2.05rem; padding:.1rem .35rem; }
+        .filters-toolbar .input-group-text i{ font-size:.85rem; opacity:.6; position:relative; top:-1px; }
+        .billing-filters .billing-multiselect{ min-height:6.5rem; }
+        @@media (min-width:992px){
+            .filters-toolbar{ display:grid; grid-template-columns: 1.2fr 1fr auto auto; gap:.75rem; align-items:end; }
+            .filters-actions{ display:flex; gap:.5rem; }
+        }
+        /* Active filter chips */
+        .filter-chips{ display:flex; flex-wrap:wrap; gap:.35rem; }
+        .chip{ display:inline-flex; align-items:center; gap:.35rem; border:1px solid var(--bs-border-color); padding:.15rem .5rem; border-radius:999px; background:#fff; font-size:.8125rem; }
+        .chip .ri-close-line{ font-size:1rem; opacity:.7; }
+        /* Denser table */
+        .table-hover tbody tr:hover{ background-color:rgba(0,0,0,.02); }
+        .table td, .table th{ vertical-align:middle; }
+        .table tbody td{ padding-top:.5rem; padding-bottom:.5rem; }
+        /* Footer sticky */
+        .card-footer{ position:sticky; bottom:0; background:var(--bs-body-bg); border-top:1px solid var(--bs-border-color); z-index:1; }
+        /* Status badges aligned with theme */
+        .badge.bg-label-info{ background:rgba(13,110,253,.12); color:#0d6efd; }
+        /* Align and size Trial switch */
+        .form-check.form-switch.m-0 { align-self:end; }
+        .form-check-input { width:2.25rem; height:1.2rem; }
+        /* Disabled buttons contrast */
+        .btn:disabled, .btn[disabled] { opacity:.55 !important; color:var(--bs-secondary-color) !important; }
+        /* Softer card shadow */
+        .card { box-shadow: 0 2px 14px rgba(0,0,0,.04); }
+        /* --- VISUAL POLISH PRESET: Minimal/Soft --- */
+        :root { --gi-soft-bg: rgba(var(--bs-primary-rgb), .08); }
+        .btn-soft-primary{ background:var(--gi-soft-bg); border-color:transparent; color:var(--bs-primary); }
+        .btn-soft-primary:hover{ background:rgba(var(--bs-primary-rgb), .12); color:var(--bs-primary); }
+        .btn-ghost-secondary{ background:transparent; border-color:transparent; color:var(--bs-secondary-color); }
+        .btn-ghost-secondary:hover{ background:rgba(0,0,0,.04); color:inherit; }
+        .chip{ background:rgba(0,0,0,.035); border-color:rgba(0,0,0,.08); }
+        .chip:hover{ background:rgba(0,0,0,.06); }
+        .alert{ border-radius:10px; border-color:rgba(0,0,0,.08); }
+        .input-group-text{ background:#fff; }
+        .form-control::placeholder{ color: var(--bs-secondary-color); opacity:.75; }
+        .card{ border-radius:14px; }
+    </style>
+}
+
+<div class="card">
+    <div class="card-header">
+      <div class="row g-3 align-items-start">
+        <div class="col-12 col-xxl-3">
+          <div class="billing-title">
+            <h5 class="mb-0">Plans &amp; Subscriptions</h5>
+          </div>
+        </div>
+
+        <div class="col-12 col-xxl-9">
+          <form method="get" class="billing-filters" id="filtersForm">
+            @{ var hasFilters = hasAdvancedFilters || selectedStatuses.Any() || !string.IsNullOrWhiteSpace(filters.Search) || filters.HasTrial==true; }
+            <div class="filters-toolbar">
+              <div>
+                <label for="search" class="form-label text-uppercase small fw-semibold mb-1">Search</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="ri-search-line"></i></span>
+                  <input type="search" class="form-control" id="search" name="Search" placeholder="Company, plan, or code" value="@filters.Search" />
+                </div>
+              </div>
+
+              <div>
+                <label class="form-label text-uppercase small fw-semibold mb-1">Statuses</label>
+                <div class="dropdown w-100">
+                  <button class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="text-start flex-grow-1">
+                      @statusesLabel
+                    </span>
+                    <i class="ri-arrow-down-s-line ms-2"></i>
+                  </button>
+                  <div class="dropdown-menu w-100 p-0">
+                    <div class="px-3 py-2">
+                      @foreach (var status in statusOptions)
+                      {
+                          var isChecked = selectedStatuses.Contains(status);
+                          var inputId = $"status-checkbox-{status}";
+                          <label class="form-check d-flex align-items-center gap-2" for="@inputId">
+                            <input class="form-check-input" type="checkbox" value="@status" id="@inputId" name="Statuses" @(isChecked ? "checked" : null) />
+                            <span>@GetStatusLabel(status)</span>
+                            @if(isChecked){ <i class="ri-check-line ms-auto"></i> }
+                          </label>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex align-items-center gap-2">
+                <div class="form-check form-switch m-0">
+                  <input class="form-check-input" type="checkbox" id="hasTrialSwitch" name="HasTrial" value="true" @(filters.HasTrial == true ? "checked" : null) />
+                  <label class="form-check-label" for="hasTrialSwitch">Trial</label>
+                </div>
+              </div>
+
+            <div class="filters-actions">
+                <button type="submit" class="btn @(hasFilters ? "btn-primary" : "btn-outline-primary") btn-sm">
+                  <i class="ri-filter-3-line me-1"></i>Apply
+                </button>
+                <button type="button" class="btn btn-ghost-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#advancedFilters" aria-expanded="@(hasAdvancedFilters.ToString().ToLowerInvariant())" aria-controls="advancedFilters">
+                  <i class="ri-equalizer-line me-1"></i>Advanced
+                </button>
+              </div>
+            </div>
+
+            @* Active filter chips *@
+            @if (hasAdvancedFilters || selectedStatuses.Any() || !string.IsNullOrWhiteSpace(filters.Search) || filters.HasTrial==true)
+            {
+              <div class="filter-chips mt-2">
+                @* Search chip *@
+                @if (!string.IsNullOrWhiteSpace(filters.Search)){
+                  <a class='chip text-decoration-none' href='@RemoveFilter("Search")' title='Remove'>
+                    <i class="ri-search-line"></i>@filters.Search <i class="ri-close-line"></i>
+                  </a>
+                }
+
+                @* Status chips *@
+                @foreach (var s in selectedStatuses){
+                  <a class='chip text-decoration-none' href='@RemoveFilter("Statuses", s.ToString())' title='Remove status'>
+                    @GetStatusLabel(s) <i class="ri-close-line"></i>
+                  </a>
+                }
+
+                @* Trial chip *@
+                @if (filters.HasTrial==true){
+                  <a class='chip text-decoration-none' href='@RemoveFilter("HasTrial")' title='Remove'>
+                    <i class="ri-flashlight-line"></i>Trial <i class="ri-close-line"></i>
+                  </a>
+                }
+
+              </div>
+            }
+
+            <div class="d-none">
+              <input type="hidden" name="IncludeAllCompanies" value="@(filters.IncludeAllCompanies ? "true" : "false")" />
+              <input type="hidden" name="Page" value="1" />
+              @* keep the other hidden fields as already present elsewhere *@
+            </div>
+
+            <div class="collapse @(hasAdvancedFilters ? "show" : string.Empty) mt-3" id="advancedFilters">
+              <div class="border rounded p-3 bg-light-subtle">
+                @* Keep the existing Advanced block without functional changes *@
+                <div class="row g-3">
+                    <div class="col-12 col-md-4 col-xl-3">
+                        <label for="billingCycle" class="form-label text-uppercase small fw-semibold">Billing cycle</label>
+                        <select id="billingCycle" name="BillingCycle" class="form-select">
+                            <option value="">All</option>
+                            @foreach (var cycle in billingCycles)
+                            {
+                                var selected = filters.BillingCycle == cycle ? "selected" : null;
+                                <option value="@cycle" selected="@selected">@cycle</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4 col-xl-3">
+                        <label for="companyId" class="form-label text-uppercase small fw-semibold">Company ID</label>
+                        <input type="text" class="form-control" id="companyId" name="TenantID" placeholder="Company UUID" value="@companyIdValue" />
+                    </div>
+                    <div class="col-12 col-md-4 col-xl-3">
+                        <label for="activeOn" class="form-label text-uppercase small fw-semibold">Active on</label>
+                        <input type="date" class="form-control" id="activeOn" name="ActiveOn" value="@activeOnValue" />
+                    </div>
+                    <div class="col-12">
+                        <div class="row g-3">
+                            <div class="col-12 col-lg-4">
+                                <label class="form-label text-uppercase small fw-semibold">Start period</label>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" name="StartFrom" value="@startFromValue" aria-label="Start from">
+                                    <span class="input-group-text">to</span>
+                                    <input type="date" class="form-control" name="StartTo" value="@startToValue" aria-label="Start to">
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-4">
+                                <label class="form-label text-uppercase small fw-semibold">End period</label>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" name="EndFrom" value="@endFromValue" aria-label="End from">
+                                    <span class="input-group-text">to</span>
+                                    <input type="date" class="form-control" name="EndTo" value="@endToValue" aria-label="End to">
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-4">
+                                <label class="form-label text-uppercase small fw-semibold">Next renewal</label>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" name="NextBillingFrom" value="@nextBillingFromValue" aria-label="Next renewal from">
+                                    <span class="input-group-text">to</span>
+                                    <input type="date" class="form-control" name="NextBillingTo" value="@nextBillingToValue" aria-label="Next renewal to">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+        @if (TempData["BillingSaveMessage"] is string savedMessage)
+        {
+            <div class="alert alert-success d-flex align-items-center" role="alert">
+                <i class="ri-check-line me-2"></i>
+                <span>@savedMessage</span>
+            </div>
+            @TempData.Remove("BillingSaveMessage");
+        }
+
+        @if (TempData["BillingSaveError"] is string savedError)
+        {
+            <div class="alert alert-danger d-flex align-items-center" role="alert">
+                <i class="ri-alert-line me-2"></i>
+                <span>@savedError</span>
+            </div>
+            @TempData.Remove("BillingSaveError");
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+        {
+            <div class="alert alert-warning d-flex align-items-center" role="alert">
+                <i class="ri-alert-line me-2"></i>
+                <span>@Model.ErrorMessage</span>
+            </div>
+        }
+
+
+        @if (!Model.Items.Any())
+        {
+            <div class="text-center py-5">
+                <i class="ri-database-2-line display-6 text-muted d-block mb-2"></i>
+                <p class="mb-0">No subscriptions found with the selected filters.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Plan</th>
+                            <th>Company</th>
+                            <th>Period</th>
+                            <th>Status</th>
+                            <th>Next renewal</th>
+                            <th>Last updated</th>
+                            <th class="text-end">Quick actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var subscription in Model.Items)
+                        {
+                            var badge = GetStatusBadge(subscription);
+                            <tr>
+                                <td>
+                                    <div class="fw-medium">@subscription.PlanName</div>
+                                    <div class="small text-muted">Code: @subscription.PlanCode</div>
+                                    @if (subscription.PlanHasTrial)
+                                    {
+                                        <span class="badge bg-label-info mt-1">Trial @subscription.PlanTrialDays day(s)</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="fw-medium">@(!string.IsNullOrWhiteSpace(subscription.CompanyName) ? subscription.CompanyName : "–")</div>
+                                    <div class="small text-muted">ID: @subscription.TenantID</div>
+                                </td>
+                                <td>
+                                    <div>Start: @subscription.StartDate.ToLocalTime().ToString("dd MMM yyyy")</div>
+                                    <div class="small text-muted">End: @subscription.EndDate.ToLocalTime().ToString("dd MMM yyyy")</div>
+                                </td>
+                                <td>
+                                    @{ var icon = GetStatusIcon(subscription.RenewalStatus); }
+                                    <span class="badge @badge.CssClass rounded-pill"><i class="@icon me-1"></i>@badge.Text</span>
+                                </td>
+                                <td>
+                                    <div>@subscription.NextBillingDate.ToString("dd MMM yyyy")</div>
+                                    <div class="small text-muted">
+                                        Cycle: @subscription.BillingCycle
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>@subscription.DateEdit?.ToString("dd MMM yyyy") ?? "—"</div>
+                                    <div class="small text-muted">Created: @subscription.DateIns.ToString("dd MMM yyyy")</div>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a class="btn btn-outline-secondary" asp-action="ManageSubscription" asp-route-id="@subscription.SubscriptionID" title="Manage" aria-label="Manage subscription @subscription.SubscriptionID">
+                                            <i class="ri-settings-3-line"></i>
+                                        </a>
+                                        <a class="btn btn-outline-success" href="javascript:void(0)" title="Renew" aria-label="Renew subscription @subscription.SubscriptionID">
+                                            <i class="ri-refresh-line"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-danger" title="Cancel" aria-label="Cancel subscription @subscription.SubscriptionID">
+                                            <i class="ri-close-circle-line"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+<div class="card-footer d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center gap-2">
+        <label for="pageSizeFooter" class="small mb-0 text-uppercase fw-semibold">Per page</label>
+        <select id="pageSizeFooter" class="form-select form-select-sm" style="width:auto;">
+            @foreach (var size in new[] { 10, 25, 50, 100 })
+            {
+                var selected = filters.PageSize == size ? "selected" : null;
+                <option value="@size" selected="@selected">@size</option>
+            }
+        </select>
+        <span class="text-muted small">Page <strong>@filters.Page</strong></span>
+    </div>
+    <div class="d-flex gap-2">
+        <button id="prevPageBtn" class="btn btn-ghost-secondary" @(Model.HasPreviousPage ? null : "disabled")>
+            <i class="ri-arrow-left-line me-1"></i> Previous
+        </button>
+        <button id="nextPageBtn" class="btn btn-outline-primary" @(Model.HasNextPage ? null : "disabled")>
+            Next <i class="ri-arrow-right-line ms-1"></i>
+        </button>
+    </div>
+</div>
+
+@section PageScripts {
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('filtersForm');
+    if(!form) return;
+    const pageSizeSelect = document.getElementById('pageSizeFooter');
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+
+    function setHidden(name, value){
+      let el = form.querySelector(`input[name="${name}"]`);
+      if(!el){ el = document.createElement('input'); el.type='hidden'; el.name=name; form.appendChild(el);} 
+      el.value = value;
+    }
+
+    function submitWithPage(page){
+      setHidden('Page', page);
+      form.submit();
+    }
+
+    if(pageSizeSelect){
+      pageSizeSelect.addEventListener('change', function(){
+        setHidden('PageSize', this.value);
+        submitWithPage(1);
+      });
+    }
+
+    if(prevBtn){ prevBtn.addEventListener('click', function(){ submitWithPage(@(filters.Page - 1)); }); }
+    if(nextBtn){ nextBtn.addEventListener('click', function(){ submitWithPage(@(filters.Page + 1)); }); }
+
+    // Auto-dismiss success message after 4s
+    const successAlert = document.querySelector('.alert.alert-success');
+    if (successAlert) {
+      setTimeout(() => {
+        successAlert.classList.add('fade');
+        successAlert.style.transition = 'opacity .35s';
+        successAlert.style.opacity = '0';
+        setTimeout(() => successAlert.remove(), 400);
+      }, 4000);
+    }
+  });
+</script>
+}
+
+@functions
+{
+    private string CurrentPathWithQuery(IDictionary<string, StringValues> dict)
+    {
+        return Context.Request.Path + Microsoft.AspNetCore.Http.QueryString.Create(
+            dict.SelectMany(kvp => kvp.Value.ToArray().Select(v => new KeyValuePair<string, string?>(kvp.Key, v)))
+        );
+    }
+
+    private string RemoveFilter(string key, string? value = null)
+    {
+        var qs = QueryHelpers.ParseQuery(Context.Request.QueryString.Value ?? "");
+        var dict = new Dictionary<string, StringValues>(qs);
+
+        if (dict.ContainsKey(key))
+        {
+            if (value == null)
+            {
+                dict.Remove(key);
+            }
+            else
+            {
+                var list = dict[key].ToList();
+                list.Remove(value);
+                if (list.Count == 0) dict.Remove(key);
+                else dict[key] = new StringValues(list.ToArray());
+            }
+        }
+
+        // Reset page when changing filters
+        dict["Page"] = new StringValues("1");
+
+        return CurrentPathWithQuery(dict);
+    }
+
+    private static string GetStatusIcon(RenewalStatus status) => status switch
+    {
+        RenewalStatus.ACTIVE => "ri-check-line",
+        RenewalStatus.PAUSED => "ri-pause-line",
+        RenewalStatus.SUSPENDED => "ri-error-warning-line",
+        RenewalStatus.EXPIRED => "ri-time-line",
+        RenewalStatus.CANCELLED => "ri-close-circle-line",
+        RenewalStatus.TRIAL => "ri-flashlight-line",
+        _ => "ri-question-line"
+    };
+
+    private static (string Text, string CssClass) GetStatusBadge(BillingSubscription_List_DTO subscription)
+    {
+        if (subscription.RenewalStatus == RenewalStatus.ACTIVE && subscription.NextBillingDate <= DateTime.UtcNow.AddDays(15))
+        {
+            return ("Renewing", "bg-info text-dark");
+        }
+
+        return subscription.RenewalStatus switch
+        {
+            RenewalStatus.ACTIVE => ("Active", "bg-success"),
+            RenewalStatus.PAUSED or RenewalStatus.SUSPENDED => ("Suspended", "bg-warning text-dark"),
+            RenewalStatus.EXPIRED => ("Expired", "bg-danger"),
+            RenewalStatus.CANCELLED => ("Canceled", "bg-secondary"),
+            RenewalStatus.TRIAL => ("Trial", "bg-primary"),
+            _ => ("Unknown", "bg-light text-dark")
+        };
+    }
+
+    private static string GetStatusLabel(RenewalStatus status) =>
+        status switch
+        {
+            RenewalStatus.ACTIVE => "Active",
+            RenewalStatus.PAUSED => "Paused",
+            RenewalStatus.SUSPENDED => "Suspended",
+            RenewalStatus.EXPIRED => "Expired",
+            RenewalStatus.CANCELLED => "Canceled",
+            RenewalStatus.TRIAL => "Trial",
+            _ => status.ToString()
+        };
+}

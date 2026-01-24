@@ -1,0 +1,46 @@
+<footer class="footer">
+    <div class="container">
+        <div class="py-4">
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <a asp-controller="Dashboards" asp-action="Index" class="navbar-brand navbar-brand-autodark">
+                        <span class="navbar-brand-image">@await Html.PartialAsync("../_Partials/_Macros")</span>
+                        <span class="fw-semibold ms-2">@TempData.Peek("appName")</span>
+                    </a>
+                    <div class="text-secondary mt-2">
+                        OpenCashFlow helps teams track payments and stay on top of cash flow without the noise.
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="subheader mb-2">Pages</div>
+                    <ul class="list-unstyled list-separated gap-2">
+                        <li><a asp-controller="FrontPages" asp-action="PricingPage" class="link-secondary">Pricing</a></li>
+                        <li><a asp-controller="FrontPages" asp-action="PaymentPage" class="link-secondary">Payment</a></li>
+                        <li><a asp-controller="FrontPages" asp-action="CheckoutPage" class="link-secondary">Checkout</a></li>
+                        <li><a asp-controller="FrontPages" asp-action="HelpCenterLanding" class="link-secondary">Help Center</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <div class="subheader mb-2">Support</div>
+                    <ul class="list-unstyled list-separated gap-2">
+                        <li><a href='@TempData.Peek("documentation")' target="_blank" class="link-secondary">Documentation</a></li>
+                        <li><a href='@TempData.Peek("support")' target="_blank" class="link-secondary">Support</a></li>
+                        <li><a href='@TempData.Peek("githubUrl")' target="_blank" class="link-secondary">GitHub</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row align-items-center mt-4">
+                <div class="col">
+                    <span class="text-secondary">&copy; <script>document.write(new Date().getFullYear())</script> </span>
+                    <a href='@TempData.Peek("authorUrl")' target="_blank" class="link-secondary">@TempData.Peek("authorName")</a>
+                </div>
+                <div class="col-auto">
+                    <a href='@TempData.Peek("githubUrl")' target="_blank" class="link-secondary me-3">GitHub</a>
+                    <a href='@TempData.Peek("facebookUrl")' target="_blank" class="link-secondary me-3">Facebook</a>
+                    <a href='@TempData.Peek("twitterUrl")' target="_blank" class="link-secondary me-3">Twitter</a>
+                    <a href='@TempData.Peek("instagramUrl")' target="_blank" class="link-secondary">Instagram</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

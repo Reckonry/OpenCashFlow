@@ -1,0 +1,103 @@
+@inject IHttpContextAccessor httpContextAccessor
+@inject IWebHostEnvironment Env
+
+@{
+    bool isFront = ViewData["isFront"] is bool isFrontValue && isFrontValue;
+    ViewData["main"] = isFront ? "front-" : "";
+    ViewData["frontVar"] = isFront ? "Front" : "";
+    string bodyClass = isFront ? "body-marketing body-gradient" : "";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    @{
+        string title = ViewData["Title"] as string ?? "";
+        string appName = TempData.Peek("appName") as string ?? "";
+        string productPage = TempData.Peek("productPage") as string ?? "";
+    }
+    <title>@title | @appName</title>
+    @if (!Env.IsProduction())
+    {
+        <meta name="robots" content="noindex,nofollow,noarchive" />
+    }
+    <meta name="description" content="" />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" href="~/favicon.png" />
+    <link rel="shortcut icon" href="~/favicon.ico" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="~/manifest.json" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <!-- Windows/Edge tile -->
+    <meta name="application-name" content="OpenCashFlow" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="~/icons/icon-192.png" />
+
+    <!-- Social/preview image -->
+    <meta property="og:title" content="OpenCashFlow" />
+    <meta property="og:description" content="OpenCashFlow" />
+    <meta property="og:image" content="~/icons/icon-512.png" />
+
+    <!-- Core Styles -->
+    @await Html.PartialAsync("Sections/_Styles" + ViewData["frontVar"])
+
+    <!-- Vendor Styles -->
+    @RenderSection("VendorStyles", required: false)
+
+    <!-- Page Styles -->
+    @RenderSection("PageStyles", required: false)
+
+    <!-- Optional head scripts -->
+    @await Html.PartialAsync("Sections/_ScriptsIncludes" + ViewData["frontVar"])
+</head>
+
+<body class="@bodyClass">
+    <a href="#content" class="visually-hidden skip-link">Skip to main content</a>
+    <script src="~/js/tabler-theme.min.js" asp-append-version="true"></script>
+
+    <!-- Layout Content -->
+    @RenderBody()
+
+    @if (Env.IsDevelopment() || Env.EnvironmentName.Equals("Staging", StringComparison.OrdinalIgnoreCase))
+    {
+        var shortName = Env.IsDevelopment() ? "DEV" : "STG";
+
+        <div class="env-badge">@shortName</div>
+
+        <style>
+            .env-badge {
+                position: fixed;
+                bottom: 10px;
+                left: -30px;
+                transform: rotate(45deg);
+                background-color: #dc3545;
+                color: white;
+                padding: 5px 40px;
+                font-size: 12px;
+                font-weight: bold;
+                z-index: 9999;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                pointer-events: none;
+            }
+        </style>
+    }
+
+    <!--/ Layout Content -->
+    <!-- Core Scripts -->
+    @await Html.PartialAsync("Sections/_Scripts" + ViewData["frontVar"])
+
+    <!-- Vendor Scripts -->
+    @RenderSection("VendorScripts", required: false)
+
+    <!-- Page Scripts-->
+    @RenderSection("PageScripts", required: false)
+
+</body>
+
+</html>

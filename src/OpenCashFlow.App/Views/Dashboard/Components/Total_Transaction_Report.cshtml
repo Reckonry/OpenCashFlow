@@ -1,0 +1,79 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!-- Total Transactions & Report Chart -->
+<div class="col-12 col-xxl-8">
+    <div class="card h-100">
+        <div class="row g-0 h-100">
+
+            @* Chart *@
+            <div class="col-md-7 col-12 order-2 order-md-0 border-end">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Total Transactions</h3>
+                </div>
+                <div class="card-body">
+                    <div id="totalTransactionChart"></div>
+                </div>
+            </div>
+
+            @* Report *@
+            <div class="col-md-5 col-12">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <div>
+                            <h3 class="card-title mb-1">Report</h3>
+                            <div class="text-secondary small">Last month transactions $234.40k</div>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-icon btn-ghost-secondary" type="button" id="totalTransaction"
+                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="ri-more-2-line"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="totalTransaction">
+                                <a class="dropdown-item" href="javascript:void(0);">Refresh</a>
+                                <a class="dropdown-item" href="javascript:void(0);">Share</a>
+                                <a class="dropdown-item" href="javascript:void(0);">Update</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="row text-center">
+
+                        <div class="col-6 border-end">
+                            <span class="avatar avatar-md bg-success-lt mb-2">
+                                <i class="ri-pie-chart-2-line"></i>
+                            </span>
+                            <div class="fw-semibold">This Week</div>
+                            <div class="text-success fw-bold">+82.45%</div>
+                        </div>
+
+                        <div class="col-6">
+                            <span class="avatar avatar-md bg-primary-lt mb-2">
+                                <i class="ri-money-dollar-circle-line"></i>
+                            </span>
+                            <div class="fw-semibold">This Week</div>
+                            <div class="text-danger fw-bold">-24.86%</div>
+                        </div>
+
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-secondary">Performance</div>
+                            <div class="h4 mb-0">+94.15%</div>
+                        </div>
+                        <button class="btn btn-primary" type="button">View report</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!--/ Total Transactions & Report Chart -->

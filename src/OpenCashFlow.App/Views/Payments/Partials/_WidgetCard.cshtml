@@ -1,0 +1,18 @@
+@* _WidgetCard.cshtml – Tabler metric widget *@
+@model (string Id, string Label, string IconClass, string ExtraClass)
+
+<div class="card card-sm @Model.ExtraClass">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="text-secondary fw-semibold">@Model.Label</div>
+                <div class="h1 mb-0" id="@Model.Id"></div>
+            </div>
+            <div class="col-auto">
+                <span class="avatar avatar-md bg-primary-lt">
+                    <i class="@Model.IconClass"></i>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

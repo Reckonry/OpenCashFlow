@@ -1,0 +1,41 @@
+﻿@using System.Security.Claims;
+@model Company_Detail_DTO
+
+<div class="card mb-4">
+    <div class="card-body">
+
+        <div class="text-center mb-4">
+            <span class="avatar avatar-xl mb-3" style="background-image: url('~/img/avatars/15.png')"></span>
+            <h3 class="mb-1">@Model.CompanyName</h3>
+            <span class="badge bg-secondary-lt">@@@Model.SysCompanyName?.ToString()</span>
+        </div>
+
+        <div class="mb-3">
+            <div class="text-uppercase text-secondary fw-semibold small">@Localizer["Details"]</div>
+        </div>
+
+        <ul class="list-unstyled mb-0">
+            <li class="mb-2">
+                <span class="fw-semibold me-1">@Localizer["Max Users"]:</span>
+                <span>@Model.MaxUsers</span>
+            </li>
+            <li class="mb-2">
+                <span class="fw-semibold me-1">@Localizer["Language"]:</span>
+                <span>-/-</span>
+            </li>
+            <li class="mb-2">
+                <span class="fw-semibold me-1">@Localizer["Timezone"]:</span>
+                <span>@(Model.DefaultTimezoneID.HasValue ? "" : "-/-")</span>
+            </li>
+            <li class="mb-2">
+                <span class="fw-semibold me-1">@Localizer["Starting Contract"]:</span>
+                <span>@Model.StartingContract.ToString("d")</span>
+            </li>
+            <li class="mb-0">
+                <span class="fw-semibold me-1">@Localizer["Ending Contract"]:</span>
+                <span>@Model.EndingContract.ToString("d")</span>
+            </li>
+        </ul>
+
+    </div>
+</div>

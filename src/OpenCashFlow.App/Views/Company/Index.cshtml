@@ -1,0 +1,65 @@
+﻿@model Company_Detail_DTO
+
+@{
+    ViewData["Title"] = Localizer["CompanyProfileTitle"].Value;
+}
+
+@section VendorStyles{
+    <link rel="stylesheet" href="~/vendor/libs/datatables-bs5/datatables.bootstrap5.css">
+    <link rel="stylesheet" href="~/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css">
+    <link rel="stylesheet" href="~/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.css">
+    <link rel="stylesheet" href="~/vendor/libs/apex-charts/apex-charts.css" />
+}
+
+@section VendorScripts {
+    <script src="~/vendor/libs/datatables/jquery.dataTables.js"></script>
+    <script src="~/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+    <script src="~/vendor/libs/datatables-responsive/datatables.responsive.js"></script>
+    <script src="~/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.js"></script>
+    <script src="~/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.js"></script>
+    <script src="~/vendor/libs/apex-charts/apexcharts.js"></script>
+}
+
+@section PageStyles{
+    <link rel="stylesheet" href="~/vendor/css/pages/page-profile.css" />
+}
+
+@section PageScripts {
+    <script src="~/js/pages-profile-user.js"></script>
+}
+
+@* ************** Content ************** *@
+
+<div class="page-header d-print-none mb-4">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title">@Localizer["CompanyProfileTitle"]</h2>
+            <div class="text-secondary mt-1">@Localizer["CompanyPerformance"]</div>
+        </div>
+    </div>
+</div>
+
+<div class="row row-cards">
+
+    @* Sidebar *@
+    <div class="col-12 col-md-5 col-xl-4">
+        @await Html.PartialAsync("Components/_Company_Details", Model)
+    </div>
+
+    @* Content *@
+    <div class="col-12 col-md-7 col-xl-8">
+
+        @await Html.PartialAsync("Components/_Company_ViewHeader", ViewData)
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">@Localizer["CompanyPerformance"]</h3>
+            </div>
+            <div class="card-body pb-0">
+                <div id="chart"></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

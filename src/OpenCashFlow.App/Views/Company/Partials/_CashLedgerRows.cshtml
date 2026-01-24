@@ -1,0 +1,61 @@
+@using Shared.Models.Cash
+@model IEnumerable<CashLedger>
+@{
+    string Sign(decimal d) => d >= 0 ? "+" : "-";
+    var userNames = ViewData["UserNames"] as System.Collections.Generic.IDictionary<string, string>;
+
+    string ToUtcIso(DateTimeOffset dto)
+    {
+        var utc = dto.ToUniversalTime();
+        return utc.UtcDateTime.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
+    }
+}
+@if (Model == null || !Model.Any())
+{
+    <tr id="NoCashLedgerEntries">
+        <td colspan="5" class="text-center text-secondary py-4">@Localizer["NoCashLedgerEntries"]</td>
+    </tr>
+}
+else
+{
+    foreach (var item in Model)
+    {
+        var sign = item.Delta >= 0 ? 1 : -1;
+        var textClass = sign > 0 ? "text-success" : "text-danger";
+        <tr>
+            <td>
+                <span class="fw-semibold @textClass">
+                    @Sign(item.Delta) € @Math.Abs(item.Delta).ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("it-IT"))
+                </span>
+            </td>
+            <td class="text-secondary">@Localizer[item.RefType]</td>
+            <td class="text-secondary" style="max-width: 300px; white-space: normal; word-wrap: break-word;">
+                @if (!string.IsNullOrWhiteSpace(item.Reason))
+                {
+                    if (item.Reason.StartsWith("Update payment "))
+                    {
+                        @Localizer["Update payment"]<text> </text>@item.Reason.Substring("Update payment ".Length)
+                    }
+                    else
+                    {
+                        @Localizer[item.Reason]
+                    }
+                }
+            </td>
+            <td>
+                <span class="js-payment-date text-secondary" data-payment-utc="@ToUtcIso(item.CreatedAtUtc)">@ToUtcIso(item.CreatedAtUtc)</span>
+            </td>
+            <td class="text-secondary">
+                @{
+                    var by = item.CreatedBy;
+                    string? display = null;
+                    if (!string.IsNullOrWhiteSpace(by) && userNames != null && userNames.TryGetValue(by, out var found))
+                    {
+                        display = found;
+                    }
+                }
+                @(!string.IsNullOrWhiteSpace(display) ? display : item.CreatedBy)
+            </td>
+        </tr>
+    }
+}

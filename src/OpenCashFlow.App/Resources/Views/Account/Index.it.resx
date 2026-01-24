@@ -1,0 +1,41 @@
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="UserProfileTitle" xml:space="preserve"><value>Profilo Utente</value></data>
+  <data name="ProfileBannerAlt" xml:space="preserve"><value>Banner profilo</value></data>
+  <data name="UserAvatarAlt" xml:space="preserve"><value>Avatar utente</value></data>
+  <data name="EditProfile" xml:space="preserve"><value>Modifica Profilo</value></data>
+  <data name="ProfileTab" xml:space="preserve"><value>Profilo</value></data>
+  <data name="TeamsTab" xml:space="preserve"><value>Team</value></data>
+  <data name="ProjectsTab" xml:space="preserve"><value>Progetti</value></data>
+  <data name="ConnectionsTab" xml:space="preserve"><value>Connessioni</value></data>
+  <data name="About" xml:space="preserve"><value>Informazioni</value></data>
+  <data name="FullName" xml:space="preserve"><value>Nome e Cognome</value></data>
+  <data name="Status" xml:space="preserve"><value>Stato</value></data>
+  <data name="Active" xml:space="preserve"><value>Attivo</value></data>
+  <data name="NotActive" xml:space="preserve"><value>Non attivo</value></data>
+  <data name="Role" xml:space="preserve"><value>Ruolo</value></data>
+  <data name="Country" xml:space="preserve"><value>Paese</value></data>
+  <data name="Languages" xml:space="preserve"><value>Lingue</value></data>
+  <data name="Contacts" xml:space="preserve"><value>Contatti</value></data>
+  <data name="Contact" xml:space="preserve"><value>Contatto</value></data>
+  <data name="Email" xml:space="preserve"><value>E-mail</value></data>
+  <data name="Organization" xml:space="preserve"><value>Organizzazione</value></data>
+  <data name="Department" xml:space="preserve"><value>Dipartimento</value></data>
+  <data name="WorkLocation" xml:space="preserve"><value>Sede di lavoro</value></data>
+  <data name="Joined" xml:space="preserve"><value>Iscritto</value></data>
+  <data name="Role_User" xml:space="preserve"><value>Utente</value></data>
+  <data name="Role_Administrator" xml:space="preserve"><value>Amministratore</value></data>
+  <data name="Role_Employee" xml:space="preserve"><value>Dipendente</value></data>
+  <data name="Role_GIManagers" xml:space="preserve"><value>Manager GI</value></data>
+</root>

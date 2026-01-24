@@ -1,0 +1,32 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!-- Performance Chart -->
+<div class="col-12 col-xxl-4 col-md-6">
+    <div class="card h-100">
+        <div class="card-header">
+            <div class="d-flex align-items-center justify-content-between w-100">
+                <h3 class="card-title mb-0">@Localizer["Performance"]</h3>
+
+                <div class="dropdown">
+                    <button class="btn btn-icon btn-ghost-secondary" type="button" id="performanceDropdown"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="ri-more-2-line"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="performanceDropdown">
+                        <a class="dropdown-item" href="javascript:void(0);">@Localizer["Last28Days"]</a>
+                        <a class="dropdown-item" href="javascript:void(0);">@Localizer["LastMonth"]</a>
+                        <a class="dropdown-item" href="javascript:void(0);">@Localizer["LastYear"]</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div id="performanceChart"></div>
+        </div>
+    </div>
+</div>
+<!--/ Performance Chart -->

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="DocumentTypesTitle" xml:space="preserve"><value>Tipi documento</value></data>
+  <data name="DocumentTypesHeading" xml:space="preserve"><value>Tipi documento</value></data>
+  <data name="DocumentTypesExplanation" xml:space="preserve"><value>Qui puoi creare e gestire i tuoi tipi di documento personalizzati. I tipi di documento ti permettono di categorizzare e organizzare i tuoi incassi in base alle tue esigenze aziendali (es. Fattura, Ricevuta, Nota di credito, ecc.).</value></data>
+  <data name="NewTypeButton" xml:space="preserve"><value>Nuovo tipo</value></data>
+  <data name="Name" xml:space="preserve"><value>Nome</value></data>
+  <data name="Description" xml:space="preserve"><value>Descrizione</value></data>
+  <data name="Visible" xml:space="preserve"><value>Visibile</value></data>
+  <data name="Hidden" xml:space="preserve"><value>Nascosto</value></data>
+  <data name="Scope" xml:space="preserve"><value>Ambito</value></data>
+  <data name="Actions" xml:space="preserve"><value>Azioni</value></data>
+  <data name="Global" xml:space="preserve"><value>Globale</value></data>
+  <data name="Personal" xml:space="preserve"><value>Personale</value></data>
+  <data name="ConfirmDeletion" xml:space="preserve"><value>Conferma eliminazione</value></data>
+  <data name="AreYouSureDelete" xml:space="preserve"><value>Sei sicuro di voler eliminare</value></data>
+  <data name="IfUsedWillBeSoftDeleted" xml:space="preserve"><value>Se già utilizzato, verrà disattivato invece di essere rimosso.</value></data>
+</root>

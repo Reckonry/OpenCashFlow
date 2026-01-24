@@ -1,0 +1,46 @@
+@await Html.PartialAsync("Sections/_Variables")
+@{
+    TempData.Keep();
+    Layout = "_CommonMasterLayout";
+    ViewData["container"] = (ViewData["container"] ??= "container-xl");
+}
+
+@section VendorStyles { @RenderSection("VendorStyles", required: false) }
+
+@section PageStyles { @RenderSection("PageStyles", required: false) }
+
+@section VendorScripts { @RenderSection("VendorScripts", required: false) }
+
+@section PageScripts { @RenderSection("PageScripts", required: false) }
+
+@{
+    bool isMenu = ViewData["isMenu"] != null && Convert.ToBoolean(ViewData["isMenu"]);
+    bool isNavbar = ViewData["isNavbar"] != null && Convert.ToBoolean(ViewData["isNavbar"]);
+    bool isFooter = ViewData["isFooter"] != null && Convert.ToBoolean(ViewData["isFooter"]);
+    bool isFlex = ViewData["isFlex"] != null && Convert.ToBoolean(ViewData["isFlex"]);
+}
+
+<div class="page">
+    @if (isMenu)
+    {
+        @await Html.PartialAsync("Sections/Menu/_VerticalMenu")
+    }
+
+    <div class="page-wrapper">
+        @if (isNavbar)
+        {
+            @await Html.PartialAsync("Sections/Navbar/_Navbar")
+        }
+
+        <main id="content" class="page-body">
+            <div class='@ViewData["container"] @(isFlex ? "d-flex align-items-stretch flex-grow-1 p-0" : "")'>
+                @RenderBody()
+            </div>
+        </main>
+
+        @if (isFooter)
+        {
+            @await Html.PartialAsync("Sections/Footer/_Footer")
+        }
+    </div>
+</div>

@@ -1,0 +1,371 @@
+﻿@using System.Security.Claims;
+@using Shared.Core
+@using Shared.DTOs.Employees
+@model IEnumerable<Employee_List_DTO>
+
+@{
+	ViewData["Title"] = Localizer["EmployeesListTitle"].Value;
+	var employeeCount = Model?.Count() ?? 0;
+	var maxEmployees = (long)(ViewBag.MaxEmployees ?? 15L);
+}
+
+@section VendorStyles {
+	<link rel="stylesheet" href="~/vendor/libs/select2/select2.css" />
+	@* formvalidation library not installed - removed *@
+}
+
+@section VendorScripts {
+	<script src="~/vendor/libs/moment/moment.js"></script>
+	@* jszip and pdfmake not installed - removed (used for DataTables export features) *@
+	<script src="~/vendor/libs/select2/select2.js"></script>
+	@* formvalidation library not installed - removed *@
+	<script src="~/vendor/libs/cleavejs/cleave.js"></script>
+	<script src="~/vendor/libs/cleavejs/cleave-phone.js"></script>
+}
+
+@section PageScripts {
+	<script src="~/js/app-user-list.js"></script>
+	<script>
+		function deleteEmployee(userId, employeeName) {
+			if (!confirm('Are you sure you want to permanently delete the employee "' + employeeName + '"?\n\nThis action cannot be undone and will permanently remove all employee data.')) {
+				return;
+			}
+
+			// Show loading state
+			const deleteButton = event.target.closest('a');
+			if (deleteButton) {
+				const originalHtml = deleteButton.innerHTML;
+				deleteButton.innerHTML = '<i class="ri-loader-line ri-spin"></i>';
+				deleteButton.style.pointerEvents = 'none';
+			}
+
+			// Wait for DOM to be fully ready and avoid conflicts with other scripts
+			setTimeout(function() {
+				try {
+					// Ensure document.body exists
+					if (!document.body) {
+						console.error('Document body not available');
+						return;
+					}
+
+					// Create form for DELETE request
+					const form = document.createElement('form');
+					form.method = 'POST';
+					form.action = '/Employees/Delete/' + userId;
+					form.style.display = 'none'; // Hide the form
+
+					// Add method override for DELETE
+					const methodInput = document.createElement('input');
+					methodInput.type = 'hidden';
+					methodInput.name = '_method';
+					methodInput.value = 'DELETE';
+					form.appendChild(methodInput);
+
+					// Add CSRF token
+					const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+					if (token) {
+						const tokenInput = document.createElement('input');
+						tokenInput.type = 'hidden';
+						tokenInput.name = '__RequestVerificationToken';
+						tokenInput.value = token;
+						form.appendChild(tokenInput);
+					}
+
+					document.body.appendChild(form);
+					form.submit();
+				} catch (error) {
+					console.error('Error during employee deletion:', error);
+					// Fallback: redirect to deletion URL directly
+					window.location.href = '/Employees/Delete/' + userId;
+				}
+			}, 100); // Small delay to avoid conflicts
+		}
+
+		// Auto-dismiss success messages after 5 seconds
+		document.addEventListener('DOMContentLoaded', function() {
+			const successAlert = document.getElementById('employee-success-alert');
+			if (successAlert) {
+				setTimeout(function() {
+					const alert = new bootstrap.Alert(successAlert);
+					alert.close();
+				}, 5000);
+			}
+		});
+	</script>
+}
+
+@* ************** Content ************** *@
+
+@* CSRF Token for DELETE operations *@
+@Html.AntiForgeryToken()
+
+@* Success message for Employee operations *@
+@{
+    var successMessage = TempData["EmployeeSuccessMessage"]?.ToString();
+    if (!string.IsNullOrEmpty(successMessage))
+    {
+        TempData.Remove("EmployeeSuccessMessage");
+    }
+}
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" id="employee-success-alert">
+        @successMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@* Error message for Employee operations *@
+@{
+    var errorMessage = TempData["EmployeeErrorMessage"]?.ToString();
+    if (!string.IsNullOrEmpty(errorMessage))
+    {
+        TempData.Remove("EmployeeErrorMessage");
+    }
+}
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" id="employee-error-alert">
+        @errorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@* Page header (Tabler style) *@
+<div class="page-header d-print-none mb-4">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title">@Localizer["Employees list"]</h2>
+            <div class="text-secondary mt-1">@Localizer["TitleDescription"]</div>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <div class="btn-list">
+                <button class="btn btn-outline-secondary" type="button" aria-label="@SharedLocalizer["Search"]" title="@SharedLocalizer["Search"]">
+                    <i class="ri-search-line"></i>
+                    <span class="d-none d-sm-inline ms-1">@SharedLocalizer["Search"]</span>
+                </button>
+
+                <a class="btn btn-primary @((employeeCount <= maxEmployees) ? "" : " disabled ")"
+                   href="@((employeeCount <= maxEmployees) ? Url.Content("~/Employees/New") : "" )"
+                   data-bs-toggle="tooltip" data-bs-placement="bottom" @((employeeCount <= maxEmployees) ? "" : " data-bs-original-title=\"" + @Localizer["Maximum user reached"].Value + "\"")>
+                    <i class="ri-user-add-line"></i>
+                    <span class="d-none d-sm-inline ms-1">@Localizer["New Employee"]</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Metrics (row-cards) *@
+<div class="row row-cards mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="subheader">@Localizer["Employee"]</div>
+                        <div class="h1 mb-0">@employeeCount <span class="text-secondary fs-4">/@maxEmployees</span></div>
+                        <div class="text-secondary">@Localizer["Total Employee"]</div>
+                    </div>
+                    <div class="col-auto">
+                        <span class="avatar avatar-sm bg-primary-lt">
+                            <i class="ri-user-line"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="subheader">@Localizer["External"]</div>
+                        <div class="h1 mb-0">0 <span class="text-secondary fs-4">/500</span></div>
+                        <div class="text-secondary">@Localizer["Total External"]</div>
+                    </div>
+                    <div class="col-auto">
+                        <span class="avatar avatar-sm bg-warning-lt">
+                            <i class="ri-user-add-line"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="subheader">@Localizer["Disabled"]</div>
+                        <div class="h1 mb-0">0 <span class="text-secondary fs-4">/500</span></div>
+                        <div class="text-secondary">@Localizer["Total Disabled"]</div>
+                    </div>
+                    <div class="col-auto">
+                        <span class="avatar avatar-sm bg-warning-lt">
+                            <i class="ri-forbid-2-line"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="subheader">@Localizer["Deleted"]</div>
+                        <div class="h1 mb-0">0</div>
+                        <div class="text-secondary">@Localizer["Employees Deleted"]</div>
+                    </div>
+                    <div class="col-auto">
+                        <span class="avatar avatar-sm bg-danger-lt">
+                            <i class="ri-delete-bin-line"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Table *@
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">@Localizer["Employees list"]</h3>
+        <div class="card-actions">
+            <div class="btn-list">
+                <button class="btn btn-outline-secondary" type="button" aria-label="@SharedLocalizer["Search"]" title="@SharedLocalizer["Search"]">
+                    <i class="ri-search-line"></i>
+                </button>
+
+                <a class="btn btn-primary @((employeeCount <= maxEmployees) ? "" : " disabled ")"
+                   href="@((employeeCount <= maxEmployees) ? Url.Content("~/Employees/New") : "" )"
+                   data-bs-toggle="tooltip" data-bs-placement="bottom" @((employeeCount <= maxEmployees) ? "" : " data-bs-original-title=\"" + @Localizer["Maximum user reached"].Value + "\"")>
+                    <i class="ri-user-add-line"></i>
+                    <span class="d-none d-sm-inline ms-1">@Localizer["New Employee"]</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>@Localizer["User"]</th>
+                    <th>@Localizer["Role"]</th>
+                    <th>@Localizer["Email"]</th>
+                    <th>@Localizer["Last login"]</th>
+                    <th>@Localizer["Status"]</th>
+                    <th class="w-1"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    if (Model != null)
+                        foreach (Employee_List_DTO item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <a class="avatar me-3" href="~/Employees/View/@item?.UserID">
+                                            @if (string.IsNullOrEmpty(item.UserAvatar))
+                                            {
+                                                var avatar = AvatarGenerator.GetAvatar(item?.UserLastName ?? "");
+                                                <span class="avatar-initial rounded-circle" style="background-color:@avatar.BgColor; color:@avatar.TextColor">
+                                                    @item?.UserLastName?[0]@item?.UserFirstName[0]
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <img src="@Url.Content(item.UserAvatar)" alt="@Localizer["AvatarAlt"]" class="rounded-circle" />
+                                            }
+                                        </a>
+
+                                        <div class="flex-fill">
+                                            <a href="~/Employees/View/@item?.UserID" class="text-reset fw-semibold">@Html.Raw(item?.EmployeeSurnameName?.Trim())</a>
+                                            <div class="text-secondary small"></div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    @{
+                                        var roles = item?.Roles;
+                                        if (roles != null && roles.Count > 0)
+                                        {
+                                            foreach (var role in roles)
+                                            {
+                                                if (role == null || string.IsNullOrWhiteSpace(role.RoleName))
+                                                {
+                                                    continue;
+                                                }
+                                                <span class="badge bg-azure-lt me-1">@Localizer["Role_" + role.RoleName]</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-secondary">-/-</span>
+                                        }
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (string.IsNullOrEmpty(item?.Email))
+                                    {
+                                        <span class="text-secondary">-/-</span>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-secondary">
+                                            <i class="ri-mail-line me-1"></i>
+                                            @item.Email
+                                        </div>
+                                    }
+                                </td>
+
+                                <td>
+                                    <span class="text-secondary">@* TODO: last login *@</span>
+                                </td>
+
+                                <td>
+                                    @if (item?.IsApproved ?? false)
+                                    {
+                                        <span class="badge bg-green-lt">@Localizer["Active"]</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-yellow-lt">@Localizer["Not Approved"]</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    <div class="btn-list flex-nowrap">
+                                        @if (User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Administrator"))
+                                        {
+                                            <a href="~/Employees/Edit/@item!.UserID" class="btn btn-outline-secondary btn-sm" title="Edit employee">
+                                                <i class="ri-pencil-line"></i>
+                                            </a>
+                                            <a href="javascript:void(0)" onclick="deleteEmployee('@item!.UserID', '@Html.Raw(item?.EmployeeSurnameName?.Trim())')" class="btn btn-outline-danger btn-sm" title="Delete employee">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </a>
+                                        }
+                                        <a href="~/Employees/View/@item!.UserID" class="btn btn-outline-secondary btn-sm" title="View employee">
+                                            <i class="ri-eye-line"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

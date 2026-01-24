@@ -1,0 +1,110 @@
+using OpenCashFlow.API.Repositories;
+using OpenCashFlow.API.Repositories.Interfaces;
+using OpenCashFlow.API.Services;
+using OpenCashFlow.API.Services.Interfaces;
+using OpenCashFlow.Shared.Mappings;
+using OpenCashFlow.API.Middleware;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Serilog;
+using global::Shared.Data;
+using global::Shared.Options;
+using global::Shared.Services;
+using global::Shared.Services.Interfaces;
+using System.Reflection;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.RateLimiting;
+using OpenCashFlow.Api.AppStart;
+using Asp.Versioning.Routing;
+using Asp.Versioning;
+var builder = WebApplication.CreateBuilder(args);
+
+builder.AppStartConfigureConfiguration();
+builder.AppStartConfigureLogging();
+//builder.AppStartConfigureSentry();
+builder.AppStartConfigureDatabase();
+builder.AppStartConfigureRateLimiting();
+builder.AppStartConfigureAuth();
+builder.AppStartConfigureEmail();
+builder.AppStartConfigureSlack();
+//builder.AppStartConfigureStripe();
+builder.AppStartConfigureSubscriptionAuthorization();
+builder.AppStartConfigureSwagger();
+builder.AppStartConfigureAutoMapper();
+builder.AppStartConfigureCors();
+
+// Controllers + DI custom (repositories/services) restano dove sono o li spostiamo dopo
+builder.Services.AddControllers();
+#region Repositories
+builder.Services.AddScoped<IAuthenticationRepository, AuthenticationRepository>();
+builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IBillingRepository, BillingRepository>();
+#endregion
+
+#region Services
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<ICashService, CashService>();
+builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
+// builder.Services.AddScoped<IBillingService, BillingService>();
+// builder.Services.AddScoped<IStripeService, StripeService>();
+// builder.Services.AddScoped<IStripeSyncService, StripeSyncService>();
+// builder.Services.AddScoped<IStripeWebhookEventService, StripeWebhookEventService>();
+// builder.Services.AddScoped<IStripeWebhookProcessor, StripeWebhookProcessor>();
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+#endregion
+
+// Enable inline route constraint :apiVersion (e.g. v{version:apiVersion})
+builder.Services.AddRouting(options =>
+{
+    options.ConstraintMap["apiVersion"] = typeof(ApiVersionRouteConstraint);
+});
+// API Versioning services (required by ApiVersionRouteConstraint)
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+
+    // Se usi route tipo /api/v{version:apiVersion}/...
+    options.ApiVersionReader = new UrlSegmentApiVersionReader();
+});
+
+//builder.Services.AddMemoryCache();
+//builder.Services.AddScoped<IFeatureService, OpenCashFlow.API.Services.FeatureService>();
+builder.Services.AddHttpContextAccessor();
+
+
+var app = builder.Build();
+
+// porta il flag sentry dal builder all'app
+//app.AppStartPropagateSentryFlag(builder);
+
+//app.AppStartValidateStripeInProduction();
+
+app.AppStartUseSwaggerIfDev();
+
+await app.AppStartApplyMigrationsAndSeeds();
+
+app.AppStartConfigureExceptionHandling();
+app.AppStartConfigureMiddlewarePipeline();
+
+app.Run();
+
+public partial class Program { }
+

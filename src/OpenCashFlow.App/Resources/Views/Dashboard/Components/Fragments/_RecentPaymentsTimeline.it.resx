@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="NoRecentPayments" xml:space="preserve">
+    <value>Nessun incasso recente</value>
+  </data>
+  <data name="DashPlaceholder" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="RecentPaymentsPlaceholder" xml:space="preserve">
+    <value>Gli incassi recenti appariranno qui.</value>
+  </data>
+  <data name="Income" xml:space="preserve">
+    <value>Entrata</value>
+  </data>
+  <data name="Outcome" xml:space="preserve">
+    <value>Uscita</value>
+  </data>
+  <data name="Employee" xml:space="preserve">
+    <value>Dipendente</value>
+  </data>
+  <data name="Method" xml:space="preserve">
+    <value>Metodo</value>
+  </data>
+  <data name="Document" xml:space="preserve">
+    <value>Documento</value>
+  </data>
+</root>

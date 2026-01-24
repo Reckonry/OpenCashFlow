@@ -1,0 +1,22 @@
+@{
+    Layout = "_CommonMasterLayout";
+    ViewData["isFront"] = (ViewData["isFront"] ??= true);
+}
+
+@section VendorStyles { @RenderSection("VendorStyles", required: false) }
+
+@section PageStyles { @RenderSection("PageStyles", required: false) }
+
+<div class="page">
+    @await Html.PartialAsync("Sections/Navbar/_NavbarFront")
+
+    <main id="content">
+        @RenderBody()
+    </main>
+
+    @await Html.PartialAsync("Sections/Footer/_FooterFront")
+</div>
+
+@section VendorScripts { @RenderSection("VendorScripts", required: false) }
+
+@section PageScripts { @RenderSection("PageScripts", required: false) }

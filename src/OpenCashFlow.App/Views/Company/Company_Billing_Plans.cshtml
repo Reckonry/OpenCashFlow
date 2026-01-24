@@ -1,0 +1,387 @@
+﻿@using OpenCashFlow.App.ViewModels
+@model Company_Billing_Plans_ViewModel
+
+@{
+	ViewData["Title"] = @Localizer["Billing & Plans"];
+}
+@section VendorStyles {
+	<link rel="stylesheet" href="~/vendor/libs/datatables-bs5/datatables.bootstrap5.dist.css">
+	<link rel="stylesheet" href="~/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.dist.css">
+	<link rel="stylesheet" href="~/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.dist.css">
+}
+
+@section VendorScripts {
+	<script src="~/vendor/libs/datatables/jquery.dataTables.dist.js"></script>
+	<script src="~/vendor/libs/datatables-bs5/datatables-bootstrap5.dist.js"></script>
+	<script src="~/vendor/libs/datatables-responsive/datatables.responsive.dist.js"></script>
+	<script src="~/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.dist.js"></script>
+	<script src="~/vendor/libs/datatables-checkboxes-jquery/datatables.checkboxes.dist.js"></script>
+}
+
+@section PageScripts {
+	<script>
+		$(function () {
+			'use strict';
+
+			var dt_basic_table = $('.datatables-basic');
+
+			// DataTable with buttons
+			// --------------------------------------------------------------------
+
+			if (dt_basic_table.length) {
+				dt_basic = dt_basic_table.DataTable({
+					ajax: assetsPath + 'json/table-datatable.json',
+					columns: [
+						{ data: '' },
+						{ data: 'id' },
+						{ data: 'id' },
+						{ data: 'full_name' },
+						{ data: 'email' },
+						{ data: 'start_date' },
+						{ data: 'salary' },
+						{ data: 'status' },
+						{ data: '' }
+					],
+					columnDefs: [
+						{
+							// For Responsive
+							className: 'control',
+							orderable: false,
+							searchable: false,
+							responsivePriority: 2,
+							targets: 0,
+							render: function (data, type, full, meta) {
+								return '';
+							}
+						},
+						{
+							// For Checkboxes
+							targets: 1,
+							orderable: false,
+							searchable: false,
+							responsivePriority: 3,
+							checkboxes: true,
+							render: function () {
+								return '<input type="checkbox" class="dt-checkboxes form-check-input">';
+							},
+							checkboxes: {
+								selectAllRender: '<input type="checkbox" class="form-check-input">'
+							}
+						},
+						{
+							targets: 2,
+							searchable: false,
+							visible: false
+						},
+						{
+							// Avatar image/badge, Name and post
+							targets: 3,
+							responsivePriority: 4,
+							render: function (data, type, full, meta) {
+								var $user_img = full['avatar'],
+									$name = full['full_name'],
+									$post = full['post'];
+								if ($user_img) {
+									// For Avatar image
+									var $output =
+										'<img src="' + assetsPath + 'img/avatars/' + $user_img + '" alt="Avatar" class="rounded-circle">';
+								} else {
+									// For Avatar badge
+									var stateNum = Math.floor(Math.random() * 6);
+									var states = ['success', 'danger', 'warning', 'info', 'primary', 'secondary'];
+									var $state = states[stateNum],
+										$name = full['full_name'],
+										$initials = $name.match(/\b\w/g) || [];
+									$initials = (($initials.shift() || '') + ($initials.pop() || '')).toUpperCase();
+									$output = '<span class="avatar-initial rounded-circle bg-label-' + $state + '">' + $initials + '</span>';
+								}
+								// Creates full output for row
+								var $row_output =
+									'<div class="d-flex justify-content-start align-items-center user-name">' +
+									'<div class="avatar-wrapper">' +
+									'<div class="avatar me-2">' +
+									$output +
+									'</div>' +
+									'</div>' +
+									'<div class="d-flex flex-column">' +
+									'<span class="emp_name text-truncate">' +
+									$name +
+									'</span>' +
+									'<small class="emp_post text-truncate text-muted">' +
+									$post +
+									'</small>' +
+									'</div>' +
+									'</div>';
+								return $row_output;
+							}
+						},
+						{
+							responsivePriority: 1,
+							targets: 4
+						},
+						{
+							// Label
+							targets: -2,
+							render: function (data, type, full, meta) {
+								var $status_number = full['status'];
+								var $status = {
+									1: { title: 'Current', class: 'bg-label-primary' },
+									2: { title: 'Professional', class: ' bg-label-success' },
+									3: { title: 'Rejected', class: ' bg-label-danger' },
+									4: { title: 'Resigned', class: ' bg-label-warning' },
+									5: { title: 'Applied', class: ' bg-label-info' }
+								};
+								if (typeof $status[$status_number] === 'undefined') {
+									return data;
+								}
+								return (
+									'<span class="badge ' + $status[$status_number].class + '">' + $status[$status_number].title + '</span>'
+								);
+							}
+						},
+						{
+							// Actions
+							targets: -1,
+							title: 'Actions',
+							orderable: false,
+							searchable: false,
+							render: function (data, type, full, meta) {
+								return (
+									'<div class="d-inline-block">' +
+									'<a href="javascript:;" class="btn btn-sm btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="text-primary ti ti-dots-vertical"></i></a>' +
+									'<ul class="dropdown-menu dropdown-menu-end m-0">' +
+									'<li><a href="javascript:;" class="dropdown-item">Details</a></li>' +
+									'<li><a href="javascript:;" class="dropdown-item">Archive</a></li>' +
+									'<div class="dropdown-divider"></div>' +
+									'<li><a href="javascript:;" class="dropdown-item text-danger delete-record">Delete</a></li>' +
+									'</ul>' +
+									'</div>' +
+									'<a href="javascript:;" class="btn btn-sm btn-icon item-edit"><i class="text-primary ti ti-pencil"></i></a>'
+								);
+							}
+						}
+					],
+					order: [[2, 'desc']],
+					dom: '<"card-header flex-column flex-md-row"<"head-label text-center"><"dt-action-buttons text-end pt-3 pt-md-0"B>><"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end"f>>t<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
+					displayLength: 7,
+					lengthMenu: [7, 10, 25, 50, 75, 100],
+					buttons: [
+						{
+							extend: 'collection',
+							className: 'btn btn-label-primary dropdown-toggle me-2',
+							text: '<i class="ti ti-file-export me-sm-1"></i> <span class="d-none d-sm-inline-block">Export</span>',
+							buttons: [
+								{
+									extend: 'print',
+									text: '<i class="ti ti-printer me-1" ></i>Print',
+									className: 'dropdown-item',
+									exportOptions: { columns: [3, 4, 5, 6, 7] }
+								},
+								{
+									extend: 'csv',
+									text: '<i class="ti ti-file-text me-1" ></i>Csv',
+									className: 'dropdown-item',
+									exportOptions: { columns: [3, 4, 5, 6, 7] }
+								},
+								{
+									extend: 'pdf',
+									text: '<i class="ti ti-file-description me-1"></i>Pdf',
+									className: 'dropdown-item',
+									exportOptions: { columns: [3, 4, 5, 6, 7] }
+								},
+								{
+									extend: 'copy',
+									text: '<i class="ti ti-copy me-1" ></i>Copy',
+									className: 'dropdown-item',
+									exportOptions: { columns: [3, 4, 5, 6, 7] }
+								}
+							]
+						},
+						{
+							text: '<i class="ti ti-plus me-sm-1"></i> <span class="d-none d-sm-inline-block">Add New Record</span>',
+							className: 'create-new btn btn-primary'
+						}
+					],
+					responsive: {
+						details: {
+							display: $.fn.dataTable.Responsive.display.modal({
+								header: function (row) {
+									var data = row.data();
+									return 'Details of ' + data['full_name'];
+								}
+							}),
+							type: 'column',
+							renderer: function (api, rowIdx, columns) {
+								var data = $.map(columns, function (col, i) {
+									return col.title !== '' // ? Do not show row in modal popup if title is blank (for check box)
+										? '<tr data-dt-row="' +
+										col.rowIndex +
+										'" data-dt-column="' +
+										col.columnIndex +
+										'">' +
+										'<td>' +
+										col.title +
+										':' +
+										'</td> ' +
+										'<td>' +
+										col.data +
+										'</td>' +
+										'</tr>'
+										: '';
+								}).join('');
+
+								return data ? $('<table class="table"/><tbody />').append(data) : false;
+							}
+						}
+					}
+				});
+				$('div.head-label').html('<h5 class="card-title mb-0">DataTable with Buttons</h5>');
+			}
+		});
+	</script>
+}
+
+<div class="page-header d-print-none mb-4">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2 class="page-title">@Localizer["Billing & Plans"]</h2>
+      <div class="text-secondary mt-1">@Localizer["Manage your company billing details and subscription plans"]</div>
+    </div>
+  </div>
+</div>
+
+<div class="row row-cards">
+  <div class="col-12">
+    @await Html.PartialAsync("Components/_Company_ViewHeader")
+
+    @* @await Html.PartialAsync("Components/_CurrentPlan", Model, ViewData) *@
+
+    <div class="card mb-4">
+      <div class="card-header">
+        <h3 class="card-title mb-0">Current Plan</h3>
+      </div>
+
+      <div class="card-body">
+        <div class="row g-4">
+
+          <div class="col-xl-6 order-1 order-xl-0">
+            <div class="mb-3">
+              <h4 class="h4 mb-1">Your Current Plan is Basic</h4>
+              <div class="text-secondary">A simple start for everyone</div>
+            </div>
+
+            <div class="mb-3">
+              <h4 class="h4 mb-1">Active until Dec 09, 2021</h4>
+              <div class="text-secondary">We will send you a notification upon Subscription expiration</div>
+            </div>
+
+            <div class="mb-0">
+              <h4 class="h4 mb-1">
+                <span class="me-2">$199 Per Month</span>
+                <span class="badge bg-azure-lt">Popular</span>
+              </h4>
+              <div class="text-secondary">Standard plan for small to medium businesses</div>
+            </div>
+          </div>
+
+          <div class="col-xl-6 order-0 order-xl-0">
+            <div class="alert alert-warning mb-3" role="alert">
+              <div class="d-flex">
+                <div class="me-3">
+                  <i class="ri-alert-line fs-3 text-warning"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <h4 class="alert-title mb-1">We need your attention!</h4>
+                  <div class="text-secondary">Your plan requires update</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="close"></button>
+              </div>
+            </div>
+
+            <div>
+              <div class="d-flex justify-content-between">
+                <div class="fw-semibold">Days</div>
+                <div class="fw-semibold">26 of 30 Days</div>
+              </div>
+
+              <div class="progress mb-2" style="height: 6px;">
+                <div class="progress-bar" style="width: 20%;" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+
+              <div class="text-secondary small">Your plan requires update</div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="btn-list">
+              <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#upgradePlanModal">
+                Upgrade Plan
+              </button>
+              <button class="btn btn-outline-danger cancel-subscription" type="button">
+                Cancel Subscription
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center w-100">
+          <h3 class="card-title mb-0">Billing Address</h3>
+          <button class="btn btn-sm btn-primary edit-address" type="button" data-bs-toggle="modal" data-bs-target="#addNewAddress">
+            <i class="ri-edit-line me-1"></i>Edit address
+          </button>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="row g-4">
+
+          <div class="col-xl-7 col-12">
+            <dl class="row mb-0">
+              <dt class="col-sm-5 col-xxl-4 mb-2 text-secondary">Company Name</dt>
+              <dd class="col-sm-7 col-xxl-8 mb-2">Materialize</dd>
+
+              <dt class="col-sm-5 col-xxl-4 mb-2 text-secondary">Billing Email</dt>
+              <dd class="col-sm-7 col-xxl-8 mb-2">user@ex.com</dd>
+
+              <dt class="col-sm-5 col-xxl-4 mb-2 text-secondary">Tax ID</dt>
+              <dd class="col-sm-7 col-xxl-8 mb-2">TAX-357378</dd>
+
+              <dt class="col-sm-5 col-xxl-4 mb-2 text-secondary">VAT Number</dt>
+              <dd class="col-sm-7 col-xxl-8 mb-2">SDF754K77</dd>
+
+              <dt class="col-sm-5 col-xxl-4 mb-0 text-secondary">Billing Address</dt>
+              <dd class="col-sm-7 col-xxl-8 mb-0">
+                100 Water Plant <br />Avenue, Building 1303<br />
+                Wake Island
+              </dd>
+            </dl>
+          </div>
+
+          <div class="col-xl-5 col-12">
+            <dl class="row mb-0">
+              <dt class="col-sm-5 col-xxl-4 mb-2 text-secondary">Contact</dt>
+              <dd class="col-sm-7 col-xxl-8 mb-2">+1 (605) 977-32-65</dd>
+
+              <dt class="col-sm-5 col-xxl-4 mb-2 text-secondary">Country</dt>
+              <dd class="col-sm-7 col-xxl-8 mb-2">Wake Island</dd>
+
+              <dt class="col-sm-5 col-xxl-4 mb-2 text-secondary">State</dt>
+              <dd class="col-sm-7 col-xxl-8 mb-2">Capholim</dd>
+
+              <dt class="col-sm-5 col-xxl-4 mb-0 text-secondary">Zipcode</dt>
+              <dd class="col-sm-7 col-xxl-8 mb-0">403114</dd>
+            </dl>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    @await Html.PartialAsync("Components/_Company_BillingHistory", Model.Invoices, ViewData)
+  </div>
+</div>

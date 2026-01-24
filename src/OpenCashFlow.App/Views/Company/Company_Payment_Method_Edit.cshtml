@@ -1,0 +1,65 @@
+@model Payment_Method_Update_DTO
+@{
+    ViewData["Title"] = Localizer["PaymentMethodEditTitle"].Value;
+}
+
+@await Html.PartialAsync("Components/_Company_ViewHeader", ViewData)
+
+<div class="page-header d-print-none mb-4">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2 class="page-title">@Localizer["PaymentMethodEditTitle"]</h2>
+      <div class="text-secondary mt-1">@Localizer["PaymentMethodExplanation"]</div>
+    </div>
+  </div>
+</div>
+
+<div class="row row-cards">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title mb-0">@Localizer["PaymentMethodEditHeading"]</h3>
+      </div>
+
+      <div class="card-body">
+        <div class="alert alert-info mb-4" role="alert">
+          <div class="d-flex">
+            <div class="me-3">
+              <i class="ri-information-line fs-3 text-info"></i>
+            </div>
+            <div>
+              <div class="fw-semibold">@Localizer["PaymentMethodEditHeading"]</div>
+              <div class="text-secondary">@Localizer["PaymentMethodExplanation"]</div>
+            </div>
+          </div>
+        </div>
+
+        <form method="post" asp-controller="Company" asp-action="Company_Payment_Method_Edit">
+          <input type="hidden" asp-for="PaymentMethodID" />
+          <input type="hidden" asp-for="TenantID" />
+
+          <div class="mb-3">
+            <label class="form-label" asp-for="PaymentMethodName">@Localizer["PaymentMethodName"]</label>
+            <input class="form-control" asp-for="PaymentMethodName" placeholder="@Localizer["EnterPaymentMethodName"]" />
+            <span class="text-danger" asp-validation-for="PaymentMethodName"></span>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" asp-for="PaymentMethodDescription">@Localizer["PaymentMethodDescription"]</label>
+            <input class="form-control" asp-for="PaymentMethodDescription" placeholder="@Localizer["EnterPaymentMethodDescription"]" />
+            <span class="text-danger" asp-validation-for="PaymentMethodDescription"></span>
+          </div>
+
+          <div class="mt-4 btn-list">
+            <button type="submit" class="btn btn-primary">
+              <i class="ri-save-line me-1"></i>@SharedLocalizer["Save"]
+            </button>
+            <a class="btn btn-outline-secondary" href="/Company/Payment_Methods">
+              @SharedLocalizer["Cancel"]
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,81 @@
+@{
+    Layout = "_BlankLayout";
+    ViewData["Title"] = Localizer["ResendConfirmationTitle"].Value;
+    var username = (string?)ViewBag.Username ?? string.Empty;
+    var success = TempData["ResendConfirmationSuccess"] as bool? ?? false;
+}
+
+@section PageStyles {
+    <link rel="stylesheet" href="~/vendor/css/pages/page-auth.css">
+}
+
+<div class="page page-center">
+  <div class="container container-tight py-4">
+
+    <div class="text-center mb-4">
+      <a href="/" class="navbar-brand navbar-brand-autodark">
+        @await Html.PartialAsync("../_Partials/_Macros")
+        <span class="ms-2 fw-semibold">@TempData.Peek("appName")</span>
+      </a>
+    </div>
+
+    <div class="card card-md">
+      <div class="card-body">
+
+        <h2 class="h2 text-center mb-3">@Localizer["ResendConfirmationHeading"]</h2>
+        <p class="text-secondary text-center mb-4">@Localizer["ResendConfirmationSubtitle"]</p>
+
+        @if (success)
+        {
+          <div class="alert alert-success" role="alert">
+            <div class="d-flex">
+              <div class="me-3">
+                <i class="ri-checkbox-circle-line fs-3 text-success"></i>
+              </div>
+              <div>
+                @Localizer["ConfirmationEmailResent"]
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (ViewBag.ErrorMessage != null)
+        {
+          <div class="alert alert-danger" role="alert">
+            <div class="d-flex">
+              <div class="me-3">
+                <i class="ri-error-warning-line fs-3 text-danger"></i>
+              </div>
+              <div>
+                @ViewBag.ErrorMessage
+              </div>
+            </div>
+          </div>
+        }
+
+        <form method="POST" action="~/Account/ResendConfirmation">
+          @Html.AntiForgeryToken()
+
+          <div class="mb-3">
+            <label class="form-label" for="username">@Localizer["EmailOrUsername"]</label>
+            <input type="text" class="form-control" id="username" name="username" value="@username"
+                   placeholder="@Localizer["EnterYourEmailOrUsername"]"
+                   aria-label="@Localizer["EmailOrUsername"]" />
+          </div>
+
+          <div class="form-footer">
+            <button class="btn btn-primary w-100" type="submit">
+              @Localizer["ResendEmailButton"]
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+    <div class="text-center text-secondary mt-3">
+      <a href="/Account/LogIn">@Localizer["BackToLogin"]</a>
+    </div>
+
+  </div>
+</div>

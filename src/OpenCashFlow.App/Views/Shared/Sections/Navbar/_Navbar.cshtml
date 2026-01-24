@@ -1,0 +1,10 @@
+@{
+    TempData.Keep();
+    ViewData["containerNav"] = (ViewData["containerNav"] ??= "container-xl");
+}
+
+<header class="navbar navbar-expand-md d-print-none">
+    <div class='@ViewData["containerNav"]'>
+        @await Html.PartialAsync("Sections/Navbar/_NavbarPartial")
+    </div>
+</header>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CashLedgerTitle" xml:space="preserve"><value>Registro di cassa</value></data>
+  <data name="CashLedgerHeading" xml:space="preserve"><value>Registro di cassa</value></data>
+  <data name="CashLedgerExplanation" xml:space="preserve"><value>Il registro di cassa tiene traccia di tutte le variazioni del contante in cassa. Puoi aggiungere rettifiche per modificare il totale del contante (es. prelievi, versamenti, conteggio cassa). Questa funzionalità è visibile e modificabile solo dagli amministratori.</value></data>
+  <data name="CurrentCashBalance" xml:space="preserve"><value>Disponibilità attuale</value></data>
+  <data name="AddAdjustment" xml:space="preserve"><value>Aggiungi rettifica</value></data>
+  <data name="LoadMore" xml:space="preserve"><value>Carica altri</value></data>
+  <data name="Amount" xml:space="preserve"><value>Importo</value></data>
+  <data name="RefType" xml:space="preserve"><value>Tipo rif.</value></data>
+  <data name="Reason" xml:space="preserve"><value>Motivazione</value></data>
+  <data name="CreatedAt" xml:space="preserve"><value>Creato il</value></data>
+  <data name="By" xml:space="preserve"><value>Da</value></data>
+  <data name="NewCashAdjustment" xml:space="preserve"><value>Nuova rettifica cassa</value></data>
+  <data name="AdjustmentExplanation" xml:space="preserve"><value>Le rettifiche modificano il totale del contante in cassa. Seleziona se aggiungere o rimuovere contante e inserisci l'importo.</value></data>
+  <data name="AmountLabel" xml:space="preserve"><value>Importo</value></data>
+  <data name="AmountPlaceholder" xml:space="preserve"><value>0,00</value></data>
+  <data name="Add" xml:space="preserve"><value>Aggiungi</value></data>
+  <data name="Remove" xml:space="preserve"><value>Rimuovi</value></data>
+  <data name="SelectAdjustmentType" xml:space="preserve"><value>Seleziona tipo rettifica</value></data>
+  <data name="EnterReason" xml:space="preserve"><value>Inserisci una motivazione</value></data>
+  <data name="InvalidAmount" xml:space="preserve"><value>Importo non valido</value></data>
+  <data name="ReasonRequired" xml:space="preserve"><value>Motivazione richiesta</value></data>
+  <data name="NetworkError" xml:space="preserve"><value>Errore di rete</value></data>
+  <data name="GenericError" xml:space="preserve"><value>Errore</value></data>
+  <data name="NoCashLedgerEntries" xml:space="preserve"><value>Nessuna voce</value></data>
+</root>

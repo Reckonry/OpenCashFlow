@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="DocumentTypeCreateTitle" xml:space="preserve"><value>New Document Type</value></data>
+  <data name="DocumentTypeCreateHeading" xml:space="preserve"><value>New Document Type</value></data>
+  <data name="DocumentTypeExplanation" xml:space="preserve"><value>Create a new document type to categorize your payments. You will be able to use this type when recording new payments.</value></data>
+  <data name="NewTypeWillBeAssociatedToYourCompany" xml:space="preserve"><value>The new type will be associated to your company.</value></data>
+  <data name="DocumentTypeName" xml:space="preserve"><value>Document Type Name</value></data>
+  <data name="DocumentTypeDescription" xml:space="preserve"><value>Document Type Description</value></data>
+  <data name="EnterDocumentTypeName" xml:space="preserve"><value>e.g. Invoice, Receipt, Credit Note</value></data>
+  <data name="EnterDocumentTypeDescription" xml:space="preserve"><value>e.g. Fiscal document for sales</value></data>
+</root>

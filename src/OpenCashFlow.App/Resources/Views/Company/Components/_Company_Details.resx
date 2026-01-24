@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Address" xml:space="preserve">
+    <value>Address</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="E-Mail" xml:space="preserve">
+    <value>E-Mail</value>
+  </data>
+  <data name="Edit details" xml:space="preserve">
+    <value>Edit details</value>
+  </data>
+  <data name="Ending Contract" xml:space="preserve">
+    <value>Ending Contract</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Max Users" xml:space="preserve">
+    <value>Max Users</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Projects Done" xml:space="preserve">
+    <value>Projects Done</value>
+  </data>
+  <data name="Starting Contract" xml:space="preserve">
+    <value>Starting Contract</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Tasks Done" xml:space="preserve">
+    <value>Tasks Done</value>
+  </data>
+  <data name="Timezone" xml:space="preserve">
+    <value>Timezone</value>
+  </data>
+</root>

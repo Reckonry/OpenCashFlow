@@ -1,0 +1,188 @@
+﻿@{
+	ViewData["Title"] = Localizer["SecurityTitle"].Value;
+}
+
+@section PageStyles {
+	<style>
+		.api-key-actions {
+			position: absolute !important;
+			top: .75rem
+		}
+
+		html:not([dir=rtl]) .api-key-actions {
+			right: .5rem
+		}
+
+		[dir=rtl] .api-key-actions {
+			left: .5rem
+		}
+	</style>
+}
+
+@section PageScripts {
+	<script>
+		var ddlLanguage = $('#Language');
+		ddlLanguage.on("change", function () { $('#span_Language').text($('#Language option:selected').text()); });
+		var txtCustomerInternalNote = $('#CustomerInternalNote');
+		txtCustomerInternalNote.on("change", function () { $('#span_CustomerInternalNote').text(txtCustomerInternalNote.val()); });
+
+		var txtCustomerPublicNote = $('#CustomerPublicNote');
+		txtCustomerPublicNote.on("change", function () { $('#span_CustomerPublicNote').text(txtCustomerPublicNote.val()); });
+
+		document.getElementById("submit").addEventListener("click", function (event) {
+		if (!SubmitData())
+			event.preventDefault()
+			});
+
+			function CheckCustomerDetails(next) {
+			if (txtCustomerName.val() == '') { txtCustomerName.addClass('is-invalid'); } else { txtCustomerName.removeClass('is-invalid'); }
+				if (txtCustomerSurname.val() == '') { txtCustomerSurname.addClass('is-invalid'); } else { txtCustomerSurname.removeClass('is-invalid'); }
+
+
+				if (txtCustomerName.val() !== '' && txtCustomerSurname.val() !== '') {
+					return true;
+			}
+			else {
+				modernIconsStepper.to(1);
+				return false;
+			}
+
+		}
+
+		function SubmitData() {
+			if (CheckCustomerDetails(true)) {
+				$("#submit").addClass("d-none");
+				$("#Loading").removeClass("d-none");
+
+				return true;
+			}
+			return false;
+		}
+	</script>
+}
+
+@* Page header (Tabler style) *@
+<div class="page-header d-print-none mb-4">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title">@Localizer["SecurityTitle"]</h2>
+            <div class="text-secondary mt-1">@Localizer["Manage your security settings and API keys"]</div>
+        </div>
+    </div>
+</div>
+
+<div class="row row-cards">
+    <div class="col-12">
+
+        @await Html.PartialAsync("Components/_Company_ViewHeader", ViewData)
+
+        @* Change Password (coming soon) *@
+
+        @* Create an API key *@
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title mb-0">@Localizer["Create an API key"]</h3>
+            </div>
+
+            <div class="card-body">
+                <div class="row g-4 align-items-center">
+
+                    <div class="col-12 col-md-5 order-md-0 order-1">
+                        <form id="formAccountSettingsApiKey" method="POST" onsubmit="return false" class="fv-plugins-bootstrap5 fv-plugins-framework" novalidate="novalidate">
+                            <div class="row fv-plugins-icon-container">
+
+                                <div class="mb-3 col-12">
+                                    <label for="apiAccess" class="form-label">@Localizer["Choose the Api key type you want to create"]</label>
+                                    <div class="position-relative">
+                                        <select id="apiAccess" class="select2 form-select select2-hidden-accessible" data-select2-id="apiAccess" tabindex="-1" aria-hidden="true">
+                                            <option label="">@Localizer["Choose Key Type"]</option>
+                                            @*     @foreach (CoreAPIKey type in (CoreAPIKey[])Enum.GetValues(typeof(CoreAPIKey)))
+                                            {
+                                                <option value="@type">@Localizer["APIType_" + type.ToString()]</option>
+                                            } *@
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 col-12">
+                                    <label for="apiKeyName" class="form-label">@Localizer["Name the API key"]</label>
+                                    <input type="text" class="form-control" id="apiKeyName" name="apiKeyName" placeholder="@Localizer["Server Key 1"]">
+                                    <div class="fv-plugins-message-container invalid-feedback"></div>
+                                </div>
+
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary d-grid w-100">@Localizer["Create Key"]</button>
+                                </div>
+
+                            </div>
+                            <input type="hidden">
+                        </form>
+                    </div>
+
+                    <div class="col-12 col-md-7 order-md-1 order-0">
+                        <div class="text-center">
+                            <img src="~/img/illustrations/girl-with-laptop.png" class="img-fluid" alt="@Localizer["ApiKeyIllustrationAlt"]" width="202">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        @* /Create an API key *@
+
+        @* API Key List & Access *@
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title mb-0">@Localizer["API Key List &amp; Access"]</h3>
+            </div>
+
+            <div class="card-body">
+                <p class="text-secondary mb-4">@Localizer["An API key is a simple encrypted string that identifies an application without any principal. They are useful for accessing public data, and are used to associate API requests with your project for quota and billing."]</p>
+
+                <div class="row">
+                    <div class="col-12">
+
+                        @* @if (Model != null)
+                        {
+                            @foreach (Company_API_Key item in Model)
+                            {
+                                <div class="bg-lighter rounded p-3 mb-3 position-relative">
+                                    <div class="dropdown api-key-actions">
+                                        <a class="btn dropdown-toggle text-muted hide-arrow p-0" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="ti ti-dots-vertical ti-sm"></i>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-end" style="">
+                                            <a href="javascript:;" class="dropdown-item"><i class="ti ti-pencil me-2"></i>@Localizer["Edit"]</a>
+                                            <a href="~/Company/Security/Key/@item.ID/Delete" class="dropdown-item"><i class="ti ti-trash me-2"></i>@Localizer["Delete"]</a>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <h4 class="mb-0 me-3">@item.KeyName</h4>
+                                        <span class="badge bg-label-primary">@Localizer["APIType_" + item.APIKeyType.ToString()]</span>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <p class="me-2 mb-0 fw-medium">@item.KeyValue</p>
+                                        <span class="text-muted cursor-pointer"><i class="ti ti-copy ti-sm"></i></span>
+                                    </div>
+                                    <span class="text-muted">@Localizer["Created on {0}", item.DateIns.ToString("dd MMM yyyy',' HH:mm:ss")]</span>
+                                </div>
+                            }
+                        } *@
+
+                        <div class="empty">
+                            <div class="empty-img">
+                                <i class="ri-key-2-line" style="font-size: 72px;"></i>
+                            </div>
+                            <p class="empty-title">@Localizer["No API keys yet"]</p>
+                            <p class="empty-subtitle text-secondary">@Localizer["Create your first API key to start integrating with external services."]</p>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        @* /API Key List & Access *@
+
+    </div>
+</div>

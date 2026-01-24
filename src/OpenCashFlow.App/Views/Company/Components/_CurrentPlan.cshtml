@@ -1,0 +1,91 @@
+﻿@model Company
+@{
+    DateTime dataInizio = Model.StartingContract;    // Start date
+    DateTime dataFine = Model.EndingContract;        // End date
+    DateTime dataCorrente = DateTime.UtcNow.Date;       // Current date
+
+    // Calculate total days between start and end date
+    int giorniTotali = (int)(dataFine - dataInizio).TotalDays;
+
+    // Calculate elapsed days between start date and current date
+    int giorniTrascorsi = (int)(dataCorrente - dataInizio).TotalDays;
+
+    // Calculate percentage
+    double percentuale = (double)giorniTrascorsi / giorniTotali * 100;
+}
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="card-title mb-0">@Localizer["Current Plan"]</h3>
+    </div>
+
+    <div class="card-body">
+        <div class="row g-4">
+
+            <div class="col-12 col-md-6">
+                <div class="mb-4">
+                    <h4 class="mb-1">@Localizer["Your Current Plan is {0}", "Basic"]</h4>
+                    <div class="text-secondary">@Localizer["A simple start for everyone"]</div>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="mb-1">@Localizer["Active until {0}", Model.EndingContract.ToLongDateString()]</h5>
+                    <div class="text-secondary">@Localizer["We will send you a notification upon Subscription expiration"]</div>
+                </div>
+
+                <div class="text-secondary">
+                    @Localizer["Standard plan for small to medium businesses"]
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                @if (Model.EndingContract.Subtract(DateTime.Today).Days >= 50)
+                {
+                    <div class="alert alert-success" role="alert">
+                        <div class="fw-semibold">@Localizer["There is plenty of time!"]</div>
+                        <div class="text-secondary">@Localizer["There is still plenty of time for your subscription."]</div>
+                    </div>
+                }
+                else if (Model.EndingContract.Subtract(DateTime.Today).Days <= 50 && Model.EndingContract.Subtract(DateTime.Today).Days > 29)
+                {
+                    <div class="alert alert-warning" role="alert">
+                        <div class="fw-semibold">@Localizer["We need your attention!"]</div>
+                        <div class="text-secondary">@Localizer["Your plan requires update"]</div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <div class="fw-semibold">@Localizer["Expiring soon!"]</div>
+                        <div class="text-secondary">@Localizer["Your subscription is expiring soon!"]</div>
+                    </div>
+                }
+
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-secondary">@Localizer["Days"]</span>
+                        <span class="fw-semibold">@Localizer["{0} of {1} Days", DateTime.Today.Subtract(Model.StartingContract).Days, Model.EndingContract.Subtract(Model.StartingContract).Days]</span>
+                    </div>
+
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar @(percentuale > 90 ? "bg-danger" : percentuale > 75 ? "bg-warning" : "bg-primary")"
+                             role="progressbar"
+                             style="width: @Convert.ToInt32(percentuale)%"
+                             aria-valuenow="@Convert.ToInt32(percentuale)" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+
+                    <div class="small text-secondary mt-2">
+                        @Localizer["{0} days remaining until your plan requires update", Model.EndingContract.Subtract(DateTime.Today).Days]
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#pricingModal">
+                    @Localizer["Upgrade Plan"]
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>

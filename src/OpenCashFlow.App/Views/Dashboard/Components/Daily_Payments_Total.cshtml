@@ -1,0 +1,48 @@
+﻿@{
+    var ssrAmount = (ViewBag.DailyPaymentsTotalText as string) ?? "—";
+    var today = DateTime.Today;
+}
+<!-- Daily Payments Total -->
+<div class="col-xxl-2 col-sm-6">
+    <div class="card card-sm h-100">
+        <div class="card-body">
+            <div class="row align-items-center">
+
+                <div class="col">
+                    <div class="text-secondary fw-semibold">@Localizer["DailyPayments"]</div>
+                    <div id="daily-total-value" class="h1 mb-0"
+                         data-url="/internal/Dashboard/DailyTotal?date=@today.ToString("yyyy-MM-dd")">
+                        @ssrAmount
+                    </div>
+                </div>
+
+                <div class="col-auto">
+                    <span class="avatar avatar-md bg-primary-lt">
+                        <i class="ri-shopping-cart-2-line"></i>
+                    </span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!--/ Daily Payments Total -->
+<script>
+  (function() {
+    const container = document.getElementById('daily-total-value');
+    if (!container) return;
+    const url = container.getAttribute('data-url');
+    const refresh = async () => {
+      try {
+        const res = await fetch(url, { credentials: 'same-origin' });
+        if (!res.ok) return;
+        const html = await res.text();
+        container.innerHTML = html;
+      } catch (e) { /* noop */ }
+    };
+    // Immediate refresh to get latest data (no visible delay)
+    refresh();
+    // Periodic refresh every 60s
+    setInterval(refresh, 60000);
+  })();
+</script>

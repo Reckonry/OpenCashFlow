@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SecurityTitle" xml:space="preserve">
+    <value>Sicurezza - OpenCashFlow</value>
+  </data>
+  <data name="ApiKeyIllustrationAlt" xml:space="preserve">
+    <value>Illustrazione chiavi API</value>
+  </data>
+  <data name="API Key List &amp; Access" xml:space="preserve">
+    <value>Elenco chiavi API e accesso</value>
+  </data>
+  <data name="An API key is a simple encrypted string that identifies an application without any principal. They are useful for accessing public data, and are used to associate API requests with your project for quota and billing." xml:space="preserve">
+    <value>Una chiave API è una semplice stringa crittografata che identifica un'applicazione senza alcun principale. Sono utili per accedere ai dati pubblici e vengono utilizzate per associare le richieste API al tuo progetto per quota e fatturazione.</value>
+  </data>
+  <data name="Choose Key Type" xml:space="preserve">
+    <value>Scegli tipo di chiave</value>
+  </data>
+  <data name="Choose the Api key type you want to create" xml:space="preserve">
+    <value>Scegli il tipo di chiave API che vuoi creare</value>
+  </data>
+  <data name="Name the API key" xml:space="preserve">
+    <value>Name the API key</value>
+  </data>
+  <data name="Create Key" xml:space="preserve">
+    <value>Crea chiave</value>
+  </data>
+  <data name="Create an API key" xml:space="preserve">
+    <value>Crea una chiave API</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Elimina</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Modifica</value>
+  </data>
+  <data name="Security - OpenCashFlow" xml:space="preserve">
+    <value>Sicurezza - OpenCashFlow</value>
+  </data>
+  <data name="Server Key 1" xml:space="preserve">
+    <value>Chiave server 1</value>
+  </data>
+</root>

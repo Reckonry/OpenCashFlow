@@ -2,6 +2,7 @@ using OpenCashFlow.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using global::Shared.DTOs.Identity;
+using Asp.Versioning;
 
 namespace OpenCashFlow.API.Controllers
 {

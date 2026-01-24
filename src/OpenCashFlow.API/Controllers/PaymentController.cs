@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using global::Shared.Models;
 using System.Security.Claims;
+using Asp.Versioning;
 
 namespace OpenCashFlow.API.Controllers
 {

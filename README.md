@@ -1,3 +1,5 @@
+![OpenCashFlow](assets/OCF-Banner.png)
+
 # 💰 OpenCashFlow
 
 ![.NET](https://img.shields.io/badge/.NET-9.0-blueviolet?logo=dotnet&style=for-the-badge)

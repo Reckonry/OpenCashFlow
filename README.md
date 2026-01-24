@@ -9,7 +9,7 @@
 ![jQuery](https://img.shields.io/badge/jQuery-3.x-blue?logo=jquery&style=for-the-badge)
 ![REST API](https://img.shields.io/badge/API-RESTful-orange?style=for-the-badge)
 ![OpenAPI](https://img.shields.io/badge/OpenAPI-Swagger-yellowgreen?logo=swagger&style=for-the-badge)
-![Clean Architecture](https://img.shields.io/badge/Clean-Architecture-success?style=for-the-badge)
+![Architecture](https://img.shields.io/badge/architecture-layered--clean--inspired-blue)
 ![JWT Auth](https://img.shields.io/badge/Auth-JWT-blue?style=for-the-badge)
 ![Serilog](https://img.shields.io/badge/Logging-Serilog-informational?style=for-the-badge)
 ![Slack Integration](https://img.shields.io/badge/Slack-Integration-4A154B?logo=slack&style=for-the-badge)

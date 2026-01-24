@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
     var recent = ViewBag.RecentPayments as IEnumerable<Shared.DTOs.Payment_List_DTO>;
 }
 
@@ -9,11 +6,10 @@
 <div class="col-12 col-xxl-8">
     <div class="card h-100">
         <div class="card-header">
-            <div class="d-flex justify-content-between">
-                <h5 class="mb-0">@Localizer["ActivityTimeline"]</h5>
-            </div>
+            <h3 class="card-title">@Localizer["ActivityTimeline"]</h3>
         </div>
-        <div class="card-body pt-4" id="recent-payments-timeline" data-url="/internal/Dashboard/RecentPayments?count=5">
+
+        <div class="card-body" id="recent-payments-timeline" data-url="/internal/Dashboard/RecentPayments?count=5">
             <ul class="timeline card-timeline mb-0">
                 @if (recent is IEnumerable<Shared.DTOs.Payment_List_DTO> list && list.Any())
                 {
@@ -25,10 +21,10 @@
                         <span class="timeline-point timeline-point-secondary"></span>
                         <div class="timeline-event">
                             <div class="timeline-header mb-1">
-                                <h6 class="mb-0">@Localizer["LoadingRecentPayment"]</h6>
-                                <small class="text-muted">@Localizer["PleaseWait"]</small>
+                                <h4 class="timeline-title mb-0">@Localizer["LoadingRecentPayment"]</h4>
+                                <span class="text-secondary small">@Localizer["PleaseWait"]</span>
                             </div>
-                            <p class="mb-0">@Localizer["RecentPaymentsPlaceholder"]</p>
+                            <div class="text-secondary">@Localizer["RecentPaymentsPlaceholder"]</div>
                         </div>
                     </li>
                 }

@@ -178,56 +178,68 @@
     </script>
 }
 
-<div class="positive-relative">
-    <div class="authentication-wrapper authentication-basic p-4 p-sm-0">
-        <div class="authentication-inner py-6">
+<div class="page page-center">
+    <div class="container container-tight py-4">
 
-            <!--  Two Steps Verification -->
-            <div class="card p-md-7 p-1">
-                <!-- Logo -->
-                <div class="app-brand justify-content-center mt-5">
-                    <a href="/" class="app-brand-link gap-2">
-                        <span class="app-brand-logo demo">@await Html.PartialAsync("../_Partials/_Macros")</span>
-                        <span class="app-brand-text demo text-heading fw-semibold">@TempData.Peek("appName")</span>
-                    </a>
-                </div>
-                <!-- /Logo -->
-                <div class="card-body mt-1">
-                    @* localized *@
-                    <h4 class="mb-1">@Localizer["QuickLogin"]</h4>                    
-                    @if (ViewBag.ErrorMessage != null)
-                    {
-                        <div class="alert alert-solid-danger mb-5" role="alert">@ViewBag.ErrorMessage</div>
-                    }
-                    <p class="mb-0">@Localizer["TypeYour5DigitSecurityCode"]</p>
-                    <form id="twoStepsForm" action="~/Account/FastLogin" method="post" novalidate>
-                        @Html.AntiForgeryToken()
-                        <div class="mb-3">
-                            <div class="auth-input-wrapper d-flex align-items-center justify-content-between numeral-mask-wrapper">
-                                <input type="tel" class="form-control auth-input text-center numeral-mask h-px-50 mx-sm-1 my-2" maxlength="1" autofocus autocomplete="off">
-                                <input type="tel" class="form-control auth-input text-center numeral-mask h-px-50 mx-sm-1 my-2" maxlength="1" autocomplete="off">
-                                <input type="tel" class="form-control auth-input text-center numeral-mask h-px-50 mx-sm-1 my-2" maxlength="1" autocomplete="off">
-                                <input type="tel" class="form-control auth-input text-center numeral-mask h-px-50 mx-sm-1 my-2" maxlength="1" autocomplete="off">
-                                <input type="tel" class="form-control auth-input text-center numeral-mask h-px-50 mx-sm-1 my-2" maxlength="1" autocomplete="off">
-                            </div>
-                            <input type="hidden" name="Pin" id="Pin" />
-                            <span asp-validation-for="Pin" class="text-danger"></span>
-                        </div>
-                        <button class="btn btn-primary d-grid w-100 mb-5" id="btnSignIn">@Localizer["Login"]</button>
-                        <button class="btn btn-raised btn-success w-100 mb-5 d-none" id="Loading" type="button" disabled="">
-                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>@Localizer["Loading"]
-                        </button>
-                        <div class="text-center">
-
-                            <a href="/Account/LogIn?ForceLogin">
-                                @Localizer["LoginWithUsernameAndPassword"]
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <!-- / Two Steps Verification -->
-            <img alt="mask" src="~/img/illustrations/auth-basic-register-mask-light.png" class="authentication-image d-none d-lg-block" data-app-light-img="illustrations/auth-basic-register-mask-light.png" data-app-dark-img="illustrations/auth-basic-register-mask-dark.png" />
+        <div class="text-center mb-4">
+            <a href="/" class="navbar-brand navbar-brand-autodark">
+                @await Html.PartialAsync("../_Partials/_Macros")
+                <span class="ms-2 fw-semibold">@TempData.Peek("appName")</span>
+            </a>
         </div>
+
+        <div class="card card-md">
+            <div class="card-body">
+
+                <h2 class="h2 text-center mb-2">@Localizer["QuickLogin"]</h2>
+                <p class="text-secondary text-center mb-4">@Localizer["TypeYour5DigitSecurityCode"]</p>
+
+                @if (ViewBag.ErrorMessage != null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="ri-error-warning-line fs-3 text-danger"></i>
+                            </div>
+                            <div>
+                                @ViewBag.ErrorMessage
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <form id="twoStepsForm" action="~/Account/FastLogin" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between gap-2">
+                            <input type="tel" class="form-control auth-input numeral-mask text-center" maxlength="1" autofocus autocomplete="off">
+                            <input type="tel" class="form-control auth-input numeral-mask text-center" maxlength="1" autocomplete="off">
+                            <input type="tel" class="form-control auth-input numeral-mask text-center" maxlength="1" autocomplete="off">
+                            <input type="tel" class="form-control auth-input numeral-mask text-center" maxlength="1" autocomplete="off">
+                            <input type="tel" class="form-control auth-input numeral-mask text-center" maxlength="1" autocomplete="off">
+                        </div>
+                        <input type="hidden" name="Pin" id="Pin" />
+                        <span asp-validation-for="Pin" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-footer">
+                        <button class="btn btn-primary w-100 mb-3" id="btnSignIn" type="submit">
+                            @Localizer["Login"]
+                        </button>
+                        <button class="btn btn-success w-100 mb-3 d-none" id="Loading" type="button" disabled>
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            @Localizer["Loading"]
+                        </button>
+                    </div>
+
+                    <div class="text-center text-secondary">
+                        <a href="/Account/LogIn?ForceLogin">@Localizer["LoginWithUsernameAndPassword"]</a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
     </div>
 </div>

@@ -93,55 +93,82 @@
     </style>
 }
 
-<div class="card app-calendar-wrapper">
-    <div class="row g-0">
-        <!-- Calendar Sidebar -->
-        <div class="col app-calendar-sidebar border-end" id="app-calendar-sidebar">
-            <div class="p-5 my-sm-0 mb-4">
-                <a href="/Payments" class="btn btn-primary w-100 waves-effect waves-light">
-                    <i class="ri-add-line me-1"></i>
-                    <span class="align-middle">Add Payment</span>
+@* Page header (Tabler style) *@
+<div class="page-header d-print-none mb-4">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title">@Localizer["Payments Calendar"]</h2>
+            <div class="text-secondary mt-1">@Localizer["Browse payments by day and inspect totals"]</div>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <div class="btn-list">
+                <a href="/Payments" class="btn btn-primary">
+                    <i class="ri-add-line me-2"></i>
+                    <span class="d-none d-sm-inline">@Localizer["Add Payment"]</span>
                 </a>
             </div>
-            <div class="px-5 pb-2">
-                <small class="text-uppercase text-muted d-block mb-4">Filters</small>
-            </div>
-            <div class="p-5 pt-0">
-                <div class="mb-4">
-                    <div class="form-check">
+        </div>
+    </div>
+</div>
+
+<div class="card app-calendar-wrapper">
+    <div class="row g-0">
+
+        @* Sidebar *@
+        <div class="col-12 col-md-4 col-xl-3 app-calendar-sidebar border-end" id="app-calendar-sidebar">
+            <div class="card-body p-4">
+
+                <div class="d-grid mb-4">
+                    <a href="/Payments" class="btn btn-primary">
+                        <i class="ri-add-line me-2"></i>
+                        @Localizer["Add Payment"]
+                    </a>
+                </div>
+
+                <div class="text-uppercase text-secondary fw-semibold small mb-3">@Localizer["Filters"]</div>
+
+                <div class="mb-3">
+                    <label class="form-check">
                         <input class="form-check-input select-all" type="checkbox" id="selectAll" checked>
-                        <label class="form-check-label" for="selectAll">View All</label>
-                    </div>
+                        <span class="form-check-label">@Localizer["View All"]</span>
+                    </label>
                 </div>
+
                 <div class="app-calendar-events-filter">
-                    <div class="mb-4">
-                        <div class="form-check form-check-success">
+                    <div class="mb-2">
+                        <label class="form-check">
                             <input class="form-check-input input-filter" type="checkbox" id="select-income" data-value="income" checked>
-                            <label class="form-check-label" for="select-income">@(SharedLocalizer["Income"].Value ?? "Income")</label>
-                        </div>
+                            <span class="form-check-label">@(SharedLocalizer["Income"].Value ?? "Income")</span>
+                        </label>
                     </div>
-                    <div class="mb-4">
-                        <div class="form-check form-check-danger">
+
+                    <div class="mb-2">
+                        <label class="form-check">
                             <input class="form-check-input input-filter" type="checkbox" id="select-outcome" data-value="outcome" checked>
-                            <label class="form-check-label" for="select-outcome">@(SharedLocalizer["Outcome"].Value ?? "Outcome")</label>
-                        </div>
+                            <span class="form-check-label">@(SharedLocalizer["Outcome"].Value ?? "Outcome")</span>
+                        </label>
                     </div>
                 </div>
+
+                <div class="text-secondary small mt-4">
+                    <i class="ri-information-line me-1"></i>
+                    @Localizer["Tip: click a day to see totals and open the details panel."]
+                </div>
+
             </div>
         </div>
-        <!-- /Calendar Sidebar -->
 
-        <!-- Calendar -->
+        @* Calendar *@
         <div class="col app-calendar-content">
-            <div class="card shadow-none border-0">
+            <div class="card shadow-none border-0 h-100">
                 <div class="card-body pb-0">
-                    <!-- FullCalendar -->
                     <div id="calendar"></div>
                 </div>
             </div>
         </div>
-        <!-- /Calendar -->
+
         <div class="app-overlay"></div>
+
     </div>
 </div>
 

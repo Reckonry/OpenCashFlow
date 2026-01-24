@@ -61,60 +61,88 @@
 	</script>
 }
 
-<div class="row">
-	<div class="col-md-12">
-		@await Html.PartialAsync("Components/_Company_ViewHeader", ViewData)
-		<!-- Change Password -->
-		<!--/ Change Password -->
-		<!-- Create an API key -->
-		<div class="card mb-4">
-			<h5 class="card-header">@Localizer["Create an API key"]</h5>
-			<div class="row">
-				<div class="col-md-5 order-md-0 order-1">
-					<div class="card-body">
-						<form id="formAccountSettingsApiKey" method="POST" onsubmit="return false" class="fv-plugins-bootstrap5 fv-plugins-framework" novalidate="novalidate">
-							<div class="row fv-plugins-icon-container">
-								<div class="mb-3 col-12">
-									<label for="apiAccess" class="form-label">@Localizer["Choose the Api key type you want to create"]</label>
-									<div class="position-relative">
-										<select id="apiAccess" class="select2 form-select select2-hidden-accessible" data-select2-id="apiAccess" tabindex="-1" aria-hidden="true">
-											<option label="">@Localizer["Choose Key Type"]</option>
-											@*     @foreach (CoreAPIKey type in (CoreAPIKey[])Enum.GetValues(typeof(CoreAPIKey)))
+@* Page header (Tabler style) *@
+<div class="page-header d-print-none mb-4">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title">@Localizer["SecurityTitle"]</h2>
+            <div class="text-secondary mt-1">@Localizer["Manage your security settings and API keys"]</div>
+        </div>
+    </div>
+</div>
+
+<div class="row row-cards">
+    <div class="col-12">
+
+        @await Html.PartialAsync("Components/_Company_ViewHeader", ViewData)
+
+        @* Change Password (coming soon) *@
+
+        @* Create an API key *@
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title mb-0">@Localizer["Create an API key"]</h3>
+            </div>
+
+            <div class="card-body">
+                <div class="row g-4 align-items-center">
+
+                    <div class="col-12 col-md-5 order-md-0 order-1">
+                        <form id="formAccountSettingsApiKey" method="POST" onsubmit="return false" class="fv-plugins-bootstrap5 fv-plugins-framework" novalidate="novalidate">
+                            <div class="row fv-plugins-icon-container">
+
+                                <div class="mb-3 col-12">
+                                    <label for="apiAccess" class="form-label">@Localizer["Choose the Api key type you want to create"]</label>
+                                    <div class="position-relative">
+                                        <select id="apiAccess" class="select2 form-select select2-hidden-accessible" data-select2-id="apiAccess" tabindex="-1" aria-hidden="true">
+                                            <option label="">@Localizer["Choose Key Type"]</option>
+                                            @*     @foreach (CoreAPIKey type in (CoreAPIKey[])Enum.GetValues(typeof(CoreAPIKey)))
                                             {
                                                 <option value="@type">@Localizer["APIType_" + type.ToString()]</option>
                                             } *@
-										</select>
-									</div>
-								</div>
-								<div class="mb-3 col-12">
-									<label for="apiKey" class="form-label">@Localizer["Name the API key"]</label>
-									<input type="text" class="form-control" id="apiKeyName" name="apiKeyName" placeholder="@Localizer["Server Key 1"]">
-									<div class="fv-plugins-message-container invalid-feedback"></div>
-								</div>
-								<div class="col-12">
-									<button type="submit" class="btn btn-primary me-2 d-grid w-100 waves-effect waves-light">@Localizer["Create Key"]</button>
-								</div>
-							</div>
-							<input type="hidden">
-						</form>
-					</div>
-				</div>
-				<div class="col-md-7 order-md-1 order-0">
-					<div class="text-center mt-4 mx-3 mx-md-0">
-						<img src="~/img/illustrations/girl-with-laptop.png" class="img-fluid" alt="@Localizer["ApiKeyIllustrationAlt"]" width="202">
-					</div>
-				</div>
-			</div>
-		</div>
-		<!--/ Create an API key -->
-		<!-- API Key List & Access -->
-		<div class="card mb-4">
-			<h5 class="card-header">@Localizer["API Key List &amp; Access"]</h5>
-			<div class="card-body">
-				<p>@Localizer["An API key is a simple encrypted string that identifies an application without any principal. They are useful for accessing public data, and are used to associate API requests with your project for quota and billing."]</p>
-				<div class="row">
-					<div class="col-md-12">
-						@* @if (Model != null)
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 col-12">
+                                    <label for="apiKeyName" class="form-label">@Localizer["Name the API key"]</label>
+                                    <input type="text" class="form-control" id="apiKeyName" name="apiKeyName" placeholder="@Localizer["Server Key 1"]">
+                                    <div class="fv-plugins-message-container invalid-feedback"></div>
+                                </div>
+
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary d-grid w-100">@Localizer["Create Key"]</button>
+                                </div>
+
+                            </div>
+                            <input type="hidden">
+                        </form>
+                    </div>
+
+                    <div class="col-12 col-md-7 order-md-1 order-0">
+                        <div class="text-center">
+                            <img src="~/img/illustrations/girl-with-laptop.png" class="img-fluid" alt="@Localizer["ApiKeyIllustrationAlt"]" width="202">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        @* /Create an API key *@
+
+        @* API Key List & Access *@
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title mb-0">@Localizer["API Key List &amp; Access"]</h3>
+            </div>
+
+            <div class="card-body">
+                <p class="text-secondary mb-4">@Localizer["An API key is a simple encrypted string that identifies an application without any principal. They are useful for accessing public data, and are used to associate API requests with your project for quota and billing."]</p>
+
+                <div class="row">
+                    <div class="col-12">
+
+                        @* @if (Model != null)
                         {
                             @foreach (Company_API_Key item in Model)
                             {
@@ -141,12 +169,20 @@
                             }
                         } *@
 
-					</div>
-				</div>
-			</div>
-		</div>
-		<!--/ API Key List & Access -->
+                        <div class="empty">
+                            <div class="empty-img">
+                                <i class="ri-key-2-line" style="font-size: 72px;"></i>
+                            </div>
+                            <p class="empty-title">@Localizer["No API keys yet"]</p>
+                            <p class="empty-subtitle text-secondary">@Localizer["Create your first API key to start integrating with external services."]</p>
+                        </div>
 
+                    </div>
+                </div>
 
-	</div>
+            </div>
+        </div>
+        @* /API Key List & Access *@
+
+    </div>
 </div>

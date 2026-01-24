@@ -82,18 +82,18 @@
     </script>
 }
 
-<div class="table-responsive text-nowrap">
-    <table class="table table-hover">
-        <thead class="table-light">
+<div class="table-responsive">
+    <table class="table table-vcenter card-table table-striped table-hover">
+        <thead>
             <tr>
-                <th scope="col">Amount (&euro;)</th>
-                <th scope="col">Payment</th>
-                <th scope="col">Document</th>
-                <th scope="col">Operator</th>
-                <th scope="col">Actions</th>
+                <th>Amount (&euro;)</th>
+                <th>Payment</th>
+                <th>Document</th>
+                <th>Operator</th>
+                <th class="w-1">Actions</th>
             </tr>
         </thead>
-        <tbody class="table-border-bottom-0">
+        <tbody>
             @{
                 foreach (Payment_List_DTO payment in Model)
                 {
@@ -101,43 +101,50 @@
                         data-document-type-id="@payment.DocumentTypeID" data-entry-type="@payment.EntryType"
                         data-date-ins="@IsoDateLocal(payment.DateIns)"
                         data-amount="@payment.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+
                         <td>
-                            <div class="d-flex justify-content-start align-items-center user-name">
-                                @{
-                                    var isIncome = string.Equals(payment.EntryType, nameof(EntryTypeEnum.Income),
-                                    StringComparison.OrdinalIgnoreCase);
-                                    var iconClass = isIncome ? "ri-inbox-archive-line" : "ri-bank-card-line";
-                                    var textClass = isIncome ? "text-success" : "text-danger";
-                                }
-                                <div class="avatar-wrapper">
-                                    <i class="@iconClass payment-icon @textClass me-2"></i>
-                                </div>
-                                <div class="d-flex flex-column">
-                                    <a href="" class="text-body text-truncate">
-                                        <span class="fw-semibold">
-                                            <span class="@textClass">@SharedLocalizer[payment.EntryType]:</span>
-                                            <span class="fw-semibold"> €@payment.Amount.ToString("N2")</span>
-                                        </span>
-                                    </a>
-                                    <small class="text-muted">@payment.Description</small>
+                            @{
+                                var isIncome = string.Equals(payment.EntryType, nameof(EntryTypeEnum.Income), StringComparison.OrdinalIgnoreCase);
+                                var iconClass = isIncome ? "ri-inbox-archive-line" : "ri-bank-card-line";
+                                var textClass = isIncome ? "text-success" : "text-danger";
+                            }
+
+                            <div class="d-flex align-items-center">
+                                <span class="avatar avatar-sm bg-secondary-lt me-3">
+                                    <i class="@iconClass @textClass"></i>
+                                </span>
+
+                                <div class="flex-fill">
+                                    <div class="fw-semibold">
+                                        <span class="@textClass">@SharedLocalizer[payment.EntryType]</span>
+                                        <span class="ms-1">€@payment.Amount.ToString("N2")</span>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(payment.Description))
+                                    {
+                                        <div class="text-secondary small text-truncate" style="max-width: 520px;">@payment.Description</div>
+                                    }
                                 </div>
                             </div>
                         </td>
-                        <td class="text-capitalize">@SharedLocalizer[@payment.PaymentMethodName]</td>
-                        <td class="text-capitalize">@SharedLocalizer[@payment.DocumentTypeName]</td>
-                        <td>
-                            <div>
-                                <ul class="list-unstyled m-0 avatar-group d-flex align-items-center">
-                                    <li data-bs-toggle="tooltip" data-popup="tooltip-custom" data-bs-placement="top"
-                                        class="avatar avatar-xs pull-up" title="@payment.EmployeeFullName">
-                                        <!--<img src="~/img/avatars/7.png" alt="Avatar" class="rounded-circle">-->
-                                        @payment.EmployeeFullName
-                                    </li>
-                                </ul>
-                            </div>
-                            <i class="ri-time-line me-1"></i><span class="js-payment-date"
-                                data-payment-utc="@IsoUtc(payment.DateIns)"></span>
+
+                        <td class="text-capitalize">
+                            <span class="text-secondary">@SharedLocalizer[@payment.PaymentMethodName]</span>
                         </td>
+
+                        <td class="text-capitalize">
+                            <span class="text-secondary">@SharedLocalizer[@payment.DocumentTypeName]</span>
+                        </td>
+
+                        <td>
+                            <div class="d-flex flex-column">
+                                <div class="fw-semibold">@payment.EmployeeFullName</div>
+                                <div class="text-secondary small">
+                                    <i class="ri-time-line me-1"></i>
+                                    <span class="js-payment-date" data-payment-utc="@IsoUtc(payment.DateIns)"></span>
+                                </div>
+                            </div>
+                        </td>
+
                         <td>
                             @{
                                 var isToday = payment.DateIns.Date == DateTime.UtcNow.Date;
@@ -148,36 +155,42 @@
 
                             @if (isToday && (isAdmin || isOwner))
                             {
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <button type="button" id="btn-edit-payment" class="btn btn-outline-primary btn-edit-payment"
-                                        data-payment-id="@payment.PaymentID" title="Edit">
+                                <div class="btn-list flex-nowrap">
+                                    <button type="button" id="btn-edit-payment" class="btn btn-outline-secondary btn-sm btn-edit-payment"
+                                            data-payment-id="@payment.PaymentID" title="Edit">
                                         <i class="ri-pencil-line"></i>
                                     </button>
-                                    <button type="button" class="btn btn-outline-danger btn-delete-payment"
-                                        data-payment-id="@payment.PaymentID" title="Delete">
+                                    <button type="button" class="btn btn-outline-danger btn-sm btn-delete-payment"
+                                            data-payment-id="@payment.PaymentID" title="Delete">
                                         <i class="ri-delete-bin-7-line"></i>
                                     </button>
                                 </div>
                             }
                         </td>
+
                     </tr>
                 }
             }
+
             @{
                 if (Model.Count() == 0)
                 {
                     <tr id="NoPaymentYet">
-                        <td colspan="5" class="text-center">
-                            <img src="~/Img/illustrations/NoDataLoadedYet.png" style="max-height:260px"
-                                alt="@Localizer["No data loaded yet"]" />
-                            <h3 class="pt-3 mb-0">@Localizer["There are no available records yet!"]</h3>
-                            <span class="text-muted">@Localizer["start creating a new one..."]</span>
+                        <td colspan="5" class="p-0">
+                            <div class="empty">
+                                <div class="empty-img">
+                                    <img src="~/Img/illustrations/NoDataLoadedYet.png" style="max-height:260px"
+                                         alt="@Localizer["No data loaded yet"]" />
+                                </div>
+                                <p class="empty-title">@Localizer["There are no available records yet!"]</p>
+                                <p class="empty-subtitle text-secondary">@Localizer["start creating a new one..."]</p>
+                            </div>
                         </td>
                     </tr>
                 }
             }
-        </tbody>
 
+        </tbody>
     </table>
 </div>
 <script>

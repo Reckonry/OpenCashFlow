@@ -269,107 +269,130 @@
 
 @await Html.PartialAsync("/Views/Company/Components/_Company_ViewHeader.cshtml")
 
-<div class="alert alert-warning">
-  <i class="ri-shield-keyhole-line me-2"></i>@Localizer["CashLedgerExplanation"]
+<div class="page-header d-print-none mb-4">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2 class="page-title">@Localizer["CashLedgerTitle"]</h2>
+      <div class="text-secondary mt-1">@Localizer["CashLedgerExplanation"]</div>
+    </div>
+    <div class="col-auto ms-auto">
+      <button type="button" class="btn btn-success" onclick="openAdjustModal()">
+        <i class="ri-add-line me-2"></i>@Localizer["AddAdjustment"]
+      </button>
+    </div>
+  </div>
 </div>
 
-<div class="card mb-6" id="company-cash-summary">
-  <div class="card-widget-separator-wrapper">
-    <div class="card-body card-widget-separator">
-      <div class="row gy-4 gy-sm-1">
-        <div class="col-sm-6 col-lg-4">
-          <div class="d-flex justify-content-between align-items-start card-widget-1 pb-4 pb-sm-0">
-            <div>
-              <h4 class="mb-0" id="CompanyCashCurrent"></h4>
-              <p class="mb-0">@Localizer["CurrentCashBalance"]</p>
-            </div>
-            <div class="avatar me-sm-6">
-              <span class="avatar-initial rounded-3">
-                <i class="icon-base ri ri-wallet-line text-heading icon-26px"></i>
-              </span>
-            </div>
+<div class="alert alert-warning" role="alert">
+  <div class="d-flex">
+    <div class="me-3">
+      <i class="ri-shield-keyhole-line fs-3 text-warning"></i>
+    </div>
+    <div>
+      <div class="fw-semibold">@Localizer["CashLedgerTitle"]</div>
+      <div class="text-secondary">@Localizer["CashLedgerExplanation"]</div>
+    </div>
+  </div>
+</div>
+
+<div class="row row-cards mb-4">
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="me-3">
+            <span class="avatar bg-azure-lt">
+              <i class="ri-wallet-line"></i>
+            </span>
           </div>
-        </div>
-        <div class="col-sm-6 col-lg-8 text-end">
-          <button type="button" class="btn btn-success" onclick="openAdjustModal()"
-            aria-label="@Localizer["AddAdjustment"]">
-            <i class="ri-add-large-line me-2"></i>@Localizer["AddAdjustment"]
-          </button>
+          <div>
+            <div class="text-secondary">@Localizer["CurrentCashBalance"]</div>
+            <div class="h2 mb-0" id="CompanyCashCurrent"></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="card">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <h5 class="mb-0">@Localizer["CashLedgerHeading"]</h5>
-    <div>
-      <button type="button" id="loadMore" class="btn btn-outline-secondary btn-sm" aria-label="@Localizer["LoadMore"]">
-        <i class="ri-arrow-down-line me-1"></i>@Localizer["LoadMore"]
-      </button>
+<div class="row row-cards">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title mb-0">@Localizer["CashLedgerHeading"]</h3>
+        <div class="card-actions">
+          <button type="button" id="loadMore" class="btn btn-outline-secondary btn-sm">
+            <i class="ri-arrow-down-line me-1"></i>@Localizer["LoadMore"]
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-vcenter card-table table-striped mb-0">
+          <thead>
+            <tr>
+              <th style="width: 150px;">@Localizer["Amount"]</th>
+              <th>@Localizer["RefType"]</th>
+              <th>@Localizer["Reason"]</th>
+              <th>@Localizer["CreatedAt"]</th>
+              <th>@Localizer["By"]</th>
+            </tr>
+          </thead>
+          <tbody id="cash-ledger-body"></tbody>
+        </table>
+      </div>
     </div>
-  </div>
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th style="width: 150px;">@Localizer["Amount"]</th>
-          <th>@Localizer["RefType"]</th>
-          <th>@Localizer["Reason"]</th>
-          <th>@Localizer["CreatedAt"]</th>
-          <th>@Localizer["By"]</th>
-        </tr>
-      </thead>
-      <tbody id="cash-ledger-body"></tbody>
-    </table>
   </div>
 </div>
 
-<div class="modal fade" id="adjustModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
+<div class="modal modal-blur fade" id="adjustModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">@Localizer["NewCashAdjustment"]</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div class="alert alert-info mb-3">
-          <i class="ri-information-line me-2"></i>@Localizer["AdjustmentExplanation"]
+        <div class="alert alert-info mb-3" role="alert">
+          <div class="d-flex">
+            <div class="me-3">
+              <i class="ri-information-line fs-3 text-info"></i>
+            </div>
+            <div>
+              <div class="fw-semibold">@Localizer["AdjustmentExplanation"]</div>
+              <div class="text-secondary">@Localizer["CashLedgerExplanation"]</div>
+            </div>
+          </div>
         </div>
+
         <div class="row g-3">
           <div class="col-12 col-md-4">
             <label for="adjustDelta" class="form-label">@Localizer["AmountLabel"]</label>
             <input type="text" inputmode="decimal" pattern="[0-9]+([,][0-9]{0,2})?" class="form-control"
-              id="adjustDelta" placeholder="@Localizer["AmountPlaceholder"]" aria-label="@Localizer["AmountLabel"]"
-              autocomplete="off" style="height: 38px;" />
+                   id="adjustDelta" placeholder="@Localizer["AmountPlaceholder"]" autocomplete="off" />
             <span id="adjustDeltaError" class="text-danger small"></span>
           </div>
           <div class="col-12 col-md-8">
             <label class="form-label">@Localizer["SelectAdjustmentType"]</label>
-            <div class="btn-group w-100" role="group" aria-label="Adjustment Type" style="height: 38px;">
+            <div class="btn-group w-100" role="group">
               <input type="radio" class="btn-check" name="adjustType" id="adjustAdd" value="add" autocomplete="off">
-              <label class="btn btn-outline-success d-flex align-items-center justify-content-center" for="adjustAdd"
-                style="height: 38px;">@Localizer["Add"]</label>
+              <label class="btn btn-outline-success" for="adjustAdd">@Localizer["Add"]</label>
 
-              <input type="radio" class="btn-check" name="adjustType" id="adjustRemove" value="remove"
-                autocomplete="off">
-              <label class="btn btn-outline-danger d-flex align-items-center justify-content-center" for="adjustRemove"
-                style="height: 38px;">@Localizer["Remove"]</label>
+              <input type="radio" class="btn-check" name="adjustType" id="adjustRemove" value="remove" autocomplete="off">
+              <label class="btn btn-outline-danger" for="adjustRemove">@Localizer["Remove"]</label>
             </div>
             <span id="adjustTypeError" class="text-danger small"></span>
           </div>
         </div>
-        <div class="mb-3 mt-3">
+
+        <div class="mt-3">
           <label for="adjustReason" class="form-label">@Localizer["Reason"]</label>
           <input type="text" class="form-control" id="adjustReason" maxlength="200"
-            placeholder="@Localizer["EnterReason"]" aria-label="@Localizer["Reason"]" />
+                 placeholder="@Localizer["EnterReason"]" />
           <span id="adjustReasonError" class="text-danger small"></span>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-label-secondary"
-          data-bs-dismiss="modal">@SharedLocalizer["Cancel"]</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@SharedLocalizer["Cancel"]</button>
         <button type="button" class="btn btn-primary" onclick="submitAdjust()">@SharedLocalizer["Save"]</button>
       </div>
     </div>

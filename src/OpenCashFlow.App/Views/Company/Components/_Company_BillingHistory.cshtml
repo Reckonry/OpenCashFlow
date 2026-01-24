@@ -47,56 +47,57 @@
 }
 
 <div class="card">
-	<h5 class="card-header">@Localizer["Billing History"]</h5>
-	<div class="card-datatable table-responsive">
-		<div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer">
-			<table class="invoice-list-table table border-top dataTable no-footer dtr-column" id="invoices">
-				<thead>
-					<tr>
-						<th>@Localizer["#NUM"]</th>
-						<th class="text-end">@Localizer["Total"]</th>
-						<th class="text-center">@Localizer["Payment Method"]</th>
-						<th>@Localizer["Payment Date"]</th>
-						<th>@Localizer["Issued Date"]</th>
-						<th>@Localizer["Actions"]</th>
-					</tr>
-				</thead>
-				<tbody>
-					@{
-						if (Model != null)
-						{
-							foreach (Company_Invoice invoice in Model)
-							{
-								<tr class="odd">
-									<td class="sorting_1">
-										<a href="~/Company/Invoices/View/@invoice.InvoiceID">#@invoice.InvoiceNumber</a>
-									</td>
-									<td class="text-end">
-										&euro; @invoice.TotalAmount
-										<div class="text-muted"><small>&euro; @invoice.TotalTaxes<span>(VAT)</span></small></div>
-									</td>
-									<td class="text-center">
-										@invoice.PaymentMethod
-										<div class="text-muted"><small>via @invoice.PaymentProcessor</small></div>
-									</td>
-									<td>@invoice.PaymentDate?.ToShortDateString()</td>
-									<td>@invoice.IssueDate.ToShortDateString()</td>
-									<td>
-										<div class="d-flex align-items-center">
-											<a href="javascript:;" data-bs-toggle="tooltip" class="text-body me-2" data-bs-placement="top" aria-label="@Localizer["Download"]" data-bs-original-title="@Localizer["Download"]">
-												<i class="ri ri-bill-line"></i>
-											</a>
-											<a href="javascript:;" data-bs-toggle="tooltip" class="text-body" data-bs-placement="top" aria-label="@Localizer["View"]" data-bs-original-title="@Localizer["View"]">
-												<i class="ri ri-eye-line"></i>
-											</a>
-										</div>
-									</td>
-								</tr>
-							}
-						}
-					}
-				</tbody>
-			</table>
-		</div>
-	</div>
+    <div class="card-header">
+        <h3 class="card-title mb-0">@Localizer["Billing History"]</h3>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table table-striped" id="invoices">
+            <thead>
+                <tr>
+                    <th>@Localizer["#NUM"]</th>
+                    <th class="text-end">@Localizer["Total"]</th>
+                    <th class="text-center">@Localizer["Payment Method"]</th>
+                    <th>@Localizer["Payment Date"]</th>
+                    <th>@Localizer["Issued Date"]</th>
+                    <th class="text-end">@Localizer["Actions"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    if (Model != null)
+                    {
+                        foreach (Company_Invoice invoice in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <a class="fw-semibold" href="~/Company/Invoices/View/@invoice.InvoiceID">#@invoice.InvoiceNumber</a>
+                                </td>
+                                <td class="text-end">
+                                    &euro; @invoice.TotalAmount
+                                    <div class="text-secondary small">&euro; @invoice.TotalTaxes <span>(VAT)</span></div>
+                                </td>
+                                <td class="text-center">
+                                    @invoice.PaymentMethod
+                                    <div class="text-secondary small">via @invoice.PaymentProcessor</div>
+                                </td>
+                                <td>@invoice.PaymentDate?.ToShortDateString()</td>
+                                <td>@invoice.IssueDate.ToShortDateString()</td>
+                                <td class="text-end">
+                                    <div class="btn-list justify-content-end">
+                                        <a href="~/Company/Invoices/View/@invoice.InvoiceID" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="@Localizer["View"]">
+                                            <i class="ri-eye-line"></i>
+                                        </a>
+                                        <a href="javascript:;" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="@Localizer["Download"]">
+                                            <i class="ri-bill-line"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
 </div>

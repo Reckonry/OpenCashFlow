@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = Localizer["CompanySettingsTitle"].Value;
 }
 
@@ -146,80 +146,90 @@
     </script>
 }
 
-@* ************** Content ************** *@
-<!--
-<div class="row breadcrumbs-top mb-5">
-
-    <div class="d-flex align-items-center">
-
-        <div class="breadcrumb-wrapper d-flex align-items-center ms-3">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item">
-                    <a href="~/Dashboard">@Localizer["Dashboard"]</a>
-                </li>
-                <li class="breadcrumb-item">
-                    <a href="~/Company">@Localizer["Company"]</a>
-                </li>
-                <li class="breadcrumb-item active">
-                    @Localizer["Edit settings"]
-                </li>
-            </ol>
-        </div>
-    </div>
-</div>-->
 @Html.Raw(ViewBag.ResponseMessage)
 
 
-<div class="row">
-    <div class="col-md-12">
+@* Page header (Tabler style) *@
+<div class="page-header d-print-none mb-4">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title">@Localizer["CompanySettingsTitle"]</h2>
+            <div class="text-secondary mt-1">@Localizer["Edit settings"]</div>
+        </div>
+    </div>
+</div>
+
+<div class="row row-cards">
+    <div class="col-12">
+
         @await Html.PartialAsync("Components/_Company_ViewHeader", ViewData)
 
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">@Localizer["Settings"]</h3>
+            </div>
 
-        <div class="nav-align-left mb-4">
-            <ul class="nav nav-pills me-3" role="tablist">
-                @* <li class="nav-item" role="presentation">
-                    <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-customers-categories" aria-controls="navs-pills-customers-categories" aria-selected="true">
-                        <span class="text-nowrap">@Localizer["Customers categories"]</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-customers-statuses" aria-controls="navs-pills-customers-statuses" aria-selected="false">
-                        <span class="text-nowrap">@Localizer["Customers statuses"]</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-projects-statuses" aria-controls="navs-pills-projects-statuses" aria-selected="false">
-                        <span class="text-nowrap">@Localizer["Projects statuses"]</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-materials-categories" aria-controls="navs-pills-materials-categories" aria-selected="false">
-                        <span class="text-nowrap">@Localizer["Materials categories"]</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-task-templates" aria-controls="navs-pills-task-templates" aria-selected="false">
-                        <span class="text-nowrap">@Localizer["Task Templates"]</span>
-                    </button>
-                </li> *@
-            </ul>
-            <div class="tab-content p-0">
-               @*  <div class="tab-pane fade card show active" id="navs-pills-customers-categories" role="tabpanel">
-                    @await Html.PartialAsync("Components/_Settings_CustomersCategories", Model.CustomerCategories, ViewData)
+            <div class="card-body">
+
+                <div class="nav-align-left">
+                    <ul class="nav nav-pills" role="tablist">
+                        @* <li class="nav-item" role="presentation">
+                            <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-customers-categories" aria-controls="navs-pills-customers-categories" aria-selected="true">
+                                <span class="text-nowrap">@Localizer["Customers categories"]</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-customers-statuses" aria-controls="navs-pills-customers-statuses" aria-selected="false">
+                                <span class="text-nowrap">@Localizer["Customers statuses"]</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-projects-statuses" aria-controls="navs-pills-projects-statuses" aria-selected="false">
+                                <span class="text-nowrap">@Localizer["Projects statuses"]</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-materials-categories" aria-controls="navs-pills-materials-categories" aria-selected="false">
+                                <span class="text-nowrap">@Localizer["Materials categories"]</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-task-templates" aria-controls="navs-pills-task-templates" aria-selected="false">
+                                <span class="text-nowrap">@Localizer["Task Templates"]</span>
+                            </button>
+                        </li> *@
+                    </ul>
+
+                    <div class="tab-content p-0 mt-3">
+                        @*  <div class="tab-pane fade card show active" id="navs-pills-customers-categories" role="tabpanel">
+                            @await Html.PartialAsync("Components/_Settings_CustomersCategories", Model.CustomerCategories, ViewData)
+                        </div>
+                        <div class="tab-pane fade card" id="navs-pills-customers-statuses" role="tabpanel">
+                            @await Html.PartialAsync("Components/_Settings_CustomersStatuses", Model.CustomerStatuses, ViewData)
+                        </div>
+                        <div class="tab-pane fade card" id="navs-pills-projects-statuses" role="tabpanel">
+                            @await Html.PartialAsync("Components/_Settings_ProjectsStatuses", Model.ProjectsStatuses, ViewData)
+                        </div>
+                        <div class="tab-pane fade card" id="navs-pills-materials-categories" role="tabpanel">
+                            @await Html.PartialAsync("Components/_Settings_MaterialsCategories", Model.ResourceCategories, ViewData)
+                        </div>
+                        <div class="tab-pane fade card" id="navs-pills-task-templates" role="tabpanel">
+                            @await Html.PartialAsync("Components/_Settings_TaskTemplates", Model.TasksTemplates, ViewData)
+                        </div> *@
+
+                        <div class="empty">
+                            <div class="empty-img">
+                                <i class="ri-settings-3-line" style="font-size: 72px;"></i>
+                            </div>
+                            <p class="empty-title">@Localizer["No settings sections enabled"]</p>
+                            <p class="empty-subtitle text-secondary">@Localizer["Enable one or more settings tabs to start configuring your company."]</p>
+                        </div>
+
+                    </div>
                 </div>
-                <div class="tab-pane fade card" id="navs-pills-customers-statuses" role="tabpanel">
-                    @await Html.PartialAsync("Components/_Settings_CustomersStatuses", Model.CustomerStatuses, ViewData)
-                </div>
-                <div class="tab-pane fade card" id="navs-pills-projects-statuses" role="tabpanel">
-                    @await Html.PartialAsync("Components/_Settings_ProjectsStatuses", Model.ProjectsStatuses, ViewData)
-                </div>
-                <div class="tab-pane fade card" id="navs-pills-materials-categories" role="tabpanel">
-                    @await Html.PartialAsync("Components/_Settings_MaterialsCategories", Model.ResourceCategories, ViewData)
-                </div>
-                <div class="tab-pane fade card" id="navs-pills-task-templates" role="tabpanel">
-                    @await Html.PartialAsync("Components/_Settings_TaskTemplates", Model.TasksTemplates, ViewData)
-                </div> *@
+
             </div>
         </div>
+
     </div>
 </div>

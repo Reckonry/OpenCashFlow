@@ -1,122 +1,112 @@
 ﻿@using Shared.Models.DTOs
 @model Payment_Create_DTO
 
-<!-- Edit Payment Modal -->
-<div class="modal fade" id="createPaymentModal" tabindex="-1" aria-hidden="true">
-	<div class="modal-dialog modal-lg modal-simple">
-		<div class="modal-content">
-			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			<div class="modal-body p-0">
-				<div class="text-center mb-6">
-					<h4 class="mb-2">@Localizer["AddTransaction"]</h4>
-					<p class="mb-6">@Localizer["AddTransactionInfo"]</p>
-				</div>
 
-				<form asp-action="SearchPayments" asp-controller="Payment" method="post" id="createPaymentForm"
-					class="row g-5">
-					@Html.AntiForgeryToken()
-					<!-- Hidden field for RequestId (idempotency) -->
-					<input type="hidden" id="RequestId" name="RequestId" value="" />
-					<!-- Amount -->
-					<div class="col-12 col-md-4">
-						<div class="form-floating form-floating-outline">
-							<input asp-for="Amount" type="text" inputmode="decimal" pattern="[0-9]+([,][0-9]{0,2})?"
-								class="form-control" placeholder=" " autocomplete="off" />
-							<label asp-for="Amount">@SharedLocalizer["Amount"]</label>
-						</div>
-						<span asp-validation-for="Amount" class="text-danger small"></span>
-					</div>
+<!-- Add Payment Modal (Tabler aligned) -->
+<div class="modal modal-blur fade" id="createPaymentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
 
-					<!-- EntryType Switch -->
-					<div class="col-12 col-md-8">
-						<div class="form-floating form-floating-outline">
-							<div class="btn-group w-100" role="group" aria-label="Entry Type">
-								<input type="radio" class="btn-check" asp-for="EntryType" id="entry"
-									value="@nameof(EntryTypeEnum.Income)" autocomplete="off">
-								<label class="btn btn-outline-success" for="entry">@SharedLocalizer["Income"]</label>
+      <div class="modal-header">
+        <h5 class="modal-title">@Localizer["AddTransaction"]</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
 
-								<input type="radio" class="btn-check" asp-for="EntryType" id="exit"
-									value="@nameof(EntryTypeEnum.Outcome)" autocomplete="off">
-								<label class="btn btn-outline-danger" for="exit">@SharedLocalizer["Outcome"]</label>
-							</div>
-						</div>
-						<span asp-validation-for="EntryType" class="text-danger small"></span>
-					</div>
+      <div class="modal-body">
+        <p class="text-secondary mb-4">@Localizer["AddTransactionInfo"]</p>
 
-					<!-- Payment Method -->
-					<div class="col-12 col-md-6">
-						<div class="form-floating form-floating-outline">
-							<select asp-for="PaymentMethodID" class="form-select">
-								<option value="">@Localizer["SelectPaymentMethod"]</option>
-								@{
-									if (ViewBag.PaymentMethodList != null)
-									{
-										foreach (Payment_Method_List_DTO item in ViewBag.PaymentMethodList)
-										{
-											<option value="@item.PaymentMethodID.ToString()">
-												@SharedLocalizer[item.PaymentMethodName]
-											</option>
-										}
-									}
-								}
-								@* <option value="00000000-0000-0000-0000-000000000001">Credit Card</option>
-								<option value="00000000-0000-0000-0000-000000000002">Cash</option> *@
-							</select>
-							<label asp-for="PaymentMethodID">@Localizer["PaymentMethod"]</label>
-						</div>
-						<span asp-validation-for="PaymentMethodID" class="text-danger small"></span>
-					</div>
+        <form asp-action="SearchPayments" asp-controller="Payment" method="post" id="createPaymentForm">
+          @Html.AntiForgeryToken()
 
-					<!-- Document Type -->
-					<div class="col-12 col-md-6">
-						<div class="form-floating form-floating-outline">
-							<select asp-for="DocumentTypeID" class="form-select">
-								<option value="">@Localizer["SelectDocumentTypeAlt"]</option>
-								@{
-									if (ViewBag.DocumentTypeList != null)
-									{
-										foreach (Payment_DocumentType_List_DTO item in ViewBag.DocumentTypeList)
-										{
-											<option value="@item.DocumentTypeID.ToString()">
-												@SharedLocalizer[item.DocumentTypeName]
-											</option>
-										}
-									}
-								}
-								@* 
-								<option value="00000000-0000-0000-0000-000000000001">Invoice</option> *@
-							</select>
-							<label asp-for="DocumentTypeID">@Localizer["DocumentType"]</label>
-						</div>
-						<span asp-validation-for="DocumentTypeID" class="text-danger small"></span>
-					</div>
+          <!-- Hidden field for RequestId (idempotency) -->
+          <input type="hidden" id="RequestId" name="RequestId" value="" />
 
-					<!-- Description -->
-					<div class="col-12">
-						<div class="form-floating form-floating-outline">
-							<textarea asp-for="Description" class="form-control" placeholder=" "
-								style="height:100px"></textarea>
-							<label asp-for="Description">@Localizer["Description"]</label>
-						</div>
-						<span asp-validation-for="Description" class="text-danger small"></span>
-					</div>
+          <div class="row g-3">
 
-					<!-- Buttons -->
-					<div class="col-12 text-center d-flex justify-content-center gap-4">
-						<button id="SubmitButton" type="submit" class="btn btn-primary">@Localizer["Add"]</button>
-						<button class="btn btn-raised btn-success d-none" id="Loading" type="button" disabled="">
-							<span class="spinner-border spinner-border-sm me-2" role="status"
-								aria-hidden="true"></span>@Localizer["Loading"]
-						</button>
-						<button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-							@Localizer["Discard"]
-						</button>
-					</div>
+            <!-- Amount -->
+            <div class="col-12 col-md-4">
+              <label class="form-label" asp-for="Amount">@SharedLocalizer["Amount"]</label>
+              <input asp-for="Amount" type="text" inputmode="decimal" pattern="[0-9]+([,][0-9]{0,2})?" class="form-control" placeholder="0,00" autocomplete="off" />
+              <span asp-validation-for="Amount" class="text-danger small"></span>
+            </div>
 
-				</form>
-			</div>
-		</div>
-	</div>
+            <!-- EntryType Switch -->
+            <div class="col-12 col-md-8">
+              <label class="form-label">@SharedLocalizer["Type"]</label>
+              <div class="btn-group w-100" role="group" aria-label="Entry Type">
+                <input type="radio" class="btn-check" asp-for="EntryType" id="entry" value="@nameof(EntryTypeEnum.Income)" autocomplete="off">
+                <label class="btn btn-outline-success" for="entry">@SharedLocalizer["Income"]</label>
+
+                <input type="radio" class="btn-check" asp-for="EntryType" id="exit" value="@nameof(EntryTypeEnum.Outcome)" autocomplete="off">
+                <label class="btn btn-outline-danger" for="exit">@SharedLocalizer["Outcome"]</label>
+              </div>
+              <span asp-validation-for="EntryType" class="text-danger small"></span>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="col-12 col-md-6">
+              <label class="form-label" asp-for="PaymentMethodID">@Localizer["PaymentMethod"]</label>
+              <select asp-for="PaymentMethodID" class="form-select">
+                <option value="">@Localizer["SelectPaymentMethod"]</option>
+                @{
+                  if (ViewBag.PaymentMethodList != null)
+                  {
+                    foreach (Payment_Method_List_DTO item in ViewBag.PaymentMethodList)
+                    {
+                      <option value="@item.PaymentMethodID.ToString()">@SharedLocalizer[item.PaymentMethodName]</option>
+                    }
+                  }
+                }
+              </select>
+              <span asp-validation-for="PaymentMethodID" class="text-danger small"></span>
+            </div>
+
+            <!-- Document Type -->
+            <div class="col-12 col-md-6">
+              <label class="form-label" asp-for="DocumentTypeID">@Localizer["DocumentType"]</label>
+              <select asp-for="DocumentTypeID" class="form-select">
+                <option value="">@Localizer["SelectDocumentTypeAlt"]</option>
+                @{
+                  if (ViewBag.DocumentTypeList != null)
+                  {
+                    foreach (Payment_DocumentType_List_DTO item in ViewBag.DocumentTypeList)
+                    {
+                      <option value="@item.DocumentTypeID.ToString()">@SharedLocalizer[item.DocumentTypeName]</option>
+                    }
+                  }
+                }
+              </select>
+              <span asp-validation-for="DocumentTypeID" class="text-danger small"></span>
+            </div>
+
+            <!-- Description -->
+            <div class="col-12">
+              <label class="form-label" asp-for="Description">@Localizer["Description"]</label>
+              <textarea asp-for="Description" class="form-control" placeholder="@Localizer["Description"]" rows="4"></textarea>
+              <span asp-validation-for="Description" class="text-danger small"></span>
+            </div>
+
+          </div>
+
+          <div class="modal-footer mt-4">
+            <button id="SubmitButton" type="submit" class="btn btn-primary">
+              @Localizer["Add"]
+            </button>
+
+            <button class="btn btn-primary d-none" id="Loading" type="button" disabled>
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>@Localizer["Loading"]
+            </button>
+
+            <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+              @Localizer["Discard"]
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <script>

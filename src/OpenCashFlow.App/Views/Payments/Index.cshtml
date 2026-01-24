@@ -1125,65 +1125,84 @@
 
 }
 
-<div class="card mb-6" id="reports">
-    <div class="card-widget-separator-wrapper">
-        <div class="card-body card-widget-separator">
-            <div class="row gy-4 gy-sm-1">
-                @{ var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Administrator"); }
 
-               @if (isAdmin) {
-                <div class="col-sm-6 col-lg-4">
-                    @await Html.PartialAsync("Partials/_WidgetCard", ("CashAmountTotal", Localizer["CashAmountTotal"].Value, "ri ri-user-line", "card-widget-1 border-end pb-4 pb-sm-0"))
-                </div>
-                }
 
-                <div class="col-sm-6 @(isAdmin ? "col-lg-4" : "col-lg-6")">
-                @await Html.PartialAsync("Partials/_WidgetCard", ("DailyCashTotal", Localizer["DailyCashTotal"].Value, "ri ri-pages-line", "card-widget-2 border-end pb-4 pb-sm-0"))
-                </div>
-                <div class="col-sm-6 @(isAdmin ? "col-lg-4" : "col-lg-6")">
-                @await Html.PartialAsync("Partials/_WidgetCard", ("DailyElectronicPaymentsTotal", Localizer["DailyElectronicPaymentsTotal"].Value, "ri ri-wallet-line", "card-widget-3 pb-4 pb-sm-0"))
-                </div>
-            </div>
-        </div>
+@* Page header (Tabler style) *@
+<div class="page-header d-print-none mb-4">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2 class="page-title">@(SharedLocalizer?["PaymentsList"].Value ?? "Payments")</h2>
+      <div class="text-secondary mt-1">@(SharedLocalizer?["DailyTransactionsList"].Value ?? "Daily transactions")</div>
     </div>
+    <div class="col-auto ms-auto d-print-none">
+      <div class="btn-list">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editUser">
+          <i class="ri-search-2-line me-2"></i> @(SharedLocalizer?["Search"].Value ?? "Search")
+        </button>
+        <span id="addPaymentWrapper" class="d-inline-block">
+          <button id="openModalButton" type="button" class="btn btn-success">
+            <i class="ri-add-large-line me-2"></i>
+            @(SharedLocalizer?["AddPayment"].Value ?? "Add Payment")
+          </button>
+        </span>
+      </div>
+    </div>
+  </div>
 </div>
+
+@* KPI widgets *@
+<div class="row row-cards mb-4" id="reports">
+  @{ var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Administrator"); }
+
+  @if (isAdmin)
+  {
+    <div class="col-12 col-sm-6 col-lg-4">
+      @await Html.PartialAsync("Partials/_WidgetCard", ("CashAmountTotal", Localizer["CashAmountTotal"].Value, "ri ri-user-line", "h-100"))
+    </div>
+  }
+
+  <div class="col-12 col-sm-6 @(isAdmin ? "col-lg-4" : "col-lg-6")">
+    @await Html.PartialAsync("Partials/_WidgetCard", ("DailyCashTotal", Localizer["DailyCashTotal"].Value, "ri ri-pages-line", "h-100"))
+  </div>
+
+  <div class="col-12 col-sm-6 @(isAdmin ? "col-lg-4" : "col-lg-6")">
+    @await Html.PartialAsync("Partials/_WidgetCard", ("DailyElectronicPaymentsTotal", Localizer["DailyElectronicPaymentsTotal"].Value, "ri ri-wallet-line", "h-100"))
+  </div>
+</div>
+
+@* List *@
 <div class="card">
-    <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                @(SharedLocalizer?["DailyTransactionsList"].Value ?? "Daily transactions")
-            </h5>
-            <div>
-                <div class="d-inline-flex align-items-center me-2" id="dayNav">
-                    <div class="input-group input-group-sm">
-                        <button class="btn bt-sm btn-outline-secondary waves-effect" type="button" id="dayPrev" title="@(SharedLocalizer?["PreviousDay"].Value ?? "Previous day")">
-                            <i class="ri-arrow-left-s-line"></i></button>
-                        <input type="text" class="form-control form-control-sm" id="dayPicker" style="width: 220px;" />
-                        <button class="btn bt-sm btn-outline-secondary waves-effect" type="button" id="dayNext" title="@(SharedLocalizer?["NextDay"].Value ?? "Next day")">
-                            <i class="ri-arrow-right-s-line"></i></button>
-                    </div>
-                </div>
-                <button type="button" id="compactViewToggle" class="btn btn-outline-secondary waves-effect waves-light me-2"
-                        title="@(SharedLocalizer?["ToggleCompactView"]?.Value ?? "Toggle Compact View")">
-                    <i class="ri-layout-row-line"></i>
-                </button>
-                <button type="button" class="btn btn-primary waves-effect waves-light"
-                        data-bs-toggle="modal" data-bs-target="#editUser">
-                    <i class="ri-search-2-line me-2"></i> @(SharedLocalizer?["Search"].Value ?? "Search")
-                </button>
-                <span id="addPaymentWrapper" class="d-inline-block">
-                    <button id="openModalButton" type="button" class="btn btn-success">
-                        <i class="ri-add-large-line me-2"></i>
-                        @(SharedLocalizer?["AddPayment"].Value ?? "Add Payment")
-                    </button>
-                </span>
-            </div>
+  <div class="card-header">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-2 w-100">
+
+      <div class="d-flex align-items-center gap-2">
+        <h3 class="card-title mb-0">@(SharedLocalizer?["DailyTransactionsList"].Value ?? "Daily transactions")</h3>
+        <button type="button" id="compactViewToggle" class="btn btn-outline-secondary btn-sm"
+                title="@(SharedLocalizer?["ToggleCompactView"]?.Value ?? "Toggle Compact View")">
+          <i class="ri-layout-row-line"></i>
+        </button>
+      </div>
+
+      <div class="d-flex flex-wrap justify-content-end align-items-center gap-2" id="dayNav">
+        <div class="input-group input-group-sm">
+          <button class="btn btn-outline-secondary" type="button" id="dayPrev" title="@(SharedLocalizer?["PreviousDay"].Value ?? "Previous day")">
+            <i class="ri-arrow-left-s-line"></i>
+          </button>
+          <input type="text" class="form-control" id="dayPicker" style="width: 220px;" />
+          <button class="btn btn-outline-secondary" type="button" id="dayNext" title="@(SharedLocalizer?["NextDay"].Value ?? "Next day")">
+            <i class="ri-arrow-right-s-line"></i>
+          </button>
         </div>
+      </div>
+
     </div>
-    <div id="paymentsList">
-        @await Html.PartialAsync("Partials/_PaymentsList", Model)
-    </div>
+  </div>
+
+  <div id="paymentsList">
+    @await Html.PartialAsync("Partials/_PaymentsList", Model)
+  </div>
 </div>
+
 <div id="modalContainer"></div>
 @await Html.PartialAsync("Components/_ConfirmDeleteModal")
 @await Component.InvokeAsync("SearchPaymentsModal")

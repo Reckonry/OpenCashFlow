@@ -1,4 +1,4 @@
-﻿@using Shared.Models.Cash
+@using Shared.Models.Cash
 @model IEnumerable<CashLedger>
 @{
     string Sign(decimal d) => d >= 0 ? "+" : "-";
@@ -12,7 +12,9 @@
 }
 @if (Model == null || !Model.Any())
 {
-    <tr id="NoCashLedgerEntries"><td colspan="5" class="text-center text-muted">@Localizer["NoCashLedgerEntries"]</td></tr>
+    <tr id="NoCashLedgerEntries">
+        <td colspan="5" class="text-center text-secondary py-4">@Localizer["NoCashLedgerEntries"]</td>
+    </tr>
 }
 else
 {
@@ -21,9 +23,13 @@ else
         var sign = item.Delta >= 0 ? 1 : -1;
         var textClass = sign > 0 ? "text-success" : "text-danger";
         <tr>
-            <td><span class="@textClass">@Sign(item.Delta) € @Math.Abs(item.Delta).ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("it-IT"))</span></td>
-            <td>@Localizer[item.RefType]</td>
-            <td style="max-width: 300px; white-space: normal; word-wrap: break-word;">
+            <td>
+                <span class="fw-semibold @textClass">
+                    @Sign(item.Delta) € @Math.Abs(item.Delta).ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("it-IT"))
+                </span>
+            </td>
+            <td class="text-secondary">@Localizer[item.RefType]</td>
+            <td class="text-secondary" style="max-width: 300px; white-space: normal; word-wrap: break-word;">
                 @if (!string.IsNullOrWhiteSpace(item.Reason))
                 {
                     if (item.Reason.StartsWith("Update payment "))
@@ -36,8 +42,10 @@ else
                     }
                 }
             </td>
-            <td><span class="js-payment-date" data-payment-utc="@ToUtcIso(item.CreatedAtUtc)">@ToUtcIso(item.CreatedAtUtc)</span></td>
             <td>
+                <span class="js-payment-date text-secondary" data-payment-utc="@ToUtcIso(item.CreatedAtUtc)">@ToUtcIso(item.CreatedAtUtc)</span>
+            </td>
+            <td class="text-secondary">
                 @{
                     var by = item.CreatedBy;
                     string? display = null;

@@ -4,27 +4,24 @@
 }
 <!-- Daily Payments Total -->
 <div class="col-xxl-2 col-sm-6">
-    <div class="card h-100">
+    <div class="card card-sm h-100">
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                <div class="avatar">
-                    <div class="avatar-initial bg-label-primary rounded-3">
-                        <i class="ri-shopping-cart-2-line ri-24px"></i>
+            <div class="row align-items-center">
+
+                <div class="col">
+                    <div class="text-secondary fw-semibold">@Localizer["DailyPayments"]</div>
+                    <div id="daily-total-value" class="h1 mb-0"
+                         data-url="/internal/Dashboard/DailyTotal?date=@today.ToString("yyyy-MM-dd")">
+                        @ssrAmount
                     </div>
                 </div>
-                @* 
-                <div class="d-flex align-items-center">
-                    <p class="mb-0 text-success me-1">+22%</p>
-                    <i class="ri-arrow-up-s-line text-success"></i>
+
+                <div class="col-auto">
+                    <span class="avatar avatar-md bg-primary-lt">
+                        <i class="ri-shopping-cart-2-line"></i>
+                    </span>
                 </div>
-                *@
-            </div>
-            <div class="card-info mt-5">
-                <div id="daily-total-value" data-url="/internal/Dashboard/DailyTotal?date=@today.ToString("yyyy-MM-dd")">
-                    <h5 class="mb-1">@ssrAmount</h5>
-                </div>
-                <p>@Localizer["DailyPayments"]</p>
-                @* <div class="badge bg-label-secondary rounded-pill">Last 4 Month</div> *@
+
             </div>
         </div>
     </div>

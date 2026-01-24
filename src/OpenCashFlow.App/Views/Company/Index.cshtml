@@ -30,31 +30,36 @@
 
 @* ************** Content ************** *@
 
-
-<div class="row">
-    <!-- User Sidebar -->
-    <div class="col-xl-4 col-lg-5 col-md-5 order-1 order-md-0">
-        <!-- User Card -->
-        @await Html.PartialAsync("Components/_Company_Details", Model)
-        <!-- /User Card -->
-        <!-- Plan Card -->
-        <!--await Html.PartialAsync("Components/_PlanType")-->
-        <!-- /Plan Card -->
+<div class="page-header d-print-none mb-4">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title">@Localizer["CompanyProfileTitle"]</h2>
+            <div class="text-secondary mt-1">@Localizer["CompanyPerformance"]</div>
+        </div>
     </div>
-    <!--/ User Sidebar -->
-    <!-- User Content -->
-    <div class="col-xl-8 col-lg-7 col-md-7 order-0 order-md-1">
+</div>
+
+<div class="row row-cards">
+
+    @* Sidebar *@
+    <div class="col-12 col-md-5 col-xl-4">
+        @await Html.PartialAsync("Components/_Company_Details", Model)
+    </div>
+
+    @* Content *@
+    <div class="col-12 col-md-7 col-xl-8">
+
         @await Html.PartialAsync("Components/_Company_ViewHeader", ViewData)
-        <!-- User Pills -->
-        <!--/ User Pills -->
-        <!-- Activity Timeline -->
-        <div class="card mb-4">
-            <h5 class="card-header">@Localizer["CompanyPerformance"]</h5>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">@Localizer["CompanyPerformance"]</h3>
+            </div>
             <div class="card-body pb-0">
                 <div id="chart"></div>
             </div>
         </div>
-        <!-- /Activity Timeline -->
+
     </div>
-    <!--/ User Content -->
+
 </div>

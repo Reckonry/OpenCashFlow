@@ -7,100 +7,142 @@
 
 @await Html.PartialAsync("Components/_Company_ViewHeader", ViewData)
 
-<div class="alert alert-info">
-    <i class="ri-information-line me-2"></i>@Localizer["DocumentTypesExplanation"]
+<div class="page-header d-print-none mb-4">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title">@Localizer["DocumentTypesTitle"]</h2>
+            <div class="text-secondary mt-1">@Localizer["DocumentTypesExplanation"]</div>
+        </div>
+        <div class="col-auto ms-auto">
+            <a class="btn btn-primary" href="/Company/Payment_DocumentTypes/Create">
+                <i class="ri-add-line me-2"></i>@Localizer["NewTypeButton"]
+            </a>
+        </div>
+    </div>
 </div>
 
-<div class="card">
-    <div class="card-header d-flex align-items-center justify-content-between">
-        <h5 class="card-title mb-0">@Localizer["DocumentTypesHeading"]</h5>
-        <a class="btn btn-sm btn-primary" href="/Company/Payment_DocumentTypes/Create">@Localizer["NewTypeButton"]</a>
+<div class="alert alert-info" role="alert">
+    <div class="d-flex">
+        <div class="me-3">
+            <i class="ri-information-line fs-3 text-info"></i>
+        </div>
+        <div>
+            <div class="fw-semibold">@Localizer["DocumentTypesHeading"]</div>
+            <div class="text-secondary">@Localizer["DocumentTypesExplanation"]</div>
+        </div>
     </div>
-    @if (TempData["Error"] is string err && !string.IsNullOrWhiteSpace(err))
-    {
-        <div class="alert alert-danger m-3">@err</div>
-    }
-    <div class="table-responsive">
-        <table class="table table-striped mb-0">
-            <thead>
-                <tr>
-                    <th>@Localizer["Name"]</th>
-                    <th>@Localizer["Description"]</th>
-                    <th>@Localizer["Visible"]</th>
-                    <th>@Localizer["Scope"]</th>
-                    <th class="text-end">@Localizer["Actions"]</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model ?? Enumerable.Empty<Payment_DocumentType_List_DTO>())
-                {
-                    var canEdit = item.TenantID.HasValue && item.TenantID.Value == myCompanyId;
-                    var typeName = SharedLocalizer[item.DocumentTypeName ?? ""].Value;
-                    var typeDesc = SharedLocalizer[item.DocumentTypeDescription ?? ""].Value;
-                    <tr>
-                        <td>@(string.IsNullOrEmpty(typeName) || typeName == item.DocumentTypeName ? item.DocumentTypeName : typeName)</td>
-                        <td>@(string.IsNullOrEmpty(typeDesc) || typeDesc == item.DocumentTypeDescription ? item.DocumentTypeDescription : typeDesc)</td>
-                        <td>
-                            @if (item.Visible)
-                            {
-                                <span class="badge bg-label-success">@Localizer["Visible"]</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-label-secondary">@Localizer["Hidden"]</span>
-                            }
-                        </td>
-                        <td>
-                            @if (item.TenantID == null)
-                            {
-                                <span class="badge bg-label-info">@Localizer["Global"]</span>
-                            }
-                            else if (item.TenantID == myCompanyId)
-                            {
-                                <span class="badge bg-label-primary">@Localizer["Personal"]</span>
-                            }
-                        </td>
-                        <td class="text-end">
-                            @if (item.TenantID == myCompanyId)
-                            {
-                                <a class="btn btn-sm btn-outline-primary me-1" href="/Company/Payment_DocumentTypes/Edit/@item.DocumentTypeID">@SharedLocalizer["Edit"]</a>
-                                <button type="button" class="btn btn-sm btn-outline-danger btn-delete-doc-type" data-id="@item.DocumentTypeID" data-name="@item.DocumentTypeName">@SharedLocalizer["Delete"]</button>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+</div>
+
+<div class="row row-cards">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">@Localizer["DocumentTypesHeading"]</h3>
+            </div>
+
+            @if (TempData["Error"] is string err && !string.IsNullOrWhiteSpace(err))
+            {
+                <div class="alert alert-danger m-3" role="alert">@err</div>
+            }
+
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>@Localizer["Name"]</th>
+                            <th>@Localizer["Description"]</th>
+                            <th>@Localizer["Visible"]</th>
+                            <th>@Localizer["Scope"]</th>
+                            <th class="text-end">@Localizer["Actions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model ?? Enumerable.Empty<Payment_DocumentType_List_DTO>())
+                        {
+                            var canEdit = item.TenantID.HasValue && item.TenantID.Value == myCompanyId;
+                            var typeName = SharedLocalizer[item.DocumentTypeName ?? ""].Value;
+                            var typeDesc = SharedLocalizer[item.DocumentTypeDescription ?? ""].Value;
+                            <tr>
+                                <td class="fw-semibold">@(string.IsNullOrEmpty(typeName) || typeName == item.DocumentTypeName ? item.DocumentTypeName : typeName)</td>
+                                <td class="text-secondary">@(string.IsNullOrEmpty(typeDesc) || typeDesc == item.DocumentTypeDescription ? item.DocumentTypeDescription : typeDesc)</td>
+                                <td>
+                                    @if (item.Visible)
+                                    {
+                                        <span class="badge bg-green-lt">@Localizer["Visible"]</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-lt">@Localizer["Hidden"]</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.TenantID == null)
+                                    {
+                                        <span class="badge bg-azure-lt">@Localizer["Global"]</span>
+                                    }
+                                    else if (item.TenantID == myCompanyId)
+                                    {
+                                        <span class="badge bg-indigo-lt">@Localizer["Personal"]</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    @if (item.TenantID == myCompanyId)
+                                    {
+                                        <a class="btn btn-sm btn-outline-primary me-1" href="/Company/Payment_DocumentTypes/Edit/@item.DocumentTypeID">
+                                            <i class="ri-edit-line me-1"></i>@SharedLocalizer["Edit"]
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger btn-delete-doc-type" data-id="@item.DocumentTypeID" data-name="@item.DocumentTypeName">
+                                            <i class="ri-delete-bin-7-line me-1"></i>@SharedLocalizer["Delete"]
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
 <!-- Delete confirm modal -->
-<div class="modal fade" id="confirmDeleteDocTypeModal" tabindex="-1" aria-labelledby="confirmDeleteDocTypeModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title" id="confirmDeleteDocTypeModalLabel"><i class="ri-alert-line me-2"></i>@Localizer["ConfirmDeletion"]</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p>@Localizer["AreYouSureDelete"] <strong id="docTypeToDeleteName"></strong>?</p>
-        <p class="mb-0 text-muted">@Localizer["IfUsedWillBeSoftDeleted"]</p>
-      </div>
-      <div class="modal-footer">
-        <button id="btnConfirmDeleteDocType" type="submit" form="deleteDocTypeForm" class="btn btn-danger">
-          <i class="ri-delete-bin-7-line me-1"></i>@SharedLocalizer["YesDelete"]
-        </button>
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@SharedLocalizer["Discard"]</button>
-      </div>
+<div class="modal modal-blur fade" id="confirmDeleteDocTypeModal" tabindex="-1" aria-labelledby="confirmDeleteDocTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteDocTypeModalLabel">
+                    <i class="ri-alert-line me-2 text-danger"></i>@Localizer["ConfirmDeletion"]
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger" role="alert">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <i class="ri-delete-bin-7-line fs-3 text-danger"></i>
+                        </div>
+                        <div>
+                            <div class="fw-semibold">@Localizer["AreYouSureDelete"] <strong id="docTypeToDeleteName"></strong>?</div>
+                            <div class="text-secondary">@Localizer["IfUsedWillBeSoftDeleted"]</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btnConfirmDeleteDocType" type="submit" form="deleteDocTypeForm" class="btn btn-danger">
+                    <i class="ri-delete-bin-7-line me-1"></i>@SharedLocalizer["YesDelete"]
+                </button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@SharedLocalizer["Discard"]</button>
+            </div>
+        </div>
     </div>
-  </div>
- </div>
+</div>
 
 <!-- Delete post form -->
 <form id="deleteDocTypeForm" method="post" action="/Company/Payment_DocumentTypes/Delete">
     @Html.AntiForgeryToken()
     <input type="hidden" name="DocumentTypeID" id="DeleteDocumentTypeID" />
- </form>
+</form>
 
 @section PageScripts {
     <script>

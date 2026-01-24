@@ -2,23 +2,39 @@
     ViewData["Title"] = "Subscription expired";
 }
 
-<section class="gi-page gi-page--center gi-page--narrow">
-    <div class="gi-card gi-card--shadow">
-        <div class="gi-card__header">
-            <h1 class="gi-card__title">Subscription inactive</h1>
+<div class="page page-center">
+    <div class="container container-tight py-4">
+
+        <div class="card card-md">
+            <div class="card-body text-center">
+
+                <div class="mb-4">
+                    <i class="ri-time-line fs-1 text-warning"></i>
+                </div>
+
+                <h1 class="h2 mb-3">Subscription inactive</h1>
+
+                <p class="text-secondary mb-3">
+                    Access to OpenCashFlow has been temporarily suspended because the subscription
+                    has expired or was not renewed.
+                </p>
+
+                <p class="text-secondary mb-4">
+                    Contact our team or update the payment method to reactivate services immediately.
+                </p>
+
+                <div class="btn-list justify-content-center">
+                    <a class="btn btn-primary" href="/Billing/Plans">
+                        <i class="ri-vip-crown-line me-2"></i>
+                        Go to subscription plans
+                    </a>
+                    <a class="btn btn-outline-secondary" href="mailto:support@opencashflow.cloud">
+                        Contact support
+                    </a>
+                </div>
+
+            </div>
         </div>
-        <div class="gi-card__body">
-            <p>
-                Access to OpenCashFlow has been temporarily suspended because the subscription
-                has expired or was not renewed.
-            </p>
-            <p>
-                Contact our team or update the payment method to reactivate services immediately.
-            </p>
-        </div>
-        <div class="gi-card__footer">
-            <a class="gi-button gi-button--primary" href="/Billing/Plans">Go to subscription plans</a>
-            <a class="gi-button gi-button--ghost" href="mailto:support@opencashflow.cloud">Contact support</a>
-        </div>
+
     </div>
-</section>
+</div>

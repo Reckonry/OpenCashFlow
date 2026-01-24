@@ -27,7 +27,7 @@ Log.Logger = new LoggerConfiguration()
         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
     )
     //.WriteTo.Slack(
-    //    webhookUrl: "https://hooks.slack.com/services/",
+    //    webhookUrl: "https://hooks.slack.com/services/<webhook-url>",
     //    restrictedToMinimumLevel: LogEventLevel.Error,
     //    batchSizeLimit: 1,
     //    period: TimeSpan.FromSeconds(1),

@@ -32,7 +32,7 @@ namespace  OpenCashFlow.Test.Utilities
                 new AspNetUser
                 {
                     UserID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
-                    UserName = "Codewriter90x",
+                    UserName = "BaronLuca",
                     UserAvatar = null,
                     Language = "IT",
                     Country = "IT",
@@ -41,10 +41,10 @@ namespace  OpenCashFlow.Test.Utilities
                     UserFirstName = "Luca",
                     UserMiddleName = null,
                     UserLastName = "Baron",
-                    Email = "baron_luca@hotmail.it",
+                    Email = "baron_luca@nestia.local",
                     EmailConfirmed = true,
                     PhoneNumberPrefix = "+39",
-                    PhoneNumber = "3518081790",
+                    PhoneNumber = "1234567890",
                     PhoneNumberConfirmed = true,
                     Gender = "Male",
                     Pronouns = null,
@@ -61,7 +61,7 @@ namespace  OpenCashFlow.Test.Utilities
                     MobilePin = null,
                     SecurityStamp = null,
                     ConcurrencyStamp = null,
-                    PasswordQuestion = "a",
+                    PasswordQuestion = "abcdefg",
                     PasswordAnswer = "dewafev[pi[w",
                     TwoFactorEnabled = false,
                     AccountValidUntil = null,
@@ -82,26 +82,26 @@ namespace  OpenCashFlow.Test.Utilities
                     DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
                     EditedBy = null,
                     DateEdit = null,
-                    QuickLoginPinHash = "lRpzr9szDAtETNymgtm7JJQT3PRIfmnjllPASChPxHk=",
+                    QuickLoginPinHash = "lRpzr9szDAtETNymgtm7JJQT3PRIfmnjllPASChPxHf=",
                     UserMustChangePassword = false,
                     QuickLoginPinValidUntil = null
                 },
                 new AspNetUser
                 {
                     UserID = Guid.Parse("00000000-0000-0000-0000-000000000002"),
-                    UserName = "LSalami",
+                    UserName = "UserNameTest",
                     UserAvatar = null,
                     Language = "IT",
                     Country = "IT",
                     Timezone = null,
                     UserTitle = null,
-                    UserFirstName = "Lorenzo",
+                    UserFirstName = "UserName",
                     UserMiddleName = null,
-                    UserLastName = "Salami",
-                    Email = "lorenzosalami1998@gmail.com",
+                    UserLastName = "UserSurname",
+                    Email = "usernametest@nestia.local",
                     EmailConfirmed = true,
                     PhoneNumberPrefix = "+39",
-                    PhoneNumber = "3933049076",
+                    PhoneNumber = "1234567890",
                     PhoneNumberConfirmed = true,
                     Gender = "Male",
                     Pronouns = null,
@@ -113,7 +113,7 @@ namespace  OpenCashFlow.Test.Utilities
                     PrivacyPolicyAcepted = false,
                     PrivacyPolicyAcceptedDate = null,
                     PrivacyPolicyVersion = null,
-                    PasswordHash = "1J9y+7vb6zYOykos49K6UIWBs6yTIR52f6yJVE55N18=",
+                    PasswordHash = "1J9y+7vb6zYOykos49K6UIWBs6yTIR52f6yJVE55N48=",
                     PasswordSalt = "4cB1NmkERk/TiMqrc2DONA==",
                     MobilePin = null,
                     SecurityStamp = null,
@@ -155,10 +155,10 @@ namespace  OpenCashFlow.Test.Utilities
                     UserFirstName = "Toni",
                     UserMiddleName = null,
                     UserLastName = "Pignatta",
-                    Email = "ciccioamante63@aol.com",
+                    Email = "ciccioamante63@aol.com", // Homer Simpson reference
                     EmailConfirmed = true,
                     PhoneNumberPrefix = "+39",
-                    PhoneNumber = "3589545874",
+                    PhoneNumber = "1234567890",
                     PhoneNumberConfirmed = true,
                     Gender = "Male",
                     Pronouns = null,
@@ -210,7 +210,7 @@ namespace  OpenCashFlow.Test.Utilities
                 new Company
                 {
                     TenantID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
-                    CompanyName = "Scunio SRL",
+                    CompanyName = "Company SRL",
                     MaxUsers = 50,
                     VATRates = 22,
                     StartingContract = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
@@ -219,12 +219,12 @@ namespace  OpenCashFlow.Test.Utilities
                     IsActive = true,
                     IsDeleted = false,
                     DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                    CompanySecret = "bS8gmD_6L7zsADdQ17Q-MeeWB1yB5G4k0Q2Wy72yaFdEEJVzy2DhcinmWR3Tx45e68Bn8_b1t-1F35Co9uf_Bg"
+                    CompanySecret = "bS8gmD_6L7zsADdQ17Q-MeeWB1yB5G4k0Q2Wy72yaFdEEJVzy2DhcinmWR3Tx45e68Bn8_b1t-1F35Co9uf_Bh"
                 },
                 new Company
                 {
                     TenantID = Guid.Parse("00000000-0000-0000-0000-000000000002"),
-                    CompanyName = "Azienda secondaria di prova",
+                    CompanyName = "Secondary Company LLC",
                     MaxUsers = 50,
                     VATRates = 22,
                     StartingContract = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
@@ -233,7 +233,7 @@ namespace  OpenCashFlow.Test.Utilities
                     IsActive = true,
                     IsDeleted = false,
                     DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                    CompanySecret = "bS8gmD_6L7zsADdQ17Q-MeeWB1yB5G4k0Q2Wy72yaFdEEJVzy2DhcinmWR3Tx45e68Bn8_b1t-1F35Co9uf_Bg"
+                    CompanySecret = "bS8gmD_6L7zsADdQ17Q-MeeWB1yB5G4k0Q2Wy72yaFdEEJVzy2DhcinmWR3Tx45e68Bn8_b1t-1F35Co9uf_Bh"
                 }
             ];
         }
@@ -440,8 +440,8 @@ namespace  OpenCashFlow.Test.Utilities
                 new Payment_DocumentType_LookUp()
                 {
                     DocumentTypeID = Guid.Parse("00000000-0000-0000-0000-000000000002"),
-                    DocumentTypeName = "Secondo tipo di ricevuta",
-                    DocumentTypeDescription = "ricevuta che puo essere cancellata",
+                    DocumentTypeName = "Second receipt type",
+                    DocumentTypeDescription = "receipt that can be deleted",
                     DocumentTypeIcon = null,
                     Visible = true,
                     DisplayOrder = 0,
@@ -458,8 +458,8 @@ namespace  OpenCashFlow.Test.Utilities
                 new Payment_DocumentType_LookUp()
                 {
                     DocumentTypeID = Guid.Parse("00000000-0000-0000-0000-000000000003"),
-                    DocumentTypeName = "terzo tipo di ricevuta",
-                    DocumentTypeDescription = "ricevuta che NON puo essere cancellata",
+                    DocumentTypeName = "third receipt type",
+                    DocumentTypeDescription = "receipt that cannot be deleted",
                     DocumentTypeIcon = null,
                     Visible = true,
                     DisplayOrder = 0,
@@ -487,7 +487,7 @@ namespace  OpenCashFlow.Test.Utilities
                     UserID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                     EntryType = nameof(EntryTypeEnum.Income),
                     Amount = 1000,
-                    Description = "Pagamento che puó essere cancellato",
+                    Description = "Payment that can be deleted",
                     DocumentTypeID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                     PaymentMethodID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                     IsDeleted = false,
@@ -506,7 +506,7 @@ namespace  OpenCashFlow.Test.Utilities
                     UserID = Guid.Parse("00000000-0000-0000-0000-000000000005"),
                     EntryType = nameof(EntryTypeEnum.Income),
                     Amount = 1000,
-                    Description = "Pagamento che NON puó essere cancellato",
+                    Description = "Payment that cannot be deleted",
                     DocumentTypeID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                     PaymentMethodID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                     IsDeleted = false,
@@ -525,7 +525,7 @@ namespace  OpenCashFlow.Test.Utilities
                     UserID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                     EntryType = nameof(EntryTypeEnum.Income),
                     Amount = 1000,
-                    Description = "Pagamento che verrá cancellato ...",
+                    Description = "Payment that will be deleted ...",
                     DocumentTypeID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                     PaymentMethodID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                     IsDeleted = false,

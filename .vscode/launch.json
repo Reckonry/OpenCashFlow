@@ -2,19 +2,19 @@
   "version": "0.2.0",
   "compounds": [
     {
-      "name": "Start App + API",
-      "configurations": ["Start App", "Start API"],
+      "name": "OCF App + API",
+      "configurations": ["OCF App", "OCF API"],
       "stopAll": true
     },
     {
-      "name": "Start Admin + API",
-      "configurations": ["Start Admin", "Start API"],
+      "name": "OCF Admin + API",
+      "configurations": ["OCF Admin", "OCF API"],
       "stopAll": true
     }
   ],
   "configurations": [
     {
-      "name": "Start App",
+      "name": "OCF App",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
@@ -33,7 +33,7 @@
       }
     },
     {
-      "name": "Start API",
+      "name": "OCF API",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
@@ -48,7 +48,7 @@
       }
     },
     {
-      "name": "Start Admin",
+      "name": "OCF Admin",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",

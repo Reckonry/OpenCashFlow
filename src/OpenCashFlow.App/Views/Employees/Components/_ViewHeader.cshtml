@@ -10,64 +10,73 @@
 
 @if (Model != null)
 {
-	<!-- Header -->
-	<div class="row">
-		<div class="col-12">
-			<div class="card mb-4 mt-3">
-				<div class="user-profile-header d-flex flex-column flex-sm-row text-sm-start text-center mb-3">
-					<div class="flex-shrink-0 mt-n2 mx-sm-0 mx-auto">
-						<img src="@(string.IsNullOrEmpty(Model.UserAvatar) ? @Url.Content("~/img/avatars/employee-icon.jpg") : @Url.Content(Model.UserAvatar))" alt="@Localizer["EmployeeImageAlt"]" class="d-block h-auto ms-0 ms-sm-4 rounded user-profile-img">
-					</div>
-					<div class="flex-grow-1 mt-3 mt-sm-5">
-						<div class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-4 flex-md-row flex-column gap-4">
-							<div class="user-profile-info">
-								<div class="my-2">
-									<span class="h4">@Html.Raw(Model.EmployeeSurnameName?.Trim())</span>
-									@if (Model.OutOfReports)
-									{
-										<span class="badge bg-label-warning m-2" text-capitalized="">@Localizer["Out of reports"]</span>
-									}
-								
-								</div>
+    <div class="card mb-4">
+        <div class="card-body">
 
+            <div class="row align-items-center g-3">
 
-								<ul class="list-inline mb-0 d-flex align-items-center flex-wrap justify-content-sm-start justify-content-center gap-2">
-									@if (!string.IsNullOrEmpty(Model.Country))
-									{
-										<li class="list-inline-item">
-											<i class="ti ti-map-pin"></i>
-											@Model.Country?.Trim()
-										</li>
-									}
+                <div class="col-auto">
+                    <span class="avatar avatar-xl">
+                        <img src="@(string.IsNullOrEmpty(Model.UserAvatar) ? @Url.Content("~/img/avatars/employee-icon.jpg") : @Url.Content(Model.UserAvatar))"
+                             alt="@Localizer["EmployeeImageAlt"]" />
+                    </span>
+                </div>
 
-									@if (!string.IsNullOrEmpty(Model.TimeCost?.ToString()))
-									{
-										<li class="list-inline-item">
-											<i class="ti ti-file-dollar"></i> <span class="contain-price">@Html.Raw(Model.TimeCost?.ToString("#,##0.'<small>'00#'</small>'"))</span>@Localizer["/hour"]
-										</li>
-									}
+                <div class="col">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <h2 class="h3 m-0">@Html.Raw(Model.EmployeeSurnameName?.Trim())</h2>
 
-									<li class="list-inline-item">
-										<i class='ti ti-calendar'></i><span class="text-muted">@Localizer["Added"]</span> @Model.DateIns.ToLongDateString()
-									</li>
-								</ul>
-							</div>
-							@{
-								// if (User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Administrator) ||
-								// User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Employer) ||
-								// User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Accountant) ||
-								// User.FindFirst(nameof(Permissions.Employees.EMPL_EDIT))?.Value == true.ToString())
-								// {
-									<a href="~/Employees/Edit/@Model.UserID" class="btn btn-warning">
-										<i class='fa fa-pencil me-1'></i>@Localizer["Edit details"]
-									</a>
-								//}
-							}
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<!--/ Header -->
+                        @if (Model.OutOfReports)
+                        {
+                            <span class="badge bg-yellow-lt">@Localizer["Out of reports"]</span>
+                        }
+                    </div>
+
+                    <div class="mt-2">
+                        <ul class="list list-inline list-inline-dots text-secondary mb-0">
+
+                            @if (!string.IsNullOrEmpty(Model.Country))
+                            {
+                                <li class="list-inline-item">
+                                    <i class="ti ti-map-pin me-1"></i>
+                                    @Model.Country?.Trim()
+                                </li>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.TimeCost?.ToString()))
+                            {
+                                <li class="list-inline-item">
+                                    <i class="ti ti-file-dollar me-1"></i>
+                                    <span class="contain-price">@Html.Raw(Model.TimeCost?.ToString("#,##0.'<small>'00#'</small>'"))</span>@Localizer["/hour"]
+                                </li>
+                            }
+
+                            <li class="list-inline-item">
+                                <i class='ti ti-calendar me-1'></i>
+                                <span class="text-muted">@Localizer["Added"]</span>
+                                @Model.DateIns.ToLongDateString()
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-auto ms-auto">
+                    @{
+                        // if (User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Administrator) ||
+                        // User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Employer) ||
+                        // User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Accountant) ||
+                        // User.FindFirst(nameof(Permissions.Employees.EMPL_EDIT))?.Value == true.ToString())
+                        // {
+                            <a href="~/Employees/Edit/@Model.UserID" class="btn btn-warning">
+                                <i class='fa fa-pencil me-1'></i>@Localizer["Edit details"]
+                            </a>
+                        // }
+                    }
+                </div>
+
+            </div>
+
+        </div>
+    </div>
 }

@@ -1,110 +1,114 @@
 ﻿@using Shared.DTOs.Employees
 @model Employee_Detail_DTO
 
-<div class="card mb-4">
-    <div class="card-body">
-        <small class="card-text text-uppercase">@Localizer["About"]</small>
-        <ul class="list-unstyled mb-4 mt-3">
-            <li class="d-flex align-items-center mb-3">
-                <i class="ti ti-user"></i>
-                <span class="fw-bold mx-2">@Localizer["Full Name"]:</span>
-                <span>@Model?.EmployeeSurnameName?.Trim()</span>
-            </li>
-            <li class="d-flex align-items-center mb-3">
-                <i class="ti ti-login"></i>
-                <span class="fw-bold mx-2">@Localizer["Username"]:</span>
-                <span>@Model?.UserName?.Trim()</span>
-            </li>
-            <li class="d-flex align-items-center mb-3">
-                <i class="ti ti-check"></i><span class="fw-bold mx-2">@Localizer["Status"]:</span>
-                @{
-                    if (Model?.IsApproved == true)
-                    {
-                        <span class="badge bg-label-success" text-capitalized="">@Localizer["Active"]</span>
-                    }
-                    else if (Model?.IsApproved == false)
-                    {
-                        <span class="badge bg-label-warning" text-capitalized="">@Localizer["Not Active"]</span>
-                    }
-                }
-            </li>
-            <li class="d-flex align-items-center mb-3">
-                <i class="ti ti-browser-check"></i><span class="fw-bold mx-2">@Localizer["Check In"]:</span>
-                @{
-                    // if (Model.RequireShiftCheckIn)
-                    // {
-                    //     <span class="badge bg-label-warning" text-capitalized="">@Localizer["Required"]</span>
-                    // }
-                    // else
-                    // {
-                    //     <span class="badge bg-label-info" text-capitalized="">@Localizer["Not Required"]</span>
-                    // }
-                }
-            </li>
-            <li class="d-flex align-items-center mb-3">
-                <i class="ti ti-grid-dots"></i><span class="fw-bold mx-2">@Localizer["Role"]:</span>
-                @{
-                    var roles = Model?.Roles;
-                    if (roles != null && roles.Count > 0)
-                    {
-                        foreach (var role in roles)
-                        {
-                            if (role == null || string.IsNullOrWhiteSpace(role.RoleName))
-                            {
-                                continue;
-                            }
-                            <span class="badge bg-label-info me-1">@Localizer["Role_" + role.RoleName]</span>
-                        }
-                    }
-                    else
-                    {
-                        <span>-/-</span>
-                    }
-                }
-            </li>
+<div class="card">
+  <div class="card-body">
 
-            @if (!string.IsNullOrEmpty(Model?.Language))
-            {
-                <li class="d-flex align-items-center mb-3">
-                    <i class="ti ti-language"></i>
-                    <span class="fw-bold mx-2">@Localizer["Language"]:</span> <span>@Model?.Language?.Trim()</span>
-                </li>
-            }
-        </ul>
-        <small class="card-text text-uppercase">@Localizer["Contacts"]</small>
-        <ul class="list-unstyled mb-4 mt-3">
-            @if (!string.IsNullOrEmpty(Model?.PhoneNumber))
-            {
-                <li class="d-flex align-items-center mb-3">
-                    <i class="ti ti-device-mobile"></i>
-                    <span class="fw-bold mx-2">@Localizer["Phone"]:</span>
-                    <span>@Model?.PhoneNumberPrefix?.Trim() @Model?.PhoneNumber?.Trim()</span>
-                    @{
-                        if (Model?.PhoneNumberConfirmed == true)
-                        {
-                            <a data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="tooltip-success" data-bs-original-title="@Localizer["Phone confirmed"]">
-                                <i class='ti ti-circle-check text-success ms-2'></i>
-                            </a>
-                        }
-                    }
-                </li>
-            }
+    <div class="text-uppercase text-secondary fw-semibold small mb-2">@Localizer["About"]</div>
 
-            @if (!string.IsNullOrEmpty(Model?.Email))
+    <dl class="row mb-4">
+      <dt class="col-4 text-secondary">@Localizer["Full Name"]</dt>
+      <dd class="col-8 mb-2">@Model?.EmployeeSurnameName?.Trim()</dd>
+
+      <dt class="col-4 text-secondary">@Localizer["Username"]</dt>
+      <dd class="col-8 mb-2">@Model?.UserName?.Trim()</dd>
+
+      <dt class="col-4 text-secondary">@Localizer["Status"]</dt>
+      <dd class="col-8 mb-2">
+        @{
+          if (Model?.IsApproved == true)
+          {
+            <span class="badge bg-green-lt">@Localizer["Active"]</span>
+          }
+          else if (Model?.IsApproved == false)
+          {
+            <span class="badge bg-yellow-lt">@Localizer["Not Active"]</span>
+          }
+        }
+      </dd>
+
+      <dt class="col-4 text-secondary">@Localizer["Check In"]</dt>
+      <dd class="col-8 mb-2">
+        @{
+          // if (Model.RequireShiftCheckIn)
+          // {
+          //     <span class="badge bg-yellow-lt">@Localizer["Required"]</span>
+          // }
+          // else
+          // {
+          //     <span class="badge bg-azure-lt">@Localizer["Not Required"]</span>
+          // }
+          <span class="text-secondary">-/-</span>
+        }
+      </dd>
+
+      <dt class="col-4 text-secondary">@Localizer["Role"]</dt>
+      <dd class="col-8 mb-2">
+        @{
+          var roles = Model?.Roles;
+          if (roles != null && roles.Count > 0)
+          {
+            foreach (var role in roles)
             {
-                <li class="d-flex align-items-center mb-3">
-                    <i class="ti ti-mail"></i><span class="fw-bold mx-2">@Localizer["E-mail"]:</span>
-                    <span>@Model?.Email?.Trim()</span>
-                    @{
-                        if (Model?.EmailConfirmed == true)
-                        {
-                            <a data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="tooltip-success" data-bs-original-title="@Localizer["E-mail confirmed"]">
-                                <i class='ti ti-circle-check text-success ms-2'></i>
-                            </a>
-                        }
-                    }
-                </li>
+              if (role == null || string.IsNullOrWhiteSpace(role.RoleName))
+              {
+                continue;
+              }
+              <span class="badge bg-azure-lt me-1">@Localizer["Role_" + role.RoleName]</span>
             }
-        </ul>
-    </div>
+          }
+          else
+          {
+            <span class="text-secondary">-/-</span>
+          }
+        }
+      </dd>
+
+      @if (!string.IsNullOrEmpty(Model?.Language))
+      {
+        <dt class="col-4 text-secondary">@Localizer["Language"]</dt>
+        <dd class="col-8 mb-2">@Model?.Language?.Trim()</dd>
+      }
+
+    </dl>
+
+    <div class="text-uppercase text-secondary fw-semibold small mb-2">@Localizer["Contacts"]</div>
+
+    <dl class="row mb-0">
+
+      @if (!string.IsNullOrEmpty(Model?.PhoneNumber))
+      {
+        <dt class="col-4 text-secondary">@Localizer["Phone"]</dt>
+        <dd class="col-8 mb-2">
+          <span>@Model?.PhoneNumberPrefix?.Trim() @Model?.PhoneNumber?.Trim()</span>
+          @{
+            if (Model?.PhoneNumberConfirmed == true)
+            {
+              <a class="ms-2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="tooltip-success" data-bs-original-title="@Localizer["Phone confirmed"]">
+                <i class='ti ti-circle-check text-success'></i>
+              </a>
+            }
+          }
+        </dd>
+      }
+
+      @if (!string.IsNullOrEmpty(Model?.Email))
+      {
+        <dt class="col-4 text-secondary">@Localizer["E-mail"]</dt>
+        <dd class="col-8 mb-0">
+          <span>@Model?.Email?.Trim()</span>
+          @{
+            if (Model?.EmailConfirmed == true)
+            {
+              <a class="ms-2" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="tooltip-success" data-bs-original-title="@Localizer["E-mail confirmed"]">
+                <i class='ti ti-circle-check text-success'></i>
+              </a>
+            }
+          }
+        </dd>
+      }
+
+    </dl>
+
+  </div>
 </div>

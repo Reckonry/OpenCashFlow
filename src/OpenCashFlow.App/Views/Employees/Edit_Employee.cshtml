@@ -173,263 +173,250 @@
 
 @Html.Raw(ViewBag.ResponseMessage)
 
-<div class="app-ecommerce">
+<div class="page-header d-print-none mb-4">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2 class="page-title">@Localizer["Edit Employee"]</h2>
+      <div class="text-secondary mt-1">@Localizer["Edit employee details and information"]</div>
+    </div>
+    <div class="col-auto ms-auto d-print-none">
+      <div class="btn-list">
+        <a href="~/Employees" class="btn btn-outline-secondary">
+          <i class="ri-arrow-go-back-fill"></i>
+          <span class="d-none d-sm-inline ms-1">@Localizer["Discard"]</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <!-- Add Product -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-6 row-gap-4">
+<form method="post" id="createEmployeeForm">
+  @Html.AntiForgeryToken()
 
-        <div class="d-flex flex-column justify-content-center">
-            <h4 class="mb-1">@Localizer["Edit Employee"]</h4>
-            <p class="mb-0">@Localizer["Edit employee details and information"]</p>
+  <div class="row row-cards">
+
+    @* Left column *@
+    <div class="col-12 col-lg-8">
+
+      @* User basic *@
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">@Localizer["User basic"]</h3>
         </div>
-        <div class="d-flex align-content-center flex-wrap gap-4">
+        <div class="card-body">
+
+          <div class="mb-3">
+            <label class="form-label" for="SelectedRoleID">@Localizer["Role"]</label>
+            <select class="form-select" name="SelectedRoleID" id="SelectedRoleID">
+              <option value="">@Localizer["Select a role"]</option>
+              @{
+                // Preselect first visible assigned role if present
+                Guid preSelected = Guid.Empty;
+                if (Model.Roles != null)
+                {
+                  var firstVisible = Model.Roles.FirstOrDefault(r => r.IsVisible);
+                  if (firstVisible != null) preSelected = firstVisible.RoleID;
+                }
+                if (ViewBag.Roles is IEnumerable<Shared.DTOs.Identity.Role_List_DTO> roles)
+                {
+                  foreach (var role in roles)
+                  {
+                    var id = role.ID;
+                    var name = role.Name;
+                    <option value="@id" selected="@(preSelected == id ? "selected" : null)">@Localizer["role_" + name]</option>
+                  }
+                }
+              }
+            </select>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="UserName">@Localizer["Username"]</label>
+              <input type="text" asp-for="UserName" readonly class="form-control form-lowercase" placeholder="@Localizer["Username"]" autocomplete="off" />
+              <small><span asp-validation-for="UserName" class="text-danger"></span></small>
+            </div>
+            <div class="col-md-6">
+              @* spacer *@
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="UserFirstName">@Localizer["Name"]</label>
+              <input type="text" asp-for="UserFirstName" class="form-control form-lowercase" placeholder="@Localizer["Name"]" autocomplete="off" />
+              <small><span asp-validation-for="UserFirstName" class="text-danger"></span></small>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="UserLastName">@Localizer["Surname"]</label>
+              <input type="text" asp-for="UserLastName" class="form-control form-lowercase" placeholder="@Localizer["Surname"]" autocomplete="off" />
+              <small><span asp-validation-for="UserLastName" class="text-danger"></span></small>
+            </div>
+          </div>
+
         </div>
+      </div>
+
+      @* Security info *@
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">@Localizer["Security Info"]</h3>
+        </div>
+        <div class="card-body">
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="PhoneNumber">@Localizer["Phone number"]</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ri-phone-line"></i></span>
+                <input type="text" class="form-control" asp-for="PhoneNumber" placeholder="@Localizer["Phone number"]">
+              </div>
+              <small><span asp-validation-for="PhoneNumber" class="text-danger"></span></small>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="Email">@Localizer["E-mail"]</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ri-mail-open-line"></i></span>
+                <input type="text" class="form-control" asp-for="Email" placeholder="@Localizer["E-mail"]">
+                <button type="button" class="btn btn-outline-secondary" onclick="resendPin('@Model.UserID')" title="Resend PIN to the email address">
+                  <i class="ri-mail-send-line"></i>
+                </button>
+              </div>
+              <small><span asp-validation-for="Email" class="text-danger"></span></small>
+              <div class="text-secondary small mt-1">
+                <i class="ri-information-line me-1"></i>
+                A new PIN will be generated and sent when the email is updated
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
 
-    <form method="post" id="createEmployeeForm">
-        @Html.AntiForgeryToken()
-        <div class="row">
+    @* Right column *@
+    <div class="col-12 col-lg-4">
 
-            <!-- First column-->
-            <div class="col-12 col-lg-8">
-                <!-- Product Information -->
-                <div class="card mb-6">
-                    <div class="card-header">
-                        <h5 class="card-tile mb-0">@Localizer["User basic"]</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-floating form-floating-outline mb-5">
-                            <select class="form-select" name="SelectedRoleID">
-                                <option value="">@Localizer["Select a role"]</option>
-                                @{
-                                    // Preselect first visible assigned role if present
-                                    Guid preSelected = Guid.Empty;
-                                    if (Model.Roles != null)
-                                    {
-                                        var firstVisible = Model.Roles.FirstOrDefault(r => r.IsVisible);
-                                        if (firstVisible != null) preSelected = firstVisible.RoleID;
-                                    }
-                                    if (ViewBag.Roles is IEnumerable<Shared.DTOs.Identity.Role_List_DTO> roles)
-                                    {
-                                        foreach (var role in roles)
-                                        {
-                                            var id = role.ID;
-                                            var name = role.Name;
-                                            <option value="@id" selected="@(preSelected == id ? "selected" : null)">@Localizer["role_" + name]</option>
-                                        }
-                                    }
-                                }
-                            </select>
-                            <label>@Localizer["Role"]</label>
-                        </div>
-                        <div class="row mb-5 gx-5">
-                            <div class="col">
-                                <div class="form-floating form-floating-outline mb-5">
-                                    <input type="text" asp-for="UserName" readonly class="form-control form-lowercase" placeholder="@Localizer["Username"]" autocomplete="off" />
-                                    <label>@Localizer["Username"]</label>
-                                    <small><span asp-validation-for="UserName" class="text-danger"></span></small>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <!-- Empty column for layout balance -->
-                            </div>
-                        </div>
-                        <div class="row mb-5 gx-5">
-                            <div class="col">
-                                <div class="form-floating form-floating-outline mb-5">
-                                    <input type="text" asp-for="UserFirstName" class="form-control form-lowercase" placeholder="@Localizer["Name"]" autocomplete="off" />
-                                    <label>@Localizer["Name"]</label>
-                                    <small><span asp-validation-for="UserFirstName" class="text-danger"></span></small>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="form-floating form-floating-outline mb-5">
-                                    <input type="text" asp-for="UserLastName" class="form-control form-lowercase" placeholder="@Localizer["Surname"]" autocomplete="off" />
-                                    <label>@Localizer["Surname"]</label>
-                                    <small><span asp-validation-for="UserLastName" class="text-danger"></span></small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- /Product Information -->
-                <!-- Media -->
-                <div class="card mb-6">
-                    <div class="card-header">
-                        <h5 class="card-tile mb-0">@Localizer["Security Info"]</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row mb-5 gx-5">
-                            <div class="col">
-                                <div class="mb-5">
-                                    <div class="input-group input-group-merge">
-                                        <span class="input-group-text"><i class="ri-phone-line"></i></span>
-                                        <div class="form-floating form-floating-outline">
-                                            <input type="text" class="form-control" asp-for="PhoneNumber" placeholder="@Localizer["Phone number"]">
-                                            <label>@Localizer["Phone number"]</label>
-                                        </div>
-                                    </div>
-                                    <small><span asp-validation-for="PhoneNumber" class="text-danger"></span></small>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="mb-5">
-                                    <div class="input-group input-group-merge">
-                                        <span class="input-group-text"><i class="ri-mail-open-line"></i></span>
-                                        <div class="form-floating form-floating-outline">
-                                            <input type="text" class="form-control" asp-for="Email" placeholder="@Localizer["E-mail"]">
-                                            <label>@Localizer["E-mail"]</label>
-                                        </div>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="resendPin('@Model.UserID')" title="Resend PIN to the email address">
-                                            <i class="ri-mail-send-line"></i>
-                                        </button>
-                                    </div>
-                                    <small><span asp-validation-for="Email" class="text-danger"></span></small>
-                                    <small class="text-muted"><i class="ri-information-line"></i> A new PIN will be generated and sent when the email is updated</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- /Second column -->
-            <!-- Second column -->
-            <div class="col-12 col-lg-4">
-                <!-- Pricing Card -->
-                <div class="card mb-6">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">@Localizer["Other Info"]</h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Gender -->
-                        <div class="form-floating form-floating-outline mb-5">
-                            <select class="form-select" asp-for="Gender">
-                                <option value="">@Localizer["Select gender"]</option>
-                                @* @foreach (GenderTypes value in (GenderTypes[])Enum.GetValues(typeof(GenderTypes)))
-                                    {
-                                        <option value="@value">@Localizer["gender_" + value.ToString()]</option>
-                                    } *@
-                            </select>
-                            <label>@Localizer["Gender"]</label>
-                        </div>
-                        <!-- Timezone -->
-                        <div class="form-floating form-floating-outline mb-5">
-                            <select class="form-select" asp-for="Timezone">
-                                <option value="">@Localizer["Select a timezone"]</option>
-                                @{
-                                    if (ViewBag.Timezones != null)
-                                    {
-                                        foreach (var item in ViewBag.Timezones)
-                                        {
-                                            <option value="@item.Id">@item.Display</option>
-                                        }
-                                    }
-                                }
-                            </select>
-                            <label>@Localizer["Timezone"]</label>
-                        </div>
-                        <!-- Language -->
-                        <div class="form-floating form-floating-outline mb-5">
-                            <select class="form-select" asp-for="Language">
-                                <option value="">@Localizer["SelectALanguage"]</option>
-                                @{
-                                    if (ViewBag.Languages != null)
-                                    {
-                                        foreach (var item in ViewBag.Languages)
-                                        {
-                                            <option value="@item.Code">@item.Name</option>
-                                        }
-                                    }
-                                }
-                            </select>
-                            <label>@Localizer["Language"]</label>
-                            <small><span asp-validation-for="Language" class="text-danger"></span></small>
-                        </div>
-                        <!-- Country -->
-                        <div class="form-floating form-floating-outline mb-5">
-                            <select class="form-select" asp-for="Country">
-                                <option value="">@Localizer["SelectACountry"]</option>
-                                @{
-                                    if (ViewBag.Countries != null)
-                                    {
-                                        foreach (var item in ViewBag.Countries)
-                                        {
-                                            <option value="@item.Code">@item.Name</option>
-                                        }
-                                    }
-                                }
-                            </select>
-                            <label>@Localizer["Country"]</label>
-                            <small><span asp-validation-for="Country" class="text-danger"></span></small>
-                        </div>
-
-
-                        <div class="divider mt-4 mb-4">
-                            <div class="divider-text"><span class="text-muted">@Localizer["Employee Info"]</span></div>
-                        </div>
-
-                        <!-- Date of Birth -->
-                        <div class="mb-5">
-                            <div class="input-group input-group-merge">
-                                <span class="input-group-text"><i class="ri-calendar-line"></i></span>
-                                <div class="form-floating form-floating-outline">
-                                    <input type="text" asp-for="DoB" class="form-control date-picker" placeholder="@Localizer["Date Of Birth"]" readonly />
-                                    <label>@Localizer["Date Of Birth"]</label>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Country of Birth -->
-                        <div class="mb-5">
-                            <div class="form-floating form-floating-outline">
-                                <select class="form-select" asp-for="CoB">
-                                    <option value="">@Localizer["SelectACountry"]</option>
-                                    @{
-                                        if (ViewBag.Countries != null)
-                                        {
-                                            foreach (var item in ViewBag.Countries)
-                                            {
-                                                <option value="@item.Code">@item.Name</option>
-                                            }
-                                        }
-                                    }
-                                </select>
-                                <label>@Localizer["Country of Birth"]</label>
-                            </div>
-                        </div>
-                        <!-- State of Birth -->
-                        <div class="mb-5">
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" asp-for="SoB" class="form-control form-capitalize" placeholder="@Localizer["State of Birth"]" />
-                                <label>@Localizer["State of Birth"]</label>
-                            </div>
-                        </div>
-                        <!-- City of Birth -->
-                        <div class="mb-5">
-                            <div class="form-floating form-floating-outline">
-                                <input type="text" asp-for="PoB" class="form-control form-capitalize" placeholder="@Localizer["City of Birth"]" />
-                                <label>@Localizer["City of Birth"]</label>
-                            </div>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button id="SubmitButton" type="submit" class="btn btn-success waves-effect waves-light">
-                                <i class="ri-add-large-line me-2"></i>@Localizer["Edit"]
-                            </button>
-                            <button class="btn btn-raised btn-success waves-effect waves-light d-none" id="Loading" type="button" disabled="">
-                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>@Localizer["Loading"]
-                            </button>
-                        </div>
-                        <div class="d-grid gap-2 pt-3">
-                            <a href="~/Employees" class="btn btn-secondary text-white">
-                                <i class="ri-arrow-go-back-fill me-2"></i>@Localizer["Discard"]
-                            </a>
-                        </div>
-                    </div>
-                    <!-- /Second column -->
-
-                </div>
-    
-            </div>
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">@Localizer["Other Info"]</h3>
         </div>
-    </form>
-</div>
+        <div class="card-body">
+
+          <div class="mb-3">
+            <label class="form-label" for="Gender">@Localizer["Gender"]</label>
+            <select class="form-select" asp-for="Gender">
+              <option value="">@Localizer["Select gender"]</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="Timezone">@Localizer["Timezone"]</label>
+            <select class="form-select" asp-for="Timezone">
+              <option value="">@Localizer["Select a timezone"]</option>
+              @{
+                if (ViewBag.Timezones != null)
+                {
+                  foreach (var item in ViewBag.Timezones)
+                  {
+                    <option value="@item.Id">@item.Display</option>
+                  }
+                }
+              }
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="Language">@Localizer["Language"]</label>
+            <select class="form-select" asp-for="Language">
+              <option value="">@Localizer["SelectALanguage"]</option>
+              @{
+                if (ViewBag.Languages != null)
+                {
+                  foreach (var item in ViewBag.Languages)
+                  {
+                    <option value="@item.Code">@item.Name</option>
+                  }
+                }
+              }
+            </select>
+            <small><span asp-validation-for="Language" class="text-danger"></span></small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="Country">@Localizer["Country"]</label>
+            <select class="form-select" asp-for="Country">
+              <option value="">@Localizer["SelectACountry"]</option>
+              @{
+                if (ViewBag.Countries != null)
+                {
+                  foreach (var item in ViewBag.Countries)
+                  {
+                    <option value="@item.Code">@item.Name</option>
+                  }
+                }
+              }
+            </select>
+            <small><span asp-validation-for="Country" class="text-danger"></span></small>
+          </div>
+
+          <div class="border-top pt-3 mt-4">
+            <div class="text-secondary fw-semibold mb-2">@Localizer["Employee Info"]</div>
+
+            <div class="mb-3">
+              <label class="form-label" for="DoB">@Localizer["Date Of Birth"]</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ri-calendar-line"></i></span>
+                <input type="text" asp-for="DoB" class="form-control date-picker" placeholder="@Localizer["Date Of Birth"]" readonly />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="CoB">@Localizer["Country of Birth"]</label>
+              <select class="form-select" asp-for="CoB">
+                <option value="">@Localizer["SelectACountry"]</option>
+                @{
+                  if (ViewBag.Countries != null)
+                  {
+                    foreach (var item in ViewBag.Countries)
+                    {
+                      <option value="@item.Code">@item.Name</option>
+                    }
+                  }
+                }
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="SoB">@Localizer["State of Birth"]</label>
+              <input type="text" asp-for="SoB" class="form-control form-capitalize" placeholder="@Localizer["State of Birth"]" />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="PoB">@Localizer["City of Birth"]</label>
+              <input type="text" asp-for="PoB" class="form-control form-capitalize" placeholder="@Localizer["City of Birth"]" />
+            </div>
+          </div>
+
+          <div class="d-grid gap-2 mt-4">
+            <button id="SubmitButton" type="submit" class="btn btn-success">
+              <i class="ri-save-line me-2"></i>@Localizer["Edit"]
+            </button>
+            <button class="btn btn-success d-none" id="Loading" type="button" disabled>
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>@Localizer["Loading"]
+            </button>
+          </div>
+
+          <div class="d-grid gap-2 pt-3">
+            <a href="~/Employees" class="btn btn-outline-secondary">
+              <i class="ri-arrow-go-back-fill me-2"></i>@Localizer["Discard"]
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</form>

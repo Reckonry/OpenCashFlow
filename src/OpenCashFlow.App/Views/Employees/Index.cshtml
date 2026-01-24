@@ -101,288 +101,271 @@
 
 @* Success message for Employee operations *@
 @{
-	var successMessage = TempData["EmployeeSuccessMessage"]?.ToString();
-	if (!string.IsNullOrEmpty(successMessage))
-	{
-		TempData.Remove("EmployeeSuccessMessage");
-	}
+    var successMessage = TempData["EmployeeSuccessMessage"]?.ToString();
+    if (!string.IsNullOrEmpty(successMessage))
+    {
+        TempData.Remove("EmployeeSuccessMessage");
+    }
 }
 @if (!string.IsNullOrEmpty(successMessage))
 {
-	<div class="alert alert-success alert-dismissible fade show mb-4" role="alert" id="employee-success-alert">
-		@successMessage
-		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-	</div>
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" id="employee-success-alert">
+        @successMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 }
 
 @* Error message for Employee operations *@
 @{
-	var errorMessage = TempData["EmployeeErrorMessage"]?.ToString();
-	if (!string.IsNullOrEmpty(errorMessage))
-	{
-		TempData.Remove("EmployeeErrorMessage");
-	}
+    var errorMessage = TempData["EmployeeErrorMessage"]?.ToString();
+    if (!string.IsNullOrEmpty(errorMessage))
+    {
+        TempData.Remove("EmployeeErrorMessage");
+    }
 }
 @if (!string.IsNullOrEmpty(errorMessage))
 {
-	<div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" id="employee-error-alert">
-		@errorMessage
-		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-	</div>
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" id="employee-error-alert">
+        @errorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 }
 
-<div class="row g-4 mb-4">
-	<div class="col-sm-6 col-xl-3">
-		<div class="card">
-			<div class="card-body">
-				<div class="d-flex align-items-start justify-content-between">
-					<div class="content-left">
-						<span>@Localizer["Employee"]</span>
-						<div class="d-flex align-items-center my-1">
-							<span class="text-success h4 mb-0 ">@employeeCount</span>
-							<h4 class="mb-0 me-2 text-muted">/@maxEmployees</h4>
-						</div>
-						<span>@Localizer["Total Employee"]</span>
-					</div>
-					<span class="badge bg-label-primary rounded p-2">
-						<i class="ti ti-user ti-sm fs-3"></i>
-					</span>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="col-sm-6 col-xl-3">
-		<div class="card">
-			<div class="card-body">
-				<div class="d-flex align-items-start justify-content-between">
-					<div class="content-left">
-						<span>@Localizer["External"]</span>
-						<div class="d-flex align-items-center my-1">
-							<span class="text-success h4 mb-0 ">0</span>
-							<h4 class="mb-0 me-2 text-muted">/500</h4>
-						</div>
-						<span>@Localizer["Total External"]</span>
-					</div>
-					<span class="badge bg-label-warning rounded p-2">
-						<i class="ti ti-user-plus ti-sm fs-3"></i>
-					</span>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="col-sm-6 col-xl-3">
-		<div class="card">
-			<div class="card-body">
-				<div class="d-flex align-items-start justify-content-between">
-					<div class="content-left">
-						<span>@Localizer["Disabled"]</span>
-						<div class="d-flex align-items-center my-1">
-							<span class="text-success h4 mb-0 ">0</span>
-							<h4 class="mb-0 me-2 text-muted">/500</h4>
-						</div>
-						<span>@Localizer["Total Disabled"]</span>
-					</div>
-					<span class="badge bg-label-warning rounded p-2">
-						<i class="ti ti-square-forbid-2 ti-sm fs-3"></i>
-					</span>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="col-sm-6 col-xl-3">
-		<div class="card">
-			<div class="card-body">
-				<div class="d-flex align-items-start justify-content-between">
-					<div class="content-left">
-						<span>@Localizer["Deleted"]</span>
-						<div class="d-flex align-items-center my-1">
-							<h4 class="mb-0 me-2">0</h4>
-						</div>
-						<span>@Localizer["Employees Deleted"]</span>
-					</div>
-					<span class="badge bg-label-danger rounded p-2">
-						<i class="ti ti-trash ti-sm fs-3"></i>
-					</span>
-				</div>
-			</div>
-		</div>
-	</div>
+@* Page header (Tabler style) *@
+<div class="page-header d-print-none mb-4">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title">@Localizer["Employees list"]</h2>
+            <div class="text-secondary mt-1">@Localizer["TitleDescription"]</div>
+        </div>
+        <div class="col-auto ms-auto d-print-none">
+            <div class="btn-list">
+                <button class="btn btn-outline-secondary" type="button" aria-label="@SharedLocalizer["Search"]" title="@SharedLocalizer["Search"]">
+                    <i class="ri-search-line"></i>
+                    <span class="d-none d-sm-inline ms-1">@SharedLocalizer["Search"]</span>
+                </button>
+
+                <a class="btn btn-primary @((employeeCount <= maxEmployees) ? "" : " disabled ")"
+                   href="@((employeeCount <= maxEmployees) ? Url.Content("~/Employees/New") : "" )"
+                   data-bs-toggle="tooltip" data-bs-placement="bottom" @((employeeCount <= maxEmployees) ? "" : " data-bs-original-title=\"" + @Localizer["Maximum user reached"].Value + "\"")>
+                    <i class="ri-user-add-line"></i>
+                    <span class="d-none d-sm-inline ms-1">@Localizer["New Employee"]</span>
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
-<!-- Users List Table  border-bottom -->
 
-<div class="d-none d-xl-block">
-	<div class="card">
+@* Metrics (row-cards) *@
+<div class="row row-cards mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="subheader">@Localizer["Employee"]</div>
+                        <div class="h1 mb-0">@employeeCount <span class="text-secondary fs-4">/@maxEmployees</span></div>
+                        <div class="text-secondary">@Localizer["Total Employee"]</div>
+                    </div>
+                    <div class="col-auto">
+                        <span class="avatar avatar-sm bg-primary-lt">
+                            <i class="ri-user-line"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-		<div class="card-header header-elements" id="cardHeader">
-			<div id="divTitle">
-				<h5 class="m-0 me-2">@Localizer["Employees list"]</h5>
-				<p class="">
-					@Localizer["TitleDescription"]
-				</p>
-			</div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="subheader">@Localizer["External"]</div>
+                        <div class="h1 mb-0">0 <span class="text-secondary fs-4">/500</span></div>
+                        <div class="text-secondary">@Localizer["Total External"]</div>
+                    </div>
+                    <div class="col-auto">
+                        <span class="avatar avatar-sm bg-warning-lt">
+                            <i class="ri-user-add-line"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-			<div class="card-title-elements ms-auto">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="subheader">@Localizer["Disabled"]</div>
+                        <div class="h1 mb-0">0 <span class="text-secondary fs-4">/500</span></div>
+                        <div class="text-secondary">@Localizer["Total Disabled"]</div>
+                    </div>
+                    <div class="col-auto">
+                        <span class="avatar avatar-sm bg-warning-lt">
+                            <i class="ri-forbid-2-line"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-				<button class="btn btn-primary waves-effect waves-light" type="button" aria-label="@SharedLocalizer["Search"]" title="@SharedLocalizer["Search"]">
-					<i class="menu-icon tf-icons ri-search-line" aria-hidden="true"></i>
-				</button>
-				@{
+    <div class="col-sm-6 col-xl-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="subheader">@Localizer["Deleted"]</div>
+                        <div class="h1 mb-0">0</div>
+                        <div class="text-secondary">@Localizer["Employees Deleted"]</div>
+                    </div>
+                    <div class="col-auto">
+                        <span class="avatar avatar-sm bg-danger-lt">
+                            <i class="ri-delete-bin-line"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-					<a class="btn btn-success waves-effect waves-light @((employeeCount <= maxEmployees) ? "" : " disabled " )"
-					   href="@((employeeCount <= maxEmployees) ? Url.Content("~/Employees/New") : "" )"
-					   data-bs-toggle="tooltip" data-bs-placement="bottom" @((employeeCount <= maxEmployees) ? "" : " data-bs-original-title=\"" + @Localizer["Maximum user reached"].Value + "\"")>
-						<i class="menu-icon tf-icons ri-user-add-line me-2"></i>
-						@Localizer["New Employee"]
-					</a>
+@* Table *@
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">@Localizer["Employees list"]</h3>
+        <div class="card-actions">
+            <div class="btn-list">
+                <button class="btn btn-outline-secondary" type="button" aria-label="@SharedLocalizer["Search"]" title="@SharedLocalizer["Search"]">
+                    <i class="ri-search-line"></i>
+                </button>
 
-				}
-			</div>
-		</div>
+                <a class="btn btn-primary @((employeeCount <= maxEmployees) ? "" : " disabled ")"
+                   href="@((employeeCount <= maxEmployees) ? Url.Content("~/Employees/New") : "" )"
+                   data-bs-toggle="tooltip" data-bs-placement="bottom" @((employeeCount <= maxEmployees) ? "" : " data-bs-original-title=\"" + @Localizer["Maximum user reached"].Value + "\"")>
+                    <i class="ri-user-add-line"></i>
+                    <span class="d-none d-sm-inline ms-1">@Localizer["New Employee"]</span>
+                </a>
+            </div>
+        </div>
+    </div>
 
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>@Localizer["User"]</th>
+                    <th>@Localizer["Role"]</th>
+                    <th>@Localizer["Email"]</th>
+                    <th>@Localizer["Last login"]</th>
+                    <th>@Localizer["Status"]</th>
+                    <th class="w-1"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    if (Model != null)
+                        foreach (Employee_List_DTO item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <a class="avatar me-3" href="~/Employees/View/@item?.UserID">
+                                            @if (string.IsNullOrEmpty(item.UserAvatar))
+                                            {
+                                                var avatar = AvatarGenerator.GetAvatar(item?.UserLastName ?? "");
+                                                <span class="avatar-initial rounded-circle" style="background-color:@avatar.BgColor; color:@avatar.TextColor">
+                                                    @item?.UserLastName?[0]@item?.UserFirstName[0]
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <img src="@Url.Content(item.UserAvatar)" alt="@Localizer["AvatarAlt"]" class="rounded-circle" />
+                                            }
+                                        </a>
 
+                                        <div class="flex-fill">
+                                            <a href="~/Employees/View/@item?.UserID" class="text-reset fw-semibold">@Html.Raw(item?.EmployeeSurnameName?.Trim())</a>
+                                            <div class="text-secondary small"></div>
+                                        </div>
+                                    </div>
+                                </td>
 
-		<div class="table-responsive">
-			<table class="table table-hover">
-				<thead class="table-light">
-					<tr>
-						<th>@Localizer["User"]</th>
-						<th>@Localizer["Role"]</th>
-						<th>@Localizer["Email"]</th>
-						<th>@Localizer["Last login"]</th>
-						<th>@Localizer["Status"]</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tbody>
-					@{
-						if (Model != null)
-							foreach (Employee_List_DTO item in Model)
-							{
-								<tr class="odd">
-									<td>
-										<div class="d-flex justify-content-start align-items-center user-name">
-											<div class="avatar-wrapper">
-												<a href="~/Employees/View/@item?.UserID">
-													<div class="avatar avatar-sm me-3">
-														@if (string.IsNullOrEmpty(item.UserAvatar))
-														{
-															var avatar = AvatarGenerator.GetAvatar(item?.UserLastName ?? "");
-															<span class="avatar-initial rounded-circle" style="background-color:@avatar.BgColor; color:@avatar.TextColor">
-																@item?.UserLastName?[0]@item?.UserFirstName[0]
-															</span>
-														}
-														else
-														{
-															<img src="@Url.Content(item.UserAvatar)" alt="@Localizer["AvatarAlt"]" class="rounded-circle">
-														}
-													</div>
-												</a>
-											</div>
-											<div class="d-flex flex-column">
-												<a href="~/Employees/View/@item?.UserID" class="text-body text-truncate">
-													<span class="fw-semibold">@Html.Raw(item?.EmployeeSurnameName?.Trim())</span>
-												</a>
-												<small class="text-muted"> </small>
-											</div>
-										</div>
-									</td>
-									<td>
-										@{
-											var roles = item?.Roles;
-											if (roles != null && roles.Count > 0)
-											{
-												foreach (var role in roles)
-												{
-													if (role == null || string.IsNullOrWhiteSpace(role.RoleName))
-													{
-														continue;
-													}
-													<span class="badge bg-label-info me-1">@Localizer["Role_" + role.RoleName]</span>
-												}
-											}
-											else
-											{
-												<span>-/-</span>
-											}
-										}
-									</td>
-									<td>
-										@(string.IsNullOrEmpty(item?.Email) ? "-/-" : @Html.Raw("<p class=\"p-0 m-0\"><i class=\"fa-regular fa-envelope me-2\"></i>" + @item.Email + "</p>"))
-									</td>
-									<td>
+                                <td>
+                                    @{
+                                        var roles = item?.Roles;
+                                        if (roles != null && roles.Count > 0)
+                                        {
+                                            foreach (var role in roles)
+                                            {
+                                                if (role == null || string.IsNullOrWhiteSpace(role.RoleName))
+                                                {
+                                                    continue;
+                                                }
+                                                <span class="badge bg-azure-lt me-1">@Localizer["Role_" + role.RoleName]</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-secondary">-/-</span>
+                                        }
+                                    }
+                                </td>
 
-									</td>
-									<td>
-										@{
-											if (item?.IsApproved ?? false)
-											{
-												<span class="badge bg-label-success" text-capitalized="">@Localizer["Active"]</span>
-											}
-											else
-											{
-												<span class="badge bg-label-warning" text-capitalized="">@Localizer["Not Approved"]</span>
-											}
-										}
-									</td>
-									<td>
-										<div>
-											@if (User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Administrator"))
-											{
-												<a href="~/Employees/Edit/@item!.UserID" class="" title="Edit employee">
-													<i class='menu-icon tf-icons ri-pencil-line me-1'></i>
-												</a>
-												<a href="javascript:void(0)" onclick="deleteEmployee('@item!.UserID', '@Html.Raw(item?.EmployeeSurnameName?.Trim())')" class="text-danger" title="Delete employee">
-													<i class='menu-icon tf-icons ri-delete-bin-line me-1'></i>
-												</a>
-											}
-											<a href="~/Employees/View/@item!.UserID" class="" title="View employee">
-												<i class='menu-icon tf-icons ri-eye-line me-1'></i>
-											</a>
-										</div>
-									</td>
-								</tr>
-							}
-					}
-				</tbody>
-			</table>
+                                <td>
+                                    @if (string.IsNullOrEmpty(item?.Email))
+                                    {
+                                        <span class="text-secondary">-/-</span>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-secondary">
+                                            <i class="ri-mail-line me-1"></i>
+                                            @item.Email
+                                        </div>
+                                    }
+                                </td>
 
+                                <td>
+                                    <span class="text-secondary">@* TODO: last login *@</span>
+                                </td>
 
+                                <td>
+                                    @if (item?.IsApproved ?? false)
+                                    {
+                                        <span class="badge bg-green-lt">@Localizer["Active"]</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-yellow-lt">@Localizer["Not Approved"]</span>
+                                    }
+                                </td>
 
-
-
-
-
-
-@* 
-
-
-
-			@if (Model.Count <= 0)
-			{
-				<div class="text-center">
-					<img src="~/img/Parts/search_NoResults.svg" style="max-height:280px">
-					<h4>@Localizer["Apparently there are no employee"]</h4>
-					@if (!string.IsNullOrEmpty(ViewBag.SearchString))
-					{
-						<p>@Localizer["Review your search input or add a new employee"]</p>
-					}
-					@{
-						// if (User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Administrator) ||
-						// User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Employer) ||
-						// User.FindFirst(nameof(Permissions.Employees.EMPL_NEW))?.Value == true.ToString())
-						// {
-						<div class=" pb-3">
-							<a class="btn btn-success waves-effect waves-light" href="~/Employees/New">
-								<i class="fa-solid fa-plus me-2"></i> @Localizer["Add New Employee"]
-							</a>
-						</div>
-						// }
-					}
-				</div>
-			} *@
-			<div class="d-flex justify-content-between mx-0 row pt-3 px-2">
-			</div>
-		</div>
-		<!-- Offcanvas to add new user -->
-	</div>
+                                <td>
+                                    <div class="btn-list flex-nowrap">
+                                        @if (User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Administrator"))
+                                        {
+                                            <a href="~/Employees/Edit/@item!.UserID" class="btn btn-outline-secondary btn-sm" title="Edit employee">
+                                                <i class="ri-pencil-line"></i>
+                                            </a>
+                                            <a href="javascript:void(0)" onclick="deleteEmployee('@item!.UserID', '@Html.Raw(item?.EmployeeSurnameName?.Trim())')" class="btn btn-outline-danger btn-sm" title="Delete employee">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </a>
+                                        }
+                                        <a href="~/Employees/View/@item!.UserID" class="btn btn-outline-secondary btn-sm" title="View employee">
+                                            <i class="ri-eye-line"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                }
+            </tbody>
+        </table>
+    </div>
 </div>

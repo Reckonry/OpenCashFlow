@@ -7,10 +7,15 @@ public static class AutoMapperAppStart
 {
     public static WebApplicationBuilder AppStartConfigureAutoMapper(this WebApplicationBuilder builder)
     {
-#if DEBUG
+        var mapperAssemblies = new[]
+        {
+            typeof(Program).Assembly,
+            typeof(MappingProfile).Assembly
+        };
+
         try
         {
-            builder.Services.AddAutoMapper(typeof(Program).Assembly, typeof(MappingProfile).Assembly);
+            builder.Services.AddAutoMapper(_ => { }, mapperAssemblies);
         }
         catch (ReflectionTypeLoadException ex)
         {
@@ -19,8 +24,6 @@ public static class AutoMapperAppStart
             Console.WriteLine(details);
             throw;
         }
-#endif
-        builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         return builder;
     }
 }

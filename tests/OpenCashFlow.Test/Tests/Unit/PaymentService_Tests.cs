@@ -15,6 +15,12 @@ namespace OpenCashFlow.Test.Tests.Unit;
 
 public class PaymentService_Tests
 {
+    private static IMapper CreateMapper(Action<IMapperConfigurationExpression>? configure = null)
+    {
+        var config = new MapperConfiguration(cfg => configure?.Invoke(cfg), NullLoggerFactory.Instance);
+        return config.CreateMapper();
+    }
+
     private sealed class StubAuthenticationService(Guid companyId, Guid userId) : IAuthenticationService
     {
         private readonly Guid _companyId = companyId;
@@ -108,7 +114,7 @@ public class PaymentService_Tests
         await cashService.ApplyPaymentAsync(companyId, paymentId, Convert.ToDecimal(paymentAmount), userId.ToString(), CancellationToken.None);
 
         var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
-        var mapper = new MapperConfiguration(cfg => { }).CreateMapper();
+        var mapper = CreateMapper();
         var authService = new StubAuthenticationService(companyId, userId);
         var paymentService = new PaymentService(paymentRepository, authService, mapper, cashService, NullLogger<PaymentService>.Instance, context);
 
@@ -186,11 +192,11 @@ public class PaymentService_Tests
 
         var cashService = new CashService(context, NullLogger<CashService>.Instance);
         var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
-        var mapper = new MapperConfiguration(cfg =>
+        var mapper = CreateMapper(cfg =>
         {
             cfg.CreateMap<Payment_Create_DTO, Payment>();
             cfg.CreateMap<Payment, Payment_Create_DTO>();
-        }).CreateMapper();
+        });
         var authService = new StubAuthenticationService(companyId, userId);
         var paymentService = new PaymentService(paymentRepository, authService, mapper, cashService, NullLogger<PaymentService>.Instance, context);
 
@@ -294,11 +300,11 @@ public class PaymentService_Tests
         // Create a mock CashService that throws an exception
         var mockCashService = new FailingCashService();
         var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
-        var mapper = new MapperConfiguration(cfg =>
+        var mapper = CreateMapper(cfg =>
         {
             cfg.CreateMap<Payment_Create_DTO, Payment>();
             cfg.CreateMap<Payment, Payment_Create_DTO>();
-        }).CreateMapper();
+        });
         var authService = new StubAuthenticationService(companyId, userId);
         var paymentService = new PaymentService(paymentRepository, authService, mapper, mockCashService, NullLogger<PaymentService>.Instance, context);
 
@@ -431,13 +437,13 @@ public class PaymentService_Tests
 
         var cashService = new CashService(context, NullLogger<CashService>.Instance);
         var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
-        var mapper = new MapperConfiguration(cfg =>
+        var mapper = CreateMapper(cfg =>
         {
             cfg.CreateMap<Payment_Create_DTO, Payment>();
             cfg.CreateMap<Payment, Payment_Create_DTO>();
             cfg.CreateMap<Payment, Payment_Detail_DTO>();
             cfg.CreateMap<Payment, Payment_Update_DTO>();
-        }).CreateMapper();
+        });
         var authService = new StubAuthenticationService(companyId, userId);
         var paymentService = new PaymentService(paymentRepository, authService, mapper, cashService, NullLogger<PaymentService>.Instance, context);
 
@@ -596,13 +602,13 @@ public class PaymentService_Tests
 
         var cashService = new CashService(context, NullLogger<CashService>.Instance);
         var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
-        var mapper = new MapperConfiguration(cfg =>
+        var mapper = CreateMapper(cfg =>
         {
             cfg.CreateMap<Payment_Create_DTO, Payment>();
             cfg.CreateMap<Payment, Payment_Create_DTO>();
             cfg.CreateMap<Payment, Payment_Detail_DTO>();
             cfg.CreateMap<Payment, Payment_Update_DTO>();
-        }).CreateMapper();
+        });
         var authService = new StubAuthenticationService(companyId, userId);
         var paymentService = new PaymentService(paymentRepository, authService, mapper, cashService, NullLogger<PaymentService>.Instance, context);
 
@@ -731,13 +737,13 @@ public class PaymentService_Tests
 
         var cashService = new CashService(context, NullLogger<CashService>.Instance);
         var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
-        var mapper = new MapperConfiguration(cfg =>
+        var mapper = CreateMapper(cfg =>
         {
             cfg.CreateMap<Payment_Create_DTO, Payment>();
             cfg.CreateMap<Payment, Payment_Create_DTO>();
             cfg.CreateMap<Payment, Payment_Detail_DTO>();
             cfg.CreateMap<Payment, Payment_Update_DTO>();
-        }).CreateMapper();
+        });
         var authService = new StubAuthenticationService(companyId, userId);
         var paymentService = new PaymentService(paymentRepository, authService, mapper, cashService, NullLogger<PaymentService>.Instance, context);
 
@@ -854,13 +860,13 @@ public class PaymentService_Tests
 
         var cashService = new CashService(context, NullLogger<CashService>.Instance);
         var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
-        var mapper = new MapperConfiguration(cfg =>
+        var mapper = CreateMapper(cfg =>
         {
             cfg.CreateMap<Payment_Create_DTO, Payment>();
             cfg.CreateMap<Payment, Payment_Create_DTO>();
             cfg.CreateMap<Payment, Payment_Detail_DTO>();
             cfg.CreateMap<Payment, Payment_Update_DTO>();
-        }).CreateMapper();
+        });
         var authService = new StubAuthenticationService(companyId, userId);
         var paymentService = new PaymentService(paymentRepository, authService, mapper, cashService, NullLogger<PaymentService>.Instance, context);
 
@@ -976,13 +982,13 @@ public class PaymentService_Tests
 
         var cashService = new CashService(context, NullLogger<CashService>.Instance);
         var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
-        var mapper = new MapperConfiguration(cfg =>
+        var mapper = CreateMapper(cfg =>
         {
             cfg.CreateMap<Payment_Create_DTO, Payment>();
             cfg.CreateMap<Payment, Payment_Create_DTO>();
             cfg.CreateMap<Payment, Payment_Detail_DTO>();
             cfg.CreateMap<Payment, Payment_Update_DTO>();
-        }).CreateMapper();
+        });
         var authService = new StubAuthenticationService(companyId, userId);
         var paymentService = new PaymentService(paymentRepository, authService, mapper, cashService, NullLogger<PaymentService>.Instance, context);
 

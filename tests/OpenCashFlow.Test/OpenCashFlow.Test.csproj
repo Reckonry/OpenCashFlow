@@ -15,7 +15,6 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.6" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.6" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.6" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
 		<PackageReference Include="Testcontainers" Version="4.6.0" />
@@ -46,10 +45,8 @@
         </ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\OpenCashFlow.Shared\OpenCashFlow.Shared.csproj" />
-		<ProjectReference Include="..\OpenCashFlow.API\OpenCashFlow.API.csproj" />
 		<ProjectReference Include="..\..\src\OpenCashFlow.Shared\OpenCashFlow.Shared.csproj" />
-		<ProjectReference Include="..\..\src\OpenCashFlow.Api\OpenCashFlow.Api.csproj" />
+		<ProjectReference Include="..\..\src\OpenCashFlow.API\OpenCashFlow.API.csproj" />
 	</ItemGroup>
 
 </Project>

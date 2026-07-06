@@ -31,10 +31,6 @@ It is intended as a **reference for contributors, auditors, and operators**.
      └─────────────┬───────────────┘
                    │
      ┌─────────────▼───────────────┐
-     │   Subscription Middleware   │ ← Access & billing checks
-     └─────────────┬───────────────┘
-                   │
-     ┌─────────────▼───────────────┐
      │   Role‑Based Authorization  │ ← Permission enforcement
      └─────────────┬───────────────┘
                    │
@@ -91,23 +87,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 **Model**
 - `AspNetUser` – User
-- `AspNetRole` – Role (Administrator, Manager, User)
+- `AspNetRole` – Role (`InstanceAdmin`, `CompanyAdmin`, `Employee`)
 - `AspNetUserRole` – User ↔ Role mapping
 - `AspNetUserPermission` – Explicit permissions
 - `AspNetUserDeniedPermission` – Explicitly denied permissions
 
 **Default Roles**
-- **Administrator** – Full access, user management, billing, configuration
-- **Manager** – Payments, reports, staff management
-- **User** – Basic read/write operations
+- **InstanceAdmin** – Self-hosted instance administration and global maintenance.
+- **CompanyAdmin** – Company/workspace administration, payments, staff, reports and configuration.
+- **Employee** – Daily operational access inside a company/workspace.
 
 **Usage**
 ```csharp
-[Authorize(Roles = "Administrator")]
-public IActionResult AdminOnly() { }
+[Authorize(Policy = "InstanceAdmin")]
+public IActionResult InstanceAdminOnly() { }
 
-[Authorize(Roles = "Administrator,Manager")]
-public IActionResult ManagerOrAdmin() { }
+[Authorize(Roles = "CompanyAdmin")]
+public IActionResult CompanyAdminOnly() { }
 ```
 
 ---
@@ -131,31 +127,58 @@ var payments = await _repository.GetPaymentsAsync(tenantId, filters);
 
 ---
 
-## 2. Subscription‑Based Access Control
+## 2. Legacy Billing/Stripe Surface
 
-### Subscription Authorization Middleware
+### Runtime Status
 
 **Purpose**
-- Enforces access based on subscription status
+- SaaS-era Billing/Stripe access control is not part of the community core runtime.
 
-**Allowed States**
-- ✅ `ACTIVE`
-- ✅ `TRIAL`
-- ⚠️ `PAST_DUE` (grace period)
-- ❌ `CANCELLED`
-- ❌ `EXPIRED`
-- ❌ `SUSPENDED`
+**Removed From Core Runtime**
+- Subscription authorization middleware
+- Billing API endpoints
+- Stripe webhook endpoints
+- Stripe client registration
+- Pricing, upgrade and customer portal UI
 
-**Behavior**
-- Blocks requests when subscription is invalid
-- Optional admin bypass
-- Redirects to `/subscription-expired` when blocked
+**Legacy Schema**
+- Some historical plan, subscription and Stripe columns/tables may remain until a migration-backed cleanup.
+- They must not be used to authorize access to dashboard, company, payments or cash.
+- Any future external Billing module needs a separate threat model and security review.
 
 ---
 
-## 3. Data Protection
+## 3. Dependency Security
 
-### 3.1 Encryption
+### NuGet Advisory Policy
+
+Before a public release, run:
+
+```bash
+dotnet restore OpenCashFlow.sln
+dotnet list OpenCashFlow.sln package --vulnerable --include-transitive
+dotnet build OpenCashFlow.sln
+dotnet test OpenCashFlow.sln --no-build
+```
+
+Release builds must not ship with unresolved `NU1902` or `NU1903` advisories unless a documented exception exists.
+
+### Current Remediation
+
+The July 2026 dependency audit remediated:
+
+- `AutoMapper` from `14.0.0` to `16.2.0`.
+- `MailKit` from `4.12.1` to `4.17.0`.
+- `MimeKit` from `4.12.0` to `4.17.0`.
+- Removed unused `Microsoft.EntityFrameworkCore.Sqlite` from the test project to eliminate the vulnerable transitive `SQLitePCLRaw.lib.e_sqlite3` dependency.
+
+SMTP remains optional. Password reset token creation must continue to work even when email delivery is not configured.
+
+---
+
+## 4. Data Protection
+
+### 4.1 Encryption
 
 **In Transit**
 - HTTPS/TLS 1.2+
@@ -172,9 +195,14 @@ var payments = await _repository.GetPaymentsAsync(tenantId, filters);
 - ✅ Mask sensitive values in logs
 - ✅ Exclude sensitive fields from DTO serialization
 
+**Secret Rotation**
+- Rotate `JWT_SECRET` immediately after a suspected leak and force users to log in again.
+- Rotate database and SMTP credentials by changing the environment variables, restarting the services and revoking the old credentials at the provider/database layer.
+- Treat reset tokens, fast-login cookies and PINs as credentials. They must not be logged or copied into support tickets.
+
 ---
 
-### 3.2 Input Validation & Injection Prevention
+### 4.2 Input Validation & Injection Prevention
 
 **Model Validation**
 ```csharp
@@ -196,7 +224,7 @@ public decimal Amount { get; set; }
 
 ---
 
-## 4. Audit Logging
+## 5. Audit Logging
 
 **Logged Events**
 - User login / logout
@@ -210,7 +238,7 @@ public decimal Amount { get; set; }
 
 ---
 
-## 5. Security Headers
+## 6. Security Headers
 
 **Examples**
 ```csharp
@@ -281,7 +309,6 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 
 - OWASP Top 10  
 - ASP.NET Core Security Documentation  
-- Stripe Security Guidelines  
 - GDPR / Data Protection Regulations  
 
 ---

@@ -47,6 +47,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\OpenCashFlow.Shared\OpenCashFlow.Shared.csproj" />
 		<ProjectReference Include="..\..\src\OpenCashFlow.API\OpenCashFlow.API.csproj" />
+		<ProjectReference Include="..\..\src\OpenCashFlow.Infrastructure\OpenCashFlow.Infrastructure.csproj" />
 	</ItemGroup>
 
 </Project>

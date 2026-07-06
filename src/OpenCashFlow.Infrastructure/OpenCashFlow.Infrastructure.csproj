@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>OpenCashFlow.Infrastructure</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenCashFlow.Application\OpenCashFlow.Application.csproj" />
+    <ProjectReference Include="..\OpenCashFlow.Domain\OpenCashFlow.Domain.csproj" />
+    <ProjectReference Include="..\OpenCashFlow.Shared\OpenCashFlow.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
+

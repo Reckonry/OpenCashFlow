@@ -2,6 +2,8 @@ using OpenCashFlow.API.Repositories;
 using OpenCashFlow.API.Repositories.Interfaces;
 using OpenCashFlow.API.Services;
 using OpenCashFlow.API.Services.Interfaces;
+using OpenCashFlow.Application;
+using OpenCashFlow.Infrastructure;
 using OpenCashFlow.Shared.Mappings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
@@ -38,11 +40,12 @@ builder.AppStartConfigureCors();
 
 // Controllers + DI custom (repositories/services) restano dove sono o li spostiamo dopo
 builder.Services.AddControllers();
+builder.Services.AddOpenCashFlowApplication();
+builder.Services.AddOpenCashFlowInfrastructure();
 #region Repositories
 builder.Services.AddScoped<IAuthenticationRepository, AuthenticationRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
-builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 #endregion
 

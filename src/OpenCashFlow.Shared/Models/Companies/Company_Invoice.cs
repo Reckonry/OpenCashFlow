@@ -168,7 +168,7 @@ namespace Shared.Models
 
         [AllowNull, Column(TypeName = "varchar(256)", Order = 62)]
         /// <summary>
-        /// Payment processor name (e.g., "Stripe", "PayPal").
+        /// Payment processor name for imported or external invoice records.
         /// </summary>
         public string? PaymentProcessor { get; set; }
         #endregion

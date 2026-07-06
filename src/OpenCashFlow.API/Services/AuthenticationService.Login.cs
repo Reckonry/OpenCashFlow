@@ -2,16 +2,22 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using global::Shared.Core;
+using global::Shared.Enums;
 using global::Shared.Models;
+using global::Shared.Models.Admin;
 using global::Shared.Models.Core;
+using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace OpenCashFlow.API.Services
 {
     public partial class AuthenticationService : IAuthenticationService
     {
+        private static readonly ConcurrentDictionary<string, FastLoginAttemptState> FastLoginAttempts = new();
+
         /// <summary>
         /// Attempts to authenticate a user with the provided username and password.
         /// </summary>
@@ -30,15 +36,31 @@ namespace OpenCashFlow.API.Services
         /// </remarks>
         public async Task<AuthResult> Authenticate(string username, string password, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password)) new AuthResult() { Success = false, ErrorType = AuthErrorType.InvalidCredentials }; ;
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                await WriteAuthenticationAuditAsync(AuditEventType.LoginFailed, "LoginFailed", username, null, null, "Missing credentials", cancellationToken);
+                return new AuthResult() { Success = false, ErrorType = AuthErrorType.InvalidCredentials };
+            }
 
             var user = await _authenticationRepository.GetUserByUsernameAndPasswordAsync(username, password, cancellationToken); // Retrieve the user from the repository
-            if (user == null) return new AuthResult() { Success = false, ErrorType = AuthErrorType.InvalidCredentials }; // Verify user exists and password is correct
+            if (user == null)
+            {
+                await WriteAuthenticationAuditAsync(AuditEventType.LoginFailed, "LoginFailed", username, null, null, "Invalid credentials", cancellationToken);
+                return new AuthResult() { Success = false, ErrorType = AuthErrorType.InvalidCredentials };
+            }
 
-            if (!user.IsApproved && Configuration.RequiredActiveAccountToLogin == true) return new AuthResult() { Success = false, ErrorType = AuthErrorType.NotActive };
+            if (!user.IsApproved && Configuration.RequiredActiveAccountToLogin == true)
+            {
+                await WriteAuthenticationAuditAsync(AuditEventType.LoginFailed, "LoginFailed", username, user.UserID, null, "Account not active", cancellationToken);
+                return new AuthResult() { Success = false, ErrorType = AuthErrorType.NotActive };
+            }
 
             var companyId = await _companyRepository.GetUserTenantIDAsync(user.UserID, cancellationToken);
-            if (companyId == null) return new AuthResult() { Success = false, ErrorType = AuthErrorType.InternalError }; // Ensure TenantID is not null
+            if (companyId == null)
+            {
+                await WriteAuthenticationAuditAsync(AuditEventType.LoginFailed, "LoginFailed", username, user.UserID, null, "Company not found", cancellationToken);
+                return new AuthResult() { Success = false, ErrorType = AuthErrorType.InternalError };
+            }
 
             // Create the JWT token
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -81,41 +103,68 @@ namespace OpenCashFlow.API.Services
                 Audience = audience,
                 IssuedAt = DateTime.UtcNow,
                 NotBefore = DateTime.UtcNow,
-                Expires = DateTime.UtcNow.AddMinutes(Configuration.WebSessionDurationMinutes),
+                Expires = DateTime.UtcNow.AddMinutes(GetSecurityInt("Security:SessionMinutes", Configuration.WebSessionDurationMinutes)),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            await WriteAuthenticationAuditAsync(AuditEventType.Login, "Login", username, user.UserID, companyId, null, cancellationToken);
 
             return new AuthResult() { Success = true, Token = tokenHandler.WriteToken(token), RequiresPasswordChange = user.UserMustChangePassword };
         }
 
         public async Task<ApiResponse<string?>> AuthenticateFastAsync(HttpContext httpContext, string pin, string FLCookieValue, CancellationToken cancellationToken)
         {
+            if (!GetSecurityBool("Security:FastLogin:Enabled", false))
+            {
+                await WriteAuthenticationAuditAsync(AuditEventType.LoginFailed, "FastLoginDisabled", null, null, null, "Fast login disabled", cancellationToken);
+                return new ApiResponse<string?>(false, "Fast login disabled");
+            }
+
             //#if DEBUG
             ////todo: solo per debug...
             //var protectedValue = "00000000-0000-0000-0000-000000000001.dd19SRFtEfF1CsgGlwRu0L6HRIZ7Vbv7-_FpZkoGHxc";
             //#else
             if (string.IsNullOrEmpty(FLCookieValue))
+            {
+                await WriteAuthenticationAuditAsync(AuditEventType.LoginFailed, "FastLoginFailed", null, null, null, "Cookie not found", cancellationToken);
                 return new ApiResponse<string?>(false, "Cookie not found");
+            }
             //#endif
+            var attemptKey = BuildFastLoginAttemptKey(httpContext, FLCookieValue);
+            if (IsFastLoginLocked(attemptKey, out var lockoutSeconds))
+            {
+                await WriteAuthenticationAuditAsync(AuditEventType.LoginFailed, "FastLoginLocked", null, null, null, $"Fast login locked for {lockoutSeconds} seconds", cancellationToken);
+                return new ApiResponse<string?>(false, "Too many attempts. Try again later.");
+            }
+
             var (companyID, isValidCookie) = CookieSigner.UnprotectCompanyCookie(FLCookieValue);
 
             // Invalid signature or corrupted cookie -> delete the cookie and exit
             if (!isValidCookie || companyID == null)
             {
+                RegisterFastLoginFailure(attemptKey);
                 httpContext.Response.Cookies.Delete(Configuration.FLCookieName);
+                await WriteAuthenticationAuditAsync(AuditEventType.LoginFailed, "FastLoginFailed", null, null, null, "Invalid signature", cancellationToken);
                 return new ApiResponse<string?>(false, "Invalid signature");
             }
 
             var company = await _companyRepository.GetCompanyByIdAsync((Guid)companyID.Value, cancellationToken);
             if (company == null)
             {
+                RegisterFastLoginFailure(attemptKey);
                 httpContext.Response.Cookies.Delete(Configuration.FLCookieName);
+                await WriteAuthenticationAuditAsync(AuditEventType.LoginFailed, "FastLoginFailed", null, companyID, null, "Company not found", cancellationToken);
                 return new ApiResponse<string?>(false, "Company not found");
             }
 
             var user = await _authenticationRepository.GetUserByCompanyIDAndPinAsync(companyID.Value, pin, cancellationToken);
-            if (user == null) return new ApiResponse<string?>(false, "User not found");
+            if (user == null)
+            {
+                RegisterFastLoginFailure(attemptKey);
+                await WriteAuthenticationAuditAsync(AuditEventType.LoginFailed, "FastLoginFailed", null, null, companyID, "Invalid PIN", cancellationToken);
+                return new ApiResponse<string?>(false, "User not found");
+            }
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:SecretKey"]!);
@@ -174,7 +223,7 @@ namespace OpenCashFlow.API.Services
                 Audience = audience2,
                 IssuedAt = DateTime.UtcNow,
                 NotBefore = DateTime.UtcNow,
-                Expires = DateTime.UtcNow.AddMinutes(Configuration.WebSessionDurationMinutes),
+                Expires = DateTime.UtcNow.AddMinutes(GetSecurityInt("Security:SessionMinutes", Configuration.WebSessionDurationMinutes)),
                 SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
@@ -182,11 +231,17 @@ namespace OpenCashFlow.API.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var jwt = tokenHandler.WriteToken(token);
 
+            ClearFastLoginFailures(attemptKey);
+            await WriteAuthenticationAuditAsync(AuditEventType.Login, "FastLogin", user.UserName, user.UserID, company.TenantID, null, cancellationToken);
+
             return new ApiResponse<string?>(true, "", jwt);
         }
 
         public async Task<AuthResult> GenerateFastLoginCookieValueAsync(string username, string password, CancellationToken cancellationToken)
         {
+            if (!GetSecurityBool("Security:FastLogin:Enabled", false))
+                return new AuthResult() { Success = true };
+
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password)) return new AuthResult() { Success = false, ErrorType = AuthErrorType.InvalidCredentials };
 
             var user = await _authenticationRepository.GetUserByUsernameAndPasswordAsync(username, password, cancellationToken); // Retrieve the user from the repository
@@ -200,6 +255,110 @@ namespace OpenCashFlow.API.Services
 
             return new AuthResult() { Success = true, FastLoginToken = CookieSigner.ProtectCompanyCookie(TenantID.Value, companySecret) };
         }
+
+        private int GetSecurityInt(string key, int fallback)
+        {
+            return int.TryParse(_configuration[key], out var configuredValue) && configuredValue > 0
+                ? configuredValue
+                : fallback;
+        }
+
+        private bool GetSecurityBool(string key, bool fallback)
+        {
+            return bool.TryParse(_configuration[key], out var configuredValue)
+                ? configuredValue
+                : fallback;
+        }
+
+        private static string BuildFastLoginAttemptKey(HttpContext httpContext, string cookieValue)
+        {
+            var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            var rawKey = $"{remoteIp}:{cookieValue}";
+            return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawKey)));
+        }
+
+        private bool IsFastLoginLocked(string attemptKey, out int lockoutSeconds)
+        {
+            lockoutSeconds = 0;
+            if (!FastLoginAttempts.TryGetValue(attemptKey, out var state))
+            {
+                return false;
+            }
+
+            var now = DateTimeOffset.UtcNow;
+            if (state.LockedUntil <= now)
+            {
+                FastLoginAttempts.TryRemove(attemptKey, out _);
+                return false;
+            }
+
+            if (state.Count < GetSecurityInt("Security:FastLogin:MaxAttempts", 5))
+            {
+                return false;
+            }
+
+            lockoutSeconds = (int)Math.Ceiling((state.LockedUntil - now).TotalSeconds);
+            return true;
+        }
+
+        private void RegisterFastLoginFailure(string attemptKey)
+        {
+            var maxAttempts = GetSecurityInt("Security:FastLogin:MaxAttempts", 5);
+            var lockoutMinutes = GetSecurityInt("Security:FastLogin:LockoutMinutes", 15);
+            var now = DateTimeOffset.UtcNow;
+
+            FastLoginAttempts.AddOrUpdate(
+                attemptKey,
+                _ => new FastLoginAttemptState(1, now.AddMinutes(lockoutMinutes)),
+                (_, current) =>
+                {
+                    var count = current.LockedUntil <= now ? 1 : current.Count + 1;
+                    var lockedUntil = count >= maxAttempts ? now.AddMinutes(lockoutMinutes) : now.AddSeconds(30);
+                    return new FastLoginAttemptState(count, lockedUntil);
+                });
+        }
+
+        private static void ClearFastLoginFailures(string attemptKey)
+        {
+            FastLoginAttempts.TryRemove(attemptKey, out _);
+        }
+
+        private async Task WriteAuthenticationAuditAsync(
+            AuditEventType eventType,
+            string action,
+            string? username,
+            Guid? userId,
+            Guid? tenantId,
+            string? additionalInfo,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var httpContext = _httpContextAccessor.HttpContext;
+                _context.Admin_AuditLog_DS.Add(new Admin_AuditLog
+                {
+                    EventType = eventType.ToString(),
+                    Resource = "Authentication",
+                    Action = action,
+                    UserID = userId,
+                    Username = username,
+                    IPAddress = httpContext?.Connection.RemoteIpAddress?.ToString(),
+                    UserAgent = httpContext?.Request.Headers["User-Agent"].ToString(),
+                    Timestamp = DateTime.UtcNow,
+                    Severity = eventType == AuditEventType.Login ? "Info" : "Warning",
+                    AdditionalInfo = additionalInfo,
+                    TenantID = tenantId
+                });
+
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Unable to write authentication audit event {Action}", action);
+            }
+        }
+
+        private sealed record FastLoginAttemptState(int Count, DateTimeOffset LockedUntil);
 
     }
 }

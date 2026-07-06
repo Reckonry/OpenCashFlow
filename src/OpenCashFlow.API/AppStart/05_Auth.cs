@@ -12,6 +12,8 @@ public static class AuthAppStart
         var secret = builder.Configuration["JwtSettings:SecretKey"];
         if (string.IsNullOrWhiteSpace(secret))
             throw new InvalidOperationException("JwtSettings:SecretKey mancante.");
+        if (secret.Length < 32)
+            throw new InvalidOperationException("JwtSettings:SecretKey deve contenere almeno 32 caratteri.");
 
         var key = Encoding.ASCII.GetBytes(secret);
 
@@ -60,7 +62,8 @@ public static class AuthAppStart
         });
 
         builder.Services.AddAuthorizationBuilder()
-            .AddPolicy("GIManagers", policy => policy.RequireClaim(ClaimTypes.Role, "GIManagers"));
+            .AddPolicy("InstanceAdmin", policy => policy.RequireClaim(ClaimTypes.Role, "InstanceAdmin"))
+            .AddPolicy("CompanyAdmin", policy => policy.RequireClaim(ClaimTypes.Role, "CompanyAdmin"));
 
         return builder;
     }

@@ -135,8 +135,8 @@
   <data name="role_Employee" xml:space="preserve">
     <value>Dipendente</value>
   </data>
-  <data name="role_GIManagers" xml:space="preserve">
-    <value>Manager GI</value>
+  <data name="role_CompanyAdmin" xml:space="preserve">
+    <value>Amministratore azienda</value>
   </data>
   <data name="Select gender" xml:space="preserve">
     <value>Seleziona genere</value>

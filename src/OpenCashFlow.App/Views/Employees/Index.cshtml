@@ -348,7 +348,7 @@
 
                                 <td>
                                     <div class="btn-list flex-nowrap">
-                                        @if (User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Administrator"))
+                                        @if (User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "CompanyAdmin"))
                                         {
                                             <a href="~/Employees/Edit/@item!.UserID" class="btn btn-outline-secondary btn-sm" title="Edit employee">
                                                 <i class="ri-pencil-line"></i>

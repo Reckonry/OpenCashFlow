@@ -14,6 +14,7 @@ namespace OpenCashFlow.Test.Tests.API
     [Collection("NonParallelCollection")]
     public class ForgotPasswordApiTests
     {
+        private const string ExistingEmail = "user.seed@example.local";
         private readonly CustomWebApplicationFactory _factory;
 
         public ForgotPasswordApiTests(CustomWebApplicationFactoryFixture fixture)
@@ -34,7 +35,7 @@ namespace OpenCashFlow.Test.Tests.API
         public async Task ForgotPassword_ValidEmail_ShouldSendEmailAndCreateToken()
         {
             // Arrange: usa un'email esistente nel database di test
-            var existingEmail = "lorenzosalami1998@gmail.com";
+            var existingEmail = ExistingEmail;
 
             // Clear any sent emails from fake sender
             FakeEmailSender.Sent.Clear();
@@ -66,7 +67,7 @@ namespace OpenCashFlow.Test.Tests.API
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var text = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(text);
-            Assert.Contains("Se l'account esiste, riceverai una email a breve", doc.RootElement.GetProperty("message").GetString());
+            Assert.Contains("If the account exists, you will receive an email shortly.", doc.RootElement.GetProperty("message").GetString());
 
             // Assert email was sent
             Assert.Single(FakeEmailSender.Sent);
@@ -157,7 +158,7 @@ namespace OpenCashFlow.Test.Tests.API
         public async Task ForgotPassword_ShouldGenerateUniqueTokenAndSaveInDatabase()
         {
             // Arrange
-            var existingEmail = "lorenzosalami1998@gmail.com";
+            var existingEmail = ExistingEmail;
             FakeEmailSender.Sent.Clear();
 
             var testFactory = _factory.WithWebHostBuilder(builder =>
@@ -212,7 +213,7 @@ namespace OpenCashFlow.Test.Tests.API
         public async Task ForgotPassword_TokenShouldHaveConfigurableExpiration()
         {
             // Arrange
-            var existingEmail = "lorenzosalami1998@gmail.com";
+            var existingEmail = ExistingEmail;
             FakeEmailSender.Sent.Clear();
 
             var testFactory = _factory.WithWebHostBuilder(builder =>
@@ -266,7 +267,7 @@ namespace OpenCashFlow.Test.Tests.API
         public async Task ForgotPassword_EmailShouldContainResetLinkWithEncodedToken()
         {
             // Arrange
-            var existingEmail = "lorenzosalami1998@gmail.com";
+            var existingEmail = ExistingEmail;
             FakeEmailSender.Sent.Clear();
 
             var testFactory = _factory.WithWebHostBuilder(builder =>
@@ -327,7 +328,7 @@ namespace OpenCashFlow.Test.Tests.API
         public async Task ForgotPassword_ByUserId_ShouldWork()
         {
             // Arrange
-            var existingEmail = "lorenzosalami1998@gmail.com";
+            var existingEmail = ExistingEmail;
 
             using var db = _factory.CreateDbContext();
             var user = await db.AspNetUser_DS.FirstOrDefaultAsync(u => u.Email == existingEmail);
@@ -369,7 +370,7 @@ namespace OpenCashFlow.Test.Tests.API
         public async Task ResetPassword_ValidToken_ShouldUpdatePassword()
         {
             // Arrange - first create a reset token
-            var existingEmail = "lorenzosalami1998@gmail.com";
+            var existingEmail = ExistingEmail;
             FakeEmailSender.Sent.Clear();
 
             var testFactory = _factory.WithWebHostBuilder(builder =>
@@ -412,7 +413,7 @@ namespace OpenCashFlow.Test.Tests.API
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var text = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(text);
-            Assert.Contains("Password reset completato con successo", doc.RootElement.GetProperty("message").GetString());
+            Assert.Contains("Password reset completed successfully", doc.RootElement.GetProperty("message").GetString());
 
             // Verifica che il token sia stato cancellato dal database
             using var db2 = _factory.CreateDbContext();
@@ -432,7 +433,7 @@ namespace OpenCashFlow.Test.Tests.API
         public async Task ResetPassword_ExpiredToken_ShouldFail()
         {
             // Arrange - manually create an expired token in the database
-            var existingEmail = "lorenzosalami1998@gmail.com";
+            var existingEmail = ExistingEmail;
 
             using var db = _factory.CreateDbContext();
             var user = await db.AspNetUser_DS.FirstOrDefaultAsync(u => u.Email == existingEmail);
@@ -520,7 +521,7 @@ namespace OpenCashFlow.Test.Tests.API
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
                 var text = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(text);
-                Assert.Contains("Token e nuova password sono richiesti", doc.RootElement.GetProperty("message").GetString());
+                Assert.Contains("Token and new password are required", doc.RootElement.GetProperty("message").GetString());
             }
         }
 
@@ -556,7 +557,7 @@ namespace OpenCashFlow.Test.Tests.API
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
                 var text = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(text);
-                Assert.Contains("Token e nuova password sono richiesti", doc.RootElement.GetProperty("message").GetString());
+                Assert.Contains("Token and new password are required", doc.RootElement.GetProperty("message").GetString());
             }
         }
 
@@ -575,7 +576,7 @@ namespace OpenCashFlow.Test.Tests.API
         public async Task ValidateResetToken_ValidToken_ShouldReturnIsValidTrue()
         {
             // Arrange - crea un token valido
-            var existingEmail = "lorenzosalami1998@gmail.com";
+            var existingEmail = ExistingEmail;
             FakeEmailSender.Sent.Clear();
 
             var testFactory = _factory.WithWebHostBuilder(builder =>
@@ -615,7 +616,7 @@ namespace OpenCashFlow.Test.Tests.API
             using var doc = JsonDocument.Parse(text);
             Assert.True(doc.RootElement.GetProperty("isValid").GetBoolean());
             Assert.False(doc.RootElement.GetProperty("isExpired").GetBoolean());
-            Assert.Equal("Token valido", doc.RootElement.GetProperty("message").GetString());
+            Assert.Equal("Token is valid", doc.RootElement.GetProperty("message").GetString());
         }
 
         /// <summary>
@@ -629,7 +630,7 @@ namespace OpenCashFlow.Test.Tests.API
         public async Task ValidateResetToken_ExpiredToken_ShouldReturnIsExpiredTrue()
         {
             // Arrange - create an expired token
-            var existingEmail = "lorenzosalami1998@gmail.com";
+            var existingEmail = ExistingEmail;
 
             using var db = _factory.CreateDbContext();
             var user = await db.AspNetUser_DS.FirstOrDefaultAsync(u => u.Email == existingEmail);

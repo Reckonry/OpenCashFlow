@@ -37,5 +37,5 @@
   <data name="Role_User" xml:space="preserve"><value>User</value></data>
   <data name="Role_Administrator" xml:space="preserve"><value>Administrator</value></data>
   <data name="Role_Employee" xml:space="preserve"><value>Employee</value></data>
-  <data name="Role_GIManagers" xml:space="preserve"><value>GI Managers</value></data>
+  <data name="Role_CompanyAdmin" xml:space="preserve"><value>Company Admin</value></data>
 </root>

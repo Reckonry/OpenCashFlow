@@ -143,7 +143,7 @@ namespace Shared.DTOs.Companies
         public string? TransactionID { get; set; }
 
         /// <summary>
-        /// Payment processor name (e.g., "Stripe", "PayPal").
+        /// Payment processor name for imported or external invoice records.
         /// </summary>
         public string? PaymentProcessor { get; set; }
         #endregion

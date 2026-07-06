@@ -34,8 +34,9 @@ namespace OpenCashFlow.API.Repositories
                 query = query.Where(p => p.DocumentTypeID == filters.DocumentTypeID.Value);
             if (filters.UserID.HasValue)
                 query = query.Where(p => p.UserID == filters.UserID.Value);
-            if (filters.IsDeleted.HasValue)
-                query = query.Where(p => p.IsDeleted == filters.IsDeleted.Value);
+            query = filters.IsDeleted.HasValue
+                ? query.Where(p => p.IsDeleted == filters.IsDeleted.Value)
+                : query.Where(p => !p.IsDeleted);
             if (filters.FromDate.HasValue)
                 query = query.Where(p => p.DateIns >= filters.FromDate.Value.ToUniversalTime());
             if (filters.ToDate.HasValue)
@@ -47,29 +48,32 @@ namespace OpenCashFlow.API.Repositories
             if (!string.IsNullOrWhiteSpace(filters.Description))
                 query = query.Where(p => p.Description != null && EF.Functions.ILike(p.Description, $"%{filters.Description}%"));
          
-            // Ordinamento dinamico (fallback a DateIns)
-            //if (!string.IsNullOrWhiteSpace(filters.SortBy))
-            //{
-            //    var sortExpression = filters.Desc
-            //        ? $"{filters.SortBy} descending"
-            //        : filters.SortBy;
-            //    query = query.OrderBy(sortExpression); // ToDo: Richiede Dynamic.Core
-            //}
-            //else
-            //{
-            query = query.OrderByDescending(p => p.DateIns);
-            //}
+            query = (filters.SortBy ?? "DateIns") switch
+            {
+                "Amount" => filters.Desc ? query.OrderByDescending(p => p.Amount) : query.OrderBy(p => p.Amount),
+                "EntryType" => filters.Desc ? query.OrderByDescending(p => p.EntryType) : query.OrderBy(p => p.EntryType),
+                "PaymentMethod" => filters.Desc
+                    ? query.OrderByDescending(p => p.PaymentMethod != null ? p.PaymentMethod.PaymentMethodName : string.Empty)
+                    : query.OrderBy(p => p.PaymentMethod != null ? p.PaymentMethod.PaymentMethodName : string.Empty),
+                "DocumentType" => filters.Desc
+                    ? query.OrderByDescending(p => p.DocumentType != null ? p.DocumentType.DocumentTypeName : string.Empty)
+                    : query.OrderBy(p => p.DocumentType != null ? p.DocumentType.DocumentTypeName : string.Empty),
+                "Created" or "DateIns" => filters.Desc ? query.OrderByDescending(p => p.DateIns) : query.OrderBy(p => p.DateIns),
+                _ => query.OrderByDescending(p => p.DateIns)
+            };
 
             // Paginazione
-            int skip = (filters.Page - 1) * filters.PageSize;
-            query = query.Skip(skip).Take(filters.PageSize);
+            var page = Math.Max(filters.Page, 1);
+            var pageSize = Math.Clamp(filters.PageSize, 1, 200);
+            int skip = (page - 1) * pageSize;
+            query = query.Skip(skip).Take(pageSize);
             return await query.ToListAsync(cancellationToken);
         }
 
         public async Task<Payment?> GetPaymentByIdAsync(Guid PaymentID, Guid TenantID, CancellationToken cancellationToken)
         {
             return await _context.Payment_DS.AsNoTracking()
-                .Where(p => p.PaymentID == PaymentID && p.TenantID == TenantID)
+                .Where(p => p.PaymentID == PaymentID && p.TenantID == TenantID && !p.IsDeleted)
                 .Include(p => p.User)
                 .Include(p => p.PaymentMethod)
                 .Include(p => p.DocumentType)
@@ -80,7 +84,7 @@ namespace OpenCashFlow.API.Repositories
         {
             // WITH tracking for updates - don't load navigation properties to avoid FK conflicts
             return await _context.Payment_DS
-                .Where(p => p.PaymentID == PaymentID && p.TenantID == TenantID)
+                .Where(p => p.PaymentID == PaymentID && p.TenantID == TenantID && !p.IsDeleted)
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
@@ -154,11 +158,13 @@ namespace OpenCashFlow.API.Repositories
             return await RetryHelper.ExecuteWithRetryAsync(async () =>
             {
                 var payment = await _context.Payment_DS
-                    .FirstOrDefaultAsync(c => c.PaymentID == PaymentID && c.TenantID == TenantID, cancellationToken);
+                    .FirstOrDefaultAsync(c => c.PaymentID == PaymentID && c.TenantID == TenantID && !c.IsDeleted, cancellationToken);
 
                 if (payment == null) return false;
 
-                _context.Payment_DS.Remove(payment);
+                payment.IsDeleted = true;
+                payment.DateDeleted = DateTime.UtcNow;
+                payment.IsDeletedWhy = "User requested payment deletion";
                 await _context.SaveChangesAsync(cancellationToken);
 
                 return true;

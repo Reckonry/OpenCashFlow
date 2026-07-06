@@ -1152,7 +1152,7 @@
 
 @* KPI widgets *@
 <div class="row row-cards mb-4" id="reports">
-  @{ var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Administrator"); }
+  @{ var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "CompanyAdmin"); }
 
   @if (isAdmin)
   {

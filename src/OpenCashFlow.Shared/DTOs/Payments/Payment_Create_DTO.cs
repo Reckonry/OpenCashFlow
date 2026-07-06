@@ -30,7 +30,7 @@ namespace Shared.DTOs
         public Guid RequestId { get; set; } = Guid.NewGuid();
         #endregion
 
-        [Required, Display(Name = "Amount"), Range(0, double.MaxValue, ErrorMessage = "Amount must be non-negative")]
+        [Required, Display(Name = "Amount"), Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than zero")]
         public double Amount { get; set; }
 
         [AllowNull, Display(Name = "EntryType")]

@@ -12,7 +12,7 @@ using Asp.Versioning;
 namespace OpenCashFlow.API.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "CompanyAdmin")]
     [Route("v{version:apiVersion}/Admin/Users")]
     [ApiVersion("1.0")]
     public class UsersController : ControllerBase

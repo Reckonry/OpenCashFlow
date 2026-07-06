@@ -14,7 +14,7 @@ namespace Shared.DTOs
         public bool? IsDeleted { get; set; }            // Solo se eliminato
 
         // Range temporale
-        public DateTime? FromDate { get; set; } = DateTime.Today;
+        public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
 
         // Range importo (optional)

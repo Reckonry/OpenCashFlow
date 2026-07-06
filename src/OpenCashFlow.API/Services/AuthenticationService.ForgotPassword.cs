@@ -25,9 +25,10 @@ namespace OpenCashFlow.API.Services
             // Save the token in the database with configurable expiration
             var ttlMinutes = int.TryParse(Environment.GetEnvironmentVariable("PASSWORD_RESET_TOKEN_MINUTES"), out var m) ? m : 30;
             await _employeeRepository.CreateResetTokenAsync(user.UserID, token, DateTime.UtcNow.AddMinutes(ttlMinutes), cancellationToken);
+            await WriteAuthenticationAuditAsync(global::Shared.Enums.AuditEventType.PasswordReset, "PasswordResetRequested", user.UserName, user.UserID, null, null, cancellationToken);
 
             // Create the reset link for the frontend
-            var appBaseUrl = _configuration["AppUrl"] ?? "https://app.opencashflow.cloud";
+            var appBaseUrl = _configuration["AppUrl"] ?? "https://app.opencashflow.local";
             var resetLink = $"{appBaseUrl.TrimEnd('/')}/reset-password?token={encodedToken}";
 
             // Load the HTML template and replace placeholders
@@ -45,8 +46,7 @@ namespace OpenCashFlow.API.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send password reset email to {Email}", email);
-                throw new Exception("Error sending the email. Please try again later.");
+                _logger.LogWarning(ex, "Password reset token was created, but email delivery failed for {Email}", email);
             }
         }
         /// <summary>
@@ -69,9 +69,10 @@ namespace OpenCashFlow.API.Services
             // Save the token in the database with configurable expiration
             var ttlMinutes = int.TryParse(Environment.GetEnvironmentVariable("PASSWORD_RESET_TOKEN_MINUTES"), out var m2) ? m2 : 30;
             await _employeeRepository.CreateResetTokenAsync(UserID, token, DateTime.UtcNow.AddMinutes(ttlMinutes), cancellationToken);
+            await WriteAuthenticationAuditAsync(global::Shared.Enums.AuditEventType.PasswordReset, "PasswordResetRequested", user.UserName, user.UserID, null, null, cancellationToken);
 
             // Create the reset link for the frontend
-            var appBaseUrl = _configuration["AppUrl"] ?? "https://app.opencashflow.cloud";
+            var appBaseUrl = _configuration["AppUrl"] ?? "https://app.opencashflow.local";
             var resetLink = $"{appBaseUrl.TrimEnd('/')}/reset-password?token={encodedToken}";
 
             // Load the HTML template and replace placeholders
@@ -90,8 +91,7 @@ namespace OpenCashFlow.API.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send password reset email to UserID {UserID}", UserID);
-                throw new Exception("Error sending the email. Please try again later.");
+                _logger.LogWarning(ex, "Password reset token was created, but email delivery failed for UserID {UserID}", UserID);
             }
         }
 
@@ -110,6 +110,7 @@ namespace OpenCashFlow.API.Services
 
             // Update the user's password in the database
             await _employeeRepository.UpdatePasswordAsync(UserID, newPassword, cancellationToken);
+            await WriteAuthenticationAuditAsync(global::Shared.Enums.AuditEventType.PasswordChanged, "PasswordResetCompleted", null, UserID, null, null, cancellationToken);
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Text.Json;
 using Xunit;
 using Microsoft.EntityFrameworkCore;
 using global::Shared.Models;
+using global::Shared.Core;
 
 namespace OpenCashFlow.Test.Tests
 {
@@ -75,7 +76,7 @@ namespace OpenCashFlow.Test.Tests
             var client = _factory.CreateClient();
 
             // Use an email known to exist from seeded data
-            var existingEmail = "lorenzosalami1998@gmail.com";
+            var existingEmail = "admin.seed@example.local";
             var payload = new Register_DTO
             {
                 CompanyName = "Duplicate Email Co",
@@ -429,8 +430,8 @@ namespace OpenCashFlow.Test.Tests
                 .ToList();
 
             Assert.NotEmpty(roles);
-            // Current implementation assigns "Administrator" as default
-            Assert.Contains(roles, r => r.AspNetRole != null && r.AspNetRole.RoleName == "Administrator");
+            Assert.Contains(roles, r => r.RoleID == Configuration.CompanyAdminRoleID);
+            Assert.Contains(roles, r => r.AspNetRole != null && r.AspNetRole.RoleName == Configuration.CompanyAdminRoleName);
         }
 
         //todo: Registrazione [OK] (genera token o step successivo per verifica email, se attivo)

@@ -22,6 +22,17 @@ public static class RateLimitingAppStart
                 limiterOptions.Window = TimeSpan.FromMinutes(1);
                 limiterOptions.PermitLimit = 20;
             });
+
+            options.AddFixedWindowLimiter("auth-limiter", limiterOptions =>
+            {
+                var authWindowSeconds = builder.Configuration.GetValue<int?>("RateLimiting:AuthWindowSeconds") ?? 60;
+                var authPermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:AuthPermitLimit") ?? 5;
+
+                limiterOptions.Window = TimeSpan.FromSeconds(authWindowSeconds);
+                limiterOptions.PermitLimit = authPermitLimit;
+                limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                limiterOptions.QueueLimit = 0;
+            });
         });
 
         return builder;

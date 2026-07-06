@@ -37,7 +37,7 @@
 
     @await Html.PartialAsync("Components/Gamification_Card")
 
-    @if (User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Administrator"))
+    @if (User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "CompanyAdmin"))
     {
         @await Html.PartialAsync("Components/Daily_Payments_Total")
         @await Html.PartialAsync("Components/Montly_Payments_Total")

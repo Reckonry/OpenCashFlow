@@ -22,7 +22,7 @@ namespace Shared.DTOs
         public Guid TenantID { get; set; }
         #endregion
 
-        [Required, Display(Name = "Amount")]
+        [Required, Display(Name = "Amount"), Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than zero")]
         public double Amount { get; set; }
 
         [AllowNull, Display(Name = "EntryType")]

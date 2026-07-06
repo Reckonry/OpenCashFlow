@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace OpenCashFlow.API.Controllers
 {
     public partial class AuthenticationController : ControllerBase
     {
         [HttpPost("forgot-password")]
+        [EnableRateLimiting("auth-limiter")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
         {
             try
@@ -25,6 +27,7 @@ namespace OpenCashFlow.API.Controllers
         }
 
         [HttpPost("reset-password")]
+        [EnableRateLimiting("auth-limiter")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
         {
             try

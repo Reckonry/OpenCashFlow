@@ -58,7 +58,7 @@ namespace OpenCashFlow.API.Services
                     Action = action,
                     UserID = userId != Guid.Empty ? userId : null,
                     Username = username,
-                    Changes = changes != null ? JsonSerializer.Serialize(changes) : null,
+                    Changes = changes != null ? SerializeSanitizedChanges(changes) : null,
                     IPAddress = httpContext?.Connection?.RemoteIpAddress?.ToString(),
                     UserAgent = httpContext?.Request?.Headers["User-Agent"].ToString(),
                     Timestamp = DateTime.UtcNow,
@@ -172,6 +172,41 @@ namespace OpenCashFlow.API.Services
                 .ToListAsync(cancellationToken);
 
             return (logs, totalCount);
+        }
+
+        private static string SerializeSanitizedChanges(object changes)
+        {
+            var json = JsonSerializer.Serialize(changes);
+            using var document = JsonDocument.Parse(json);
+            var sanitized = SanitizeElement(document.RootElement);
+            return JsonSerializer.Serialize(sanitized);
+        }
+
+        private static object? SanitizeElement(JsonElement element)
+        {
+            return element.ValueKind switch
+            {
+                JsonValueKind.Object => element.EnumerateObject()
+                    .ToDictionary(
+                        property => property.Name,
+                        property => IsSensitiveKey(property.Name) ? "***REDACTED***" : SanitizeElement(property.Value)),
+                JsonValueKind.Array => element.EnumerateArray().Select(SanitizeElement).ToArray(),
+                JsonValueKind.String => element.GetString(),
+                JsonValueKind.Number => element.TryGetInt64(out var longValue) ? longValue : element.GetDouble(),
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.Null => null,
+                _ => element.ToString()
+            };
+        }
+
+        private static bool IsSensitiveKey(string key)
+        {
+            return key.Contains("password", StringComparison.OrdinalIgnoreCase)
+                || key.Contains("token", StringComparison.OrdinalIgnoreCase)
+                || key.Contains("pin", StringComparison.OrdinalIgnoreCase)
+                || key.Contains("secret", StringComparison.OrdinalIgnoreCase)
+                || key.Contains("key", StringComparison.OrdinalIgnoreCase);
         }
 
         public async Task<AuditLog_Detail_DTO> GetAuditLogDetailAsync(

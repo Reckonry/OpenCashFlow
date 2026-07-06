@@ -90,7 +90,7 @@
   <data name="Role_Employee" xml:space="preserve">
     <value>Dipendente</value>
   </data>
-  <data name="Role_GIManagers" xml:space="preserve">
-    <value>Manager GI</value>
+  <data name="Role_CompanyAdmin" xml:space="preserve">
+    <value>Amministratore azienda</value>
   </data>
 </root>

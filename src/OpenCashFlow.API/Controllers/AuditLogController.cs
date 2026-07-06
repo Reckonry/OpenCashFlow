@@ -12,7 +12,7 @@ using Asp.Versioning;
 namespace OpenCashFlow.API.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "CompanyAdmin,InstanceAdmin")]
     [Route("v{version:apiVersion}/Admin/AuditLog")]
     [ApiVersion("1.0")]
     public class AuditLogController : ControllerBase
@@ -35,6 +35,7 @@ namespace OpenCashFlow.API.Controllers
             try
             {
                 filters ??= new AuditLog_Filter_DTO();
+                ApplyTenantScope(filters);
                 var (logs, totalCount) = await _auditLogService.GetAuditLogsAsync(filters, cancellationToken);
 
                 return Ok(new ApiResponse<object>(true, string.Empty, new
@@ -85,6 +86,7 @@ namespace OpenCashFlow.API.Controllers
             try
             {
                 filters ??= new AuditLog_Filter_DTO();
+                ApplyTenantScope(filters);
                 var csvBytes = await _auditLogService.ExportAuditLogAsync(filters, cancellationToken);
 
                 var fileName = $"AuditLog_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
@@ -94,6 +96,19 @@ namespace OpenCashFlow.API.Controllers
             {
                 _logger.LogError(ex, "Error exporting audit log");
                 return StatusCode(500, new ApiResponse<object>(false, "Error exporting logs", null));
+            }
+        }
+
+        private void ApplyTenantScope(AuditLog_Filter_DTO filters)
+        {
+            if (User.IsInRole("InstanceAdmin"))
+            {
+                return;
+            }
+
+            if (Guid.TryParse(User.FindFirst("TenantID")?.Value, out var tenantId) && tenantId != Guid.Empty)
+            {
+                filters.TenantID = tenantId;
             }
         }
     }

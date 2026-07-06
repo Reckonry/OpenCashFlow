@@ -4,6 +4,7 @@ using OpenCashFlow.API.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using global::Shared.Data;
 using global::Shared.DTOs;
+using global::Shared.Enums;
 using global::Shared.Models;
 using global::Shared.Models.DTOs;
 
@@ -15,13 +16,14 @@ namespace OpenCashFlow.API.Services
         private readonly IAuthenticationService _authenticationService;
         private readonly IMapper _mapper;
         private readonly ICashService _cashService;
+        private readonly IAuditLogService? _auditLogService;
         private readonly ILogger<PaymentService> _logger;
         private readonly ApplicationDbContext _context;
 
         private static readonly Guid SystemCashPaymentMethodId = Guid.Parse("00000000-0000-0000-0000-000000000002");
         private static readonly string[] CashMethodAliases = new[] { "Cash", "Contanti" };
 
-        public PaymentService(IPaymentRepository PaymentRepository, IAuthenticationService authenticationService, IMapper mapper, ICashService cashService, ILogger<PaymentService> logger, ApplicationDbContext context)
+        public PaymentService(IPaymentRepository PaymentRepository, IAuthenticationService authenticationService, IMapper mapper, ICashService cashService, ILogger<PaymentService> logger, ApplicationDbContext context, IAuditLogService? auditLogService = null)
         {
             _paymentRepository = PaymentRepository;
             _authenticationService = authenticationService;
@@ -29,6 +31,7 @@ namespace OpenCashFlow.API.Services
             _cashService = cashService;
             _logger = logger;
             _context = context;
+            _auditLogService = auditLogService;
         }
 
         public async Task<IEnumerable<Payment_List_DTO>?> GetAllPaymentsAsync(Payment_Filter_DTO filters, CancellationToken cancellationToken)
@@ -45,8 +48,11 @@ namespace OpenCashFlow.API.Services
         public async Task<Payment_Create_DTO?> AddPaymentAsync(Payment_Create_DTO payment, CancellationToken cancellationToken)
         {
             if (payment == null) return null;
+            ValidatePaymentInput(payment.Amount, payment.EntryType, payment.PaymentMethodID, payment.DocumentTypeID, payment.DateIns);
             payment.TenantID = _authenticationService.GetTenantID();
             payment.UserID = _authenticationService.GetUserID();
+            payment.EntryType = NormalizeEntryType(payment.EntryType);
+            payment.DateIns = NormalizeDate(payment.DateIns);
 
             // ✅ IDEMPOTENCY CHECK: Check if payment with this RequestId already exists
             var existingPayment = await _paymentRepository.GetPaymentByRequestIdAsync(payment.RequestId, payment.TenantID, cancellationToken);
@@ -98,6 +104,16 @@ namespace OpenCashFlow.API.Services
                 await transaction.CommitAsync(cancellationToken);
 
                 _logger.LogInformation("Payment transaction committed successfully for PaymentID {PaymentID}", createdPayment.PaymentID);
+                if (_auditLogService != null)
+                {
+                    await _auditLogService.LogEventAsync(
+                    AuditEventType.PaymentCreated,
+                    "Payment",
+                    "Create",
+                    createdPayment.PaymentID.ToString(),
+                    new { createdPayment.Amount, createdPayment.EntryType, createdPayment.PaymentMethodID, createdPayment.DocumentTypeID },
+                    cancellationToken: cancellationToken);
+                }
 
                 return _mapper.Map<Payment_Create_DTO>(createdPayment);
             }
@@ -112,6 +128,9 @@ namespace OpenCashFlow.API.Services
         public async Task<Payment_Update_DTO?> UpdatePaymentAsync(Payment_Detail_DTO payment, CancellationToken cancellationToken)
         {
             if (payment == null) return null;
+            ValidatePaymentInput(payment.Amount, payment.EntryType, payment.PaymentMethodID, payment.DocumentTypeID, payment.DateIns);
+            payment.EntryType = NormalizeEntryType(payment.EntryType);
+            payment.DateIns = NormalizeDate(payment.DateIns);
 
             // Get payment for reading original values (with navigation properties)
             var paymentRead = await _paymentRepository.GetPaymentByIdAsync(payment.PaymentID, _authenticationService.GetTenantID(), cancellationToken);
@@ -143,6 +162,7 @@ namespace OpenCashFlow.API.Services
                 paymentTBE.DocumentTypeID = (Guid)payment.DocumentTypeID;
                 paymentTBE.Description = payment.Description;
                 paymentTBE.EntryType = payment.EntryType;
+                paymentTBE.DateIns = payment.DateIns;
                 paymentTBE.DateEdit = DateTime.UtcNow;
                 paymentTBE.EditedBy = _authenticationService.GetUserID();
 
@@ -257,6 +277,21 @@ namespace OpenCashFlow.API.Services
                 // 4. Commit all changes
                 await transaction.CommitAsync(cancellationToken);
                 _logger.LogInformation("Payment update transaction committed successfully for PaymentID {PaymentID}", payment.PaymentID);
+                if (_auditLogService != null)
+                {
+                    await _auditLogService.LogEventAsync(
+                    AuditEventType.PaymentUpdated,
+                    "Payment",
+                    "Update",
+                    payment.PaymentID.ToString(),
+                    new
+                    {
+                        Amount = new { Before = originalAmount, After = paymentTBE.Amount },
+                        EntryType = new { Before = originalEntryType, After = paymentTBE.EntryType },
+                        PaymentMethodID = new { Before = originalPaymentMethodID, After = paymentTBE.PaymentMethodID }
+                    },
+                    cancellationToken: cancellationToken);
+                }
 
                 return _mapper.Map<Payment_Update_DTO>(updatePayment);
             }
@@ -302,6 +337,16 @@ namespace OpenCashFlow.API.Services
                 // 4. Commit all changes
                 await transaction.CommitAsync(cancellationToken);
                 _logger.LogInformation("Payment delete transaction committed successfully for PaymentID {PaymentID}", PaymentID);
+                if (_auditLogService != null)
+                {
+                    await _auditLogService.LogEventAsync(
+                    AuditEventType.PaymentDeleted,
+                    "Payment",
+                    "SoftDelete",
+                    PaymentID.ToString(),
+                    new { payment.Amount, payment.EntryType, payment.PaymentMethodID },
+                    cancellationToken: cancellationToken);
+                }
 
                 return true;
             }
@@ -350,6 +395,49 @@ namespace OpenCashFlow.API.Services
             }
 
             return false;
+        }
+
+        private static void ValidatePaymentInput(double amount, string? entryType, Guid? paymentMethodId, Guid? documentTypeId, DateTime dateIns)
+        {
+            if (amount <= 0)
+            {
+                throw new ArgumentException("Amount must be greater than zero", nameof(amount));
+            }
+
+            if (paymentMethodId == null || paymentMethodId == Guid.Empty)
+            {
+                throw new ArgumentException("Payment method is required", nameof(paymentMethodId));
+            }
+
+            if (documentTypeId == null || documentTypeId == Guid.Empty)
+            {
+                throw new ArgumentException("Document type is required", nameof(documentTypeId));
+            }
+
+            if (!Enum.TryParse<EntryTypeEnum>(entryType, ignoreCase: true, out _))
+            {
+                throw new ArgumentException("Entry type must be Income or Outcome", nameof(entryType));
+            }
+
+            if (dateIns == default)
+            {
+                throw new ArgumentException("Payment date is required", nameof(dateIns));
+            }
+        }
+
+        private static string NormalizeEntryType(string entryType)
+        {
+            return Enum.Parse<EntryTypeEnum>(entryType, ignoreCase: true).ToString();
+        }
+
+        private static DateTime NormalizeDate(DateTime value)
+        {
+            return value.Kind switch
+            {
+                DateTimeKind.Utc => value,
+                DateTimeKind.Local => value.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+            };
         }
     }
 }

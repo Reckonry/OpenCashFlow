@@ -1,4 +1,5 @@
 using global::Shared.Data;
+using global::Shared.Core;
 using global::Shared.Models;
 using global::Shared.Models.Identity;
 
@@ -12,14 +13,21 @@ namespace  OpenCashFlow.Test.Utilities
             return [
                 new AspNetRole
                 {
-                    RoleID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
-                    RoleName = "Administrator",
+                    RoleID = Configuration.CompanyAdminRoleID,
+                    RoleName = Configuration.CompanyAdminRoleName,
                     DateIns = new DateTime(2025, 6, 13, 22, 24, 27, 530, DateTimeKind.Utc),
                 },
                 new AspNetRole
                 {
-                    RoleID = Guid.Parse("00000000-0000-0000-0000-000000000002"),
-                    RoleName = "Employee",
+                    RoleID = Configuration.EmployeeRoleID,
+                    RoleName = Configuration.EmployeeRoleName,
+                    DateIns = new DateTime(2025, 6, 13, 22, 24, 27, 530, DateTimeKind.Utc),
+                },
+                new AspNetRole
+                {
+                    RoleID = Configuration.InstanceAdminRoleID,
+                    RoleName = Configuration.InstanceAdminRoleName,
+                    IsVisible = false,
                     DateIns = new DateTime(2025, 6, 13, 22, 24, 27, 530, DateTimeKind.Utc),
                 }
             ];
@@ -32,16 +40,16 @@ namespace  OpenCashFlow.Test.Utilities
                 new AspNetUser
                 {
                     UserID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
-                    UserName = "BaronLuca",
+                    UserName = "SeedAdmin",
                     UserAvatar = null,
                     Language = "IT",
                     Country = "IT",
                     Timezone = null,
                     UserTitle = null,
-                    UserFirstName = "Luca",
+                    UserFirstName = "Seed",
                     UserMiddleName = null,
-                    UserLastName = "Baron",
-                    Email = "baron_luca@nestia.local",
+                    UserLastName = "Admin",
+                    Email = "admin.seed@example.local",
                     EmailConfirmed = true,
                     PhoneNumberPrefix = "+39",
                     PhoneNumber = "1234567890",
@@ -89,16 +97,16 @@ namespace  OpenCashFlow.Test.Utilities
                 new AspNetUser
                 {
                     UserID = Guid.Parse("00000000-0000-0000-0000-000000000002"),
-                    UserName = "UserNameTest",
+                    UserName = "SeedUser",
                     UserAvatar = null,
                     Language = "IT",
                     Country = "IT",
                     Timezone = null,
                     UserTitle = null,
-                    UserFirstName = "UserName",
+                    UserFirstName = "Seed",
                     UserMiddleName = null,
-                    UserLastName = "UserSurname",
-                    Email = "usernametest@nestia.local",
+                    UserLastName = "User",
+                    Email = "user.seed@example.local",
                     EmailConfirmed = true,
                     PhoneNumberPrefix = "+39",
                     PhoneNumber = "1234567890",
@@ -146,16 +154,16 @@ namespace  OpenCashFlow.Test.Utilities
                 new AspNetUser
                 {
                     UserID = Guid.Parse("00000000-0000-0000-0000-000000000005"),
-                    UserName = "TPignatta",
+                    UserName = "SeedSecondaryUser",
                     UserAvatar = null,
                     Language = "IT",
                     Country = "IT",
                     Timezone = null,
                     UserTitle = null,
-                    UserFirstName = "Toni",
+                    UserFirstName = "Seed",
                     UserMiddleName = null,
-                    UserLastName = "Pignatta",
-                    Email = "ciccioamante63@aol.com", // Homer Simpson reference
+                    UserLastName = "Secondary",
+                    Email = "secondary.user.seed@example.local",
                     EmailConfirmed = true,
                     PhoneNumberPrefix = "+39",
                     PhoneNumber = "1234567890",

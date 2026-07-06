@@ -10,8 +10,13 @@ namespace OpenCashFlow.App.Controllers
     {
         [HttpGet]
         [Route("Login"), Route("Account/Login")]
-        public IActionResult Login()
+        public async Task<IActionResult> Login(CancellationToken cancellationToken)
         {
+            var setupStatus = await _setupAPIService.GetStatusAsync(cancellationToken);
+            if (setupStatus is { RequiresSetup: true })
+            {
+                return RedirectToAction(nameof(Setup));
+            }
 
             var forceLogin = HttpContext.Request.Query.ContainsKey("ForceLogin");
 
@@ -65,7 +70,7 @@ namespace OpenCashFlow.App.Controllers
                     {
                         Domain = _configuration["Account:CookieDomain"], // Set the cookie domain
                         HttpOnly = true, // Prevent JavaScript access to the cookie
-                        Secure = true,   // Require HTTPS
+                        Secure = Request.IsHttps,
                         SameSite = SameSiteMode.Lax, // SameSite policy
                         Expires = expirationTime
                     };
@@ -77,7 +82,7 @@ namespace OpenCashFlow.App.Controllers
                     {
                         Domain = _configuration["Account:CookieDomain"],
                         HttpOnly = false, // JavaScript can read it
-                        Secure = true,
+                        Secure = Request.IsHttps,
                         SameSite = SameSiteMode.Lax,
                         Expires = expirationTime
                     };
@@ -97,8 +102,8 @@ namespace OpenCashFlow.App.Controllers
                         {
                             Domain = _configuration["Account:CookieDomain"], // Set the cookie domain
                             HttpOnly = true,
-                            Secure = true,
-                            SameSite = SameSiteMode.None,
+                            Secure = Request.IsHttps,
+                            SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
                             Expires = DateTimeOffset.UtcNow.AddMinutes(Configuration.FLCookieDurationMinutes)
                         };
                         Response.Cookies.Append(Configuration.FLCookieName, dataResponse.Data.FastLoginToken, cookieOptions);

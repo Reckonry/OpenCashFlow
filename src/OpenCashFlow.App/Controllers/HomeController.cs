@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Microsoft.AspNetCore.Identity;
 using global::Shared.Services;
+using OpenCashFlow.App.Services;
 
 namespace OpenCashFlow.App.Controllers
 {
@@ -21,7 +22,8 @@ namespace OpenCashFlow.App.Controllers
         public HomeController(IWebHostEnvironment environment, ILogger<HomeController> logger,
             IStringLocalizer<HomeController> localizer, IStringLocalizerFactory localizerFactory,
             AuthenticationAPIService authAPIService, IConfiguration configuration,
-            /*FeatureApiService featureClient,*/ IHttpContextAccessor accessor)
+            /*FeatureApiService featureClient,*/ IHttpContextAccessor accessor,
+            SetupAPIService setupAPIService)
         {
             _logger = logger;
             _environment = environment;
@@ -32,6 +34,7 @@ namespace OpenCashFlow.App.Controllers
             //_featureClient = featureClient;
             //_emailSender = emailSender;
             _accessor = accessor;
+            _setupAPIService = setupAPIService;
         }
 
         [Route("LogOut")]

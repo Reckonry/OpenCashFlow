@@ -6,7 +6,7 @@ using global::Shared.Models;
 
 namespace OpenCashFlow.App.Controllers
 {
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "CompanyAdmin")]
     [Route("[Controller]")]
     public partial class CompanyController : Controller
     {
@@ -30,4 +30,3 @@ namespace OpenCashFlow.App.Controllers
         }
     }
 }
-

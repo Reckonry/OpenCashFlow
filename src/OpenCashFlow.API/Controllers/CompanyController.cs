@@ -22,7 +22,7 @@ namespace OpenCashFlow.API.Controllers
             return Ok(company);
         }
 
-        //todo: [Authorize(Policy = "GIManagers")]
+        //todo: [Authorize(Policy = "InstanceAdmin")]
         [HttpGet("[controller]/View/{TenantID}")]
         public async Task<ActionResult<Company_Detail_DTO>> GetCompanyDetails(Guid TenantID, CancellationToken cancellationToken)
         {
@@ -30,7 +30,7 @@ namespace OpenCashFlow.API.Controllers
             return Ok(company);
         }
 
-        //todo: [Authorize(Policy = "GIManagers")]
+        //todo: [Authorize(Policy = "InstanceAdmin")]
         [HttpGet("[controller]/All")]
         public async Task<ActionResult<IEnumerable<Company_Detail_DTO>>> GetAllCompanies(CancellationToken cancellationToken)
         {

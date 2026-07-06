@@ -26,7 +26,7 @@ namespace Shared.Models
         public Guid? UserID { get; set; }
 
         [Required, MaxLength(50)]
-        public required string Provider { get; set; }  // Es. "Stripe", "PayPal"
+        public required string Provider { get; set; }
 
         [Required, MaxLength(100)]
         public required string ProviderCustomerId { get; set; }  // Es. "cus_ABC123..."

@@ -30,6 +30,15 @@ namespace OpenCashFlow.Test.Factories
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            builder.ConfigureAppConfiguration((context, configBuilder) =>
+            {
+                configBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["RateLimiting:AuthPermitLimit"] = "1000",
+                    ["RateLimiting:AuthWindowSeconds"] = "1"
+                });
+            });
+
             builder.ConfigureServices(services =>
             {
                 // Remove existing DbContext registrations

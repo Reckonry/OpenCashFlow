@@ -34,7 +34,7 @@ namespace Shared.Models
         #endregion
 
         [Required, Column(TypeName = "numeric(18,3)", Order = 10), Display(Name = "Amount")]
-        [Range(0, double.MaxValue)]
+        [Range(0.01, double.MaxValue)]
         public double Amount { get; set; }
         
         [AllowNull, Column(TypeName = "varchar(256)", Order = 11), Display(Name = "EntryType")]

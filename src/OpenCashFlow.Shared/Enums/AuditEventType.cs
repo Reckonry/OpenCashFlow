@@ -29,16 +29,10 @@ namespace Shared.Enums
         CompanyDeleted,
         CompanySettingsChanged,
 
-        // Subscription Management
-        SubscriptionCreated,
-        SubscriptionUpdated,
-        SubscriptionCancelled,
-        SubscriptionReactivated,
-        SubscriptionPlanChanged,
-        SubscriptionExtended,
-        SubscriptionStatusChanged,
-
         // Payment Management
+        PaymentCreated,
+        PaymentUpdated,
+        PaymentDeleted,
         PaymentReceived,
         PaymentFailed,
         PaymentRefunded,
@@ -48,10 +42,7 @@ namespace Shared.Enums
         InvoicePaid,
         InvoiceVoided,
 
-        // Billing Management
-        PlanCreated,
-        PlanUpdated,
-        PlanDeleted,
+        // Financial Adjustments
         CreditApplied,
         DiscountApplied,
 

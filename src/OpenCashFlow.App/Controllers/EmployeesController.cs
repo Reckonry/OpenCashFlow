@@ -7,7 +7,7 @@ using global::Shared.Models;
 
 namespace OpenCashFlow.App.Controllers
 {
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "CompanyAdmin")]
     [Route("[Controller]")]
     public partial class EmployeesController(EmployeeAPIService EmployeeAPIService, CompanyAPIService CompanyAPIService, ILogger<EmployeesController> Logger, RoleAPIService RoleAPIService) : Controller
     {

@@ -1,4 +1,5 @@
 ﻿using OpenCashFlow.API.Services.Interfaces;
+using OpenCashFlow.Application.Payments.Reports;
 using global::Shared.Models;
 
 namespace OpenCashFlow.API.Services
@@ -7,43 +8,53 @@ namespace OpenCashFlow.API.Services
     {
         public async Task<double> GetDailyPaymentsAsync(Guid TenantID, DateTime date, CancellationToken cancellationToken)
         {
-            return await _paymentRepository.GetDailyPaymentAsync(TenantID, date.Date, cancellationToken);
-        }
-
-        public async Task UpdateDailyPaymentAsync(Guid TenantID, DateTime date, double amount, string entryType, CancellationToken cancellationToken)
-        {
-            await _paymentRepository.UpdateDailyPaymentAsync(TenantID, date.Date, amount, entryType, cancellationToken);
-        }
-
-        public async Task DeleteDailyPaymentAsync(Guid TenantID, double amount, DateTime date, string entryType, CancellationToken cancellationToken)
-        {
-            await _paymentRepository.DeleteDailyPaymentAsync(TenantID, date.Date, amount, entryType, cancellationToken);
+            return await _getPaymentReportsUseCase.GetDailyPaymentAsync(
+                new GetDailyPaymentQuery(TenantID, date),
+                cancellationToken);
         }
 
         public async Task<double> GetTotalPaymentsInPeriodAsync(Guid TenantID, DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
         {
-            return await _paymentRepository.GetTotalPaymentsInPeriodAsync(TenantID, startDate.Date, endDate.Date, cancellationToken);
+            return await _getPaymentReportsUseCase.GetTotalInPeriodAsync(
+                new GetPaymentPeriodReportQuery(TenantID, startDate, endDate),
+                cancellationToken);
         }
 
         public async Task<IEnumerable<Payment_DailyPayments>> GetDailyPaymentsInPeriodAsync(Guid TenantID, DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
         {
-            return await _paymentRepository.GetDailyPaymentsInPeriodAsync(TenantID, startDate.Date, endDate.Date, cancellationToken);
+            var payments = await _getPaymentReportsUseCase.GetDailyPaymentsInPeriodAsync(
+                new GetPaymentPeriodReportQuery(TenantID, startDate, endDate),
+                cancellationToken);
+
+            return payments.Select(ToDailyPaymentModel).ToList();
         }
         public async Task<double> GetMonthlyPaymentsAsync(Guid TenantID, int year, int month, CancellationToken cancellationToken)
         {
-            return await _paymentRepository.GetMonthlyPaymentsAsync(TenantID, year, month, cancellationToken);
+            return await _getPaymentReportsUseCase.GetMonthlyPaymentsAsync(
+                new GetPaymentMonthReportQuery(TenantID, year, month),
+                cancellationToken);
         }
         public async Task<IEnumerable<Payment_DailyPayments>> GetAllMonthlyPaymentsAsync(Guid TenantID, int year, int month, CancellationToken cancellationToken)
         {
-            return await _paymentRepository.GetAllMonthlyPaymentsAsync(TenantID, year, month, cancellationToken);
+            var payments = await _getPaymentReportsUseCase.GetAllMonthlyPaymentsAsync(
+                new GetPaymentMonthReportQuery(TenantID, year, month),
+                cancellationToken);
+
+            return payments.Select(ToDailyPaymentModel).ToList();
         }
         public async Task<double> GetYearlyPaymentsAsync(Guid TenantID, int year, CancellationToken cancellationToken)
         {
-            return await _paymentRepository.GetYearlyPaymentsAsync(TenantID, year, cancellationToken);
+            return await _getPaymentReportsUseCase.GetYearlyPaymentsAsync(
+                new GetPaymentYearReportQuery(TenantID, year),
+                cancellationToken);
         }
         public async Task<IEnumerable<Payment_DailyPayments>> GetAllYearlyPaymentsAsync(Guid TenantID, int year, CancellationToken cancellationToken)
         {
-            return await _paymentRepository.GetAllYearlyPaymentsAsync(TenantID, year, cancellationToken);
+            var payments = await _getPaymentReportsUseCase.GetAllYearlyPaymentsAsync(
+                new GetPaymentYearReportQuery(TenantID, year),
+                cancellationToken);
+
+            return payments.Select(ToDailyPaymentModel).ToList();
         }
 
     }

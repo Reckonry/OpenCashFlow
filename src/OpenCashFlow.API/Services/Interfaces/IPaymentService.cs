@@ -31,8 +31,6 @@ namespace OpenCashFlow.API.Services.Interfaces
 
         #region PaymentReports
         Task<double> GetDailyPaymentsAsync(Guid TenantID, DateTime date, CancellationToken cancellationToken);
-        Task UpdateDailyPaymentAsync(Guid TenantID, DateTime date, double amount, string entryType, CancellationToken cancellationToken);
-        Task DeleteDailyPaymentAsync(Guid TenantID, double amount, DateTime date, string entryType, CancellationToken cancellationToken);
         Task<double> GetTotalPaymentsInPeriodAsync(Guid TenantID, DateTime startDate, DateTime endDate, CancellationToken cancellationToken);
         Task<IEnumerable<Payment_DailyPayments>> GetDailyPaymentsInPeriodAsync(Guid TenantID, DateTime startDate, DateTime endDate, CancellationToken cancellationToken);
         Task<double> GetMonthlyPaymentsAsync(Guid TenantID, int year, int month, CancellationToken cancellationToken);

@@ -1,7 +1,21 @@
 using AutoMapper;
-using OpenCashFlow.API.Repositories;
 using OpenCashFlow.API.Services;
 using OpenCashFlow.API.Services.Interfaces;
+using OpenCashFlow.Application.Abstractions;
+using OpenCashFlow.Application.Payments.Repositories;
+using OpenCashFlow.Application.Payments.Calendar;
+using OpenCashFlow.Application.Payments.CreatePayment;
+using OpenCashFlow.Application.Payments.DeletePayment;
+using OpenCashFlow.Application.Payments.GetPaymentDetail;
+using OpenCashFlow.Application.Payments.GetPayments;
+using OpenCashFlow.Application.Payments.PaymentMethods;
+using OpenCashFlow.Application.Payments.Reports;
+using OpenCashFlow.Application.Payments.UpdatePayment;
+using OpenCashFlow.Infrastructure.ApplicationAdapters;
+using OpenCashFlow.Infrastructure.Cash;
+using OpenCashFlow.Infrastructure.Payments;
+using OpenCashFlow.Infrastructure.Payments.Lookups;
+using OpenCashFlow.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -39,6 +53,97 @@ public class PaymentService_Tests
         public Task<bool> ConfirmAccountAsync(Guid TenantID, Guid UserID, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<bool> ResendConfirmationAsync(string usernameOrEmail, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<AuthResult> RegenerateTokenWithUpdatedClaimsAsync(Guid userId, CancellationToken cancellationToken) => throw new NotImplementedException();
+    }
+
+    private sealed class NoOpAuditWriter : IAuditWriter
+    {
+        public Task WritePaymentCreatedAsync(PaymentSnapshot payment, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task WritePaymentUpdatedAsync(PaymentUpdateAudit payment, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task WritePaymentDeletedAsync(PaymentDeletedAudit payment, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
+    private static PaymentService CreatePaymentService(
+        ApplicationDbContext context,
+        IAuthenticationService authService,
+        IMapper mapper,
+        ICashLedgerWriter? cashLedgerWriter = null)
+    {
+        var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
+        var paymentMethodReader = new PaymentMethodReader(context);
+        var paymentMethodWriter = new PaymentMethodWriter(context, NullLogger<PaymentMethodWriter>.Instance);
+        var documentTypeReader = new DocumentTypeReader(context);
+        var documentTypeWriter = new DocumentTypeWriter(context, NullLogger<DocumentTypeWriter>.Instance);
+        var cashLedgerRepository = new CashLedgerRepository(context);
+        var cashLedgerAdapter = new CashLedgerWriterAdapter(cashLedgerRepository);
+        var effectiveCashLedgerWriter = cashLedgerWriter ?? cashLedgerAdapter;
+        var auditWriter = new NoOpAuditWriter();
+        var unitOfWork = new EfUnitOfWork(context);
+
+        var createPaymentOrchestrator = new CreatePaymentOrchestrator(
+            new CreatePaymentUseCase(),
+            new PaymentReaderAdapter(paymentRepository, paymentMethodReader),
+            new PaymentWriterAdapter(paymentRepository),
+            new DailyPaymentWriterAdapter(paymentRepository),
+            effectiveCashLedgerWriter,
+            auditWriter,
+            unitOfWork);
+
+        var updatePaymentOrchestrator = new UpdatePaymentOrchestrator(
+            new UpdatePaymentUseCase(),
+            new PaymentReaderAdapter(paymentRepository, paymentMethodReader),
+            new PaymentWriterAdapter(paymentRepository),
+            new DailyPaymentWriterAdapter(paymentRepository),
+            cashLedgerAdapter,
+            effectiveCashLedgerWriter,
+            auditWriter,
+            unitOfWork);
+
+        var deletePaymentOrchestrator = new DeletePaymentOrchestrator(
+            new DeletePaymentUseCase(),
+            new PaymentReaderAdapter(paymentRepository, paymentMethodReader),
+            new PaymentWriterAdapter(paymentRepository),
+            new DailyPaymentWriterAdapter(paymentRepository),
+            effectiveCashLedgerWriter,
+            auditWriter,
+            unitOfWork);
+
+        return new PaymentService(
+            authService,
+            createPaymentOrchestrator,
+            updatePaymentOrchestrator,
+            deletePaymentOrchestrator,
+            new GetPaymentsUseCase(new PaymentQueryReader(context)),
+            new GetPaymentDetailUseCase(new PaymentQueryReader(context)),
+            new GetPaymentReportsUseCase(new PaymentReportReader(context)),
+            new GetPaymentCalendarUseCase(new PaymentCalendarReader(context)),
+            new GetPaymentMethodsUseCase(paymentMethodReader),
+            new GetPaymentMethodDetailUseCase(paymentMethodReader),
+            new CreatePaymentMethodUseCase(paymentMethodWriter),
+            new UpdatePaymentMethodUseCase(paymentMethodWriter),
+            new DeletePaymentMethodUseCase(paymentMethodWriter),
+            new OpenCashFlow.Application.Payments.DocumentTypes.GetDocumentTypesUseCase(documentTypeReader),
+            new OpenCashFlow.Application.Payments.DocumentTypes.GetDocumentTypeDetailUseCase(documentTypeReader),
+            new OpenCashFlow.Application.Payments.DocumentTypes.CreateDocumentTypeUseCase(documentTypeWriter),
+            new OpenCashFlow.Application.Payments.DocumentTypes.UpdateDocumentTypeUseCase(documentTypeWriter),
+            new OpenCashFlow.Application.Payments.DocumentTypes.DeleteDocumentTypeUseCase(documentTypeWriter),
+            NullLogger<PaymentService>.Instance);
+    }
+
+    private sealed class FailingCashLedgerWriter : ICashLedgerWriter
+    {
+        public Task ApplyPaymentAsync(Guid tenantId, Guid paymentId, decimal delta, Guid userId, CancellationToken cancellationToken = default)
+        {
+            throw new InvalidOperationException("Simulated cash ledger failure for testing atomicity");
+        }
+
+        public Task ReapplyPaymentAsync(Guid tenantId, Guid paymentId, decimal delta, Guid userId, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Simulated cash ledger failure for testing atomicity");
+
+        public Task UpdatePaymentAsync(Guid tenantId, Guid paymentId, decimal originalDelta, decimal newDelta, Guid userId, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Simulated cash ledger failure for testing atomicity");
+
+        public Task VoidPaymentAsync(Guid tenantId, Guid paymentId, decimal originalAmount, Guid userId, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Simulated cash ledger failure for testing atomicity");
     }
 
     [Fact]
@@ -116,7 +221,7 @@ public class PaymentService_Tests
         var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
         var mapper = CreateMapper();
         var authService = new StubAuthenticationService(companyId, userId);
-        var paymentService = new PaymentService(paymentRepository, authService, mapper, cashService, NullLogger<PaymentService>.Instance, context);
+        var paymentService = CreatePaymentService(context, authService, mapper);
 
         var deleted = await paymentService.DeletePaymentAsync(paymentId, CancellationToken.None);
 
@@ -198,7 +303,7 @@ public class PaymentService_Tests
             cfg.CreateMap<Payment, Payment_Create_DTO>();
         });
         var authService = new StubAuthenticationService(companyId, userId);
-        var paymentService = new PaymentService(paymentRepository, authService, mapper, cashService, NullLogger<PaymentService>.Instance, context);
+        var paymentService = CreatePaymentService(context, authService, mapper);
 
         var paymentDto = new Payment_Create_DTO
         {
@@ -297,7 +402,7 @@ public class PaymentService_Tests
 
         await context.SaveChangesAsync();
 
-        // Create a mock CashService that throws an exception
+        // Create a cash ledger writer that throws an exception
         var mockCashService = new FailingCashService();
         var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
         var mapper = CreateMapper(cfg =>
@@ -306,7 +411,7 @@ public class PaymentService_Tests
             cfg.CreateMap<Payment, Payment_Create_DTO>();
         });
         var authService = new StubAuthenticationService(companyId, userId);
-        var paymentService = new PaymentService(paymentRepository, authService, mapper, mockCashService, NullLogger<PaymentService>.Instance, context);
+        var paymentService = CreatePaymentService(context, authService, mapper, new FailingCashLedgerWriter());
 
         var paymentDto = new Payment_Create_DTO
         {
@@ -321,15 +426,15 @@ public class PaymentService_Tests
             DateIns = DateTime.UtcNow
         };
 
-        // Act & Assert - Should throw exception from CashService
+        // Act & Assert - Should throw exception from the Application cash ledger port
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await paymentService.AddPaymentAsync(paymentDto, CancellationToken.None));
 
         // Verify the exception message matches what we expect
-        Assert.Contains("Simulated cash service failure", exception.Message);
+        Assert.Contains("Simulated cash ledger failure", exception.Message);
     }
 
-    // Mock ICashService that always fails for testing atomicity
+    // Mock ICashService retained for constructor compatibility in update/delete paths.
     private sealed class FailingCashService : ICashService
     {
         public Task ApplyPaymentAsync(Guid companyId, Guid paymentId, decimal amount, string userId, CancellationToken ct)
@@ -445,7 +550,7 @@ public class PaymentService_Tests
             cfg.CreateMap<Payment, Payment_Update_DTO>();
         });
         var authService = new StubAuthenticationService(companyId, userId);
-        var paymentService = new PaymentService(paymentRepository, authService, mapper, cashService, NullLogger<PaymentService>.Instance, context);
+        var paymentService = CreatePaymentService(context, authService, mapper);
 
         // 1. Create payment with CASH method
         var createDto = new Payment_Create_DTO
@@ -610,7 +715,7 @@ public class PaymentService_Tests
             cfg.CreateMap<Payment, Payment_Update_DTO>();
         });
         var authService = new StubAuthenticationService(companyId, userId);
-        var paymentService = new PaymentService(paymentRepository, authService, mapper, cashService, NullLogger<PaymentService>.Instance, context);
+        var paymentService = CreatePaymentService(context, authService, mapper);
 
         // 1. Create payment with CASH 100€
         var createDto = new Payment_Create_DTO
@@ -745,7 +850,7 @@ public class PaymentService_Tests
             cfg.CreateMap<Payment, Payment_Update_DTO>();
         });
         var authService = new StubAuthenticationService(companyId, userId);
-        var paymentService = new PaymentService(paymentRepository, authService, mapper, cashService, NullLogger<PaymentService>.Instance, context);
+        var paymentService = CreatePaymentService(context, authService, mapper);
 
         // 1. Create INCOME payment with CASH 100€
         var createDto = new Payment_Create_DTO
@@ -868,7 +973,7 @@ public class PaymentService_Tests
             cfg.CreateMap<Payment, Payment_Update_DTO>();
         });
         var authService = new StubAuthenticationService(companyId, userId);
-        var paymentService = new PaymentService(paymentRepository, authService, mapper, cashService, NullLogger<PaymentService>.Instance, context);
+        var paymentService = CreatePaymentService(context, authService, mapper);
 
         // 1. Create payment with CASH 100€
         var createDto = new Payment_Create_DTO
@@ -990,7 +1095,7 @@ public class PaymentService_Tests
             cfg.CreateMap<Payment, Payment_Update_DTO>();
         });
         var authService = new StubAuthenticationService(companyId, userId);
-        var paymentService = new PaymentService(paymentRepository, authService, mapper, cashService, NullLogger<PaymentService>.Instance, context);
+        var paymentService = CreatePaymentService(context, authService, mapper);
 
         // 1. Create payment with CASH 100€
         var createDto = new Payment_Create_DTO

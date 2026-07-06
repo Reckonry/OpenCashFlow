@@ -2,7 +2,7 @@ name: opencashflow-dev
 services:
   db:
     image: postgres:16-alpine
-    container_name: gi-db
+    container_name: opencashflow-dev-db
     environment:
       - POSTGRES_DB=opencashflow
       - POSTGRES_USER=postgres
@@ -20,8 +20,8 @@ services:
   api:
     build:
       context: .
-      dockerfile: OpenCashFlow.API/Dockerfile
-    container_name: gi-api
+      dockerfile: src/OpenCashFlow.API/Dockerfile
+    container_name: opencashflow-dev-api
     depends_on:
       db:
         condition: service_healthy
@@ -31,34 +31,31 @@ services:
       # DB connection for EF Core
       - DEFAULT_CONN_STRING=Host=db;Database=opencashflow;Username=postgres;Password=postgres
       # JWT settings (match App)
-      - JwtSettings__SecretKey=dev-secret-change-me
+      - JwtSettings__SecretKey=local-development-secret-key-change-before-production-0001
       - JwtSettings__Issuer=http://api:8080
       - JwtSettings__Audience=http://app:8080
       # CORS origins (host ports)
       - Cors__AllowedOrigins__0=http://localhost:5200
-      - Cors__AllowedOrigins__1=http://localhost:5300
-      - Cors__AllowedOrigins__2=http://localhost:5400
       - Cors__AllowCredentials=false
+      # Self-hosted defaults: no SaaS billing gate
       # Fallback AppUrl
       - AppUrl=http://localhost:5200
-      # Auto-apply migrations on startup (dev only)
+      # Auto-apply migrations on startup for local Docker installs
       - AUTO_MIGRATE=true
       # Email placeholders to satisfy DI
-      - EmailConfiguration__From=noreply@example.local
-      - EmailConfiguration__SmtpServer=smtp.example.local
+      - EmailConfiguration__From=${SMTP_FROM:-noreply@example.local}
+      - EmailConfiguration__SmtpServer=${SMTP_HOST:-}
       - EmailConfiguration__Port=465
-      - EmailConfiguration__UserName=test
-      - EmailConfiguration__Password=test
+      - EmailConfiguration__UserName=${SMTP_USERNAME:-}
+      - EmailConfiguration__Password=${SMTP_PASSWORD:-}
     ports:
       - "5100:8080"
-    env_file:
-      - env/.env.api.development
 
   app:
     build:
       context: .
-      dockerfile: OpenCashFlow.App/Dockerfile
-    container_name: gi-app
+      dockerfile: src/OpenCashFlow.App/Dockerfile
+    container_name: opencashflow-dev-app
     depends_on:
       - api
     environment:
@@ -70,52 +67,20 @@ services:
       - Account__FastLogin=http://localhost:5200/FastLogin
       - Account__Logout=http://localhost:5200/Logout
       - Account__AppUrl=http://localhost:5200/
-      - Account__CookieDomain=.localhost
-      - Account__SessionCookieDomain=.localhost
+      - Account__CookieDomain=
+      - Account__SessionCookieDomain=
       # JWT settings (must match API)
-      - JwtSettings__SecretKey=dev-secret-change-me
+      - JwtSettings__SecretKey=local-development-secret-key-change-before-production-0001
       - JwtSettings__Issuer=http://api:8080
       - JwtSettings__Audience=http://app:8080
       # Email placeholders to satisfy DI
-      - EmailConfiguration__From=noreply@example.local
-      - EmailConfiguration__SmtpServer=smtp.example.local
+      - EmailConfiguration__From=${SMTP_FROM:-noreply@example.local}
+      - EmailConfiguration__SmtpServer=${SMTP_HOST:-}
       - EmailConfiguration__Port=465
-      - EmailConfiguration__UserName=test
-      - EmailConfiguration__Password=test
+      - EmailConfiguration__UserName=${SMTP_USERNAME:-}
+      - EmailConfiguration__Password=${SMTP_PASSWORD:-}
     ports:
       - "5200:8080"
-
-  web:
-    build:
-      context: .
-      dockerfile: OpenCashFlow/Dockerfile
-    container_name: gi-web
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      # Email placeholders to satisfy DI if used
-      - EmailConfiguration__From=noreply@example.local
-      - EmailConfiguration__SmtpServer=smtp.example.local
-      - EmailConfiguration__Port=465
-      - EmailConfiguration__UserName=test
-      - EmailConfiguration__Password=test
-    ports:
-      - "5300:8080"
-
-  landing:
-    build:
-      context: .
-      dockerfile: OpenCashFlow-Landing/Dockerfile
-    container_name: gi-landing
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      # Email placeholders to satisfy DI
-      - EmailConfiguration__From=noreply@example.local
-      - EmailConfiguration__SmtpServer=smtp.example.local
-      - EmailConfiguration__Port=465
-      - EmailConfiguration__UserName=test
-      - EmailConfiguration__Password=test
-    ports:
-      - "5400:8080"
 
 volumes:
   pgdata:

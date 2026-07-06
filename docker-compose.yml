@@ -2,7 +2,7 @@ name: opencashflow
 services:
   db:
     image: postgres:16-alpine
-    container_name: gi-db
+    container_name: opencashflow-db
     environment:
       - POSTGRES_DB=opencashflow
       - POSTGRES_USER=postgres
@@ -20,87 +20,56 @@ services:
   api:
     build:
       context: .
-      dockerfile: OpenCashFlow.API/Dockerfile
-    container_name: gi-api
+      dockerfile: src/OpenCashFlow.API/Dockerfile
+    container_name: opencashflow-api
     depends_on:
       db:
         condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - DEFAULT_CONN_STRING=Host=db;Database=opencashflow;Username=postgres;Password=postgres
-      - JwtSettings__SecretKey=${JWT_SECRET:-change-me}
-      - JwtSettings__Issuer=https://api.opencashflow.cloud
-      - JwtSettings__Audience=https://app.opencashflow.cloud
-      - Cors__AllowedOrigins__0=https://app.opencashflow.cloud
-      - Cors__AllowedOrigins__1=https://opencashflow.cloud
+      - AUTO_MIGRATE=true
+      - JwtSettings__SecretKey=${JWT_SECRET:-local-development-secret-key-change-before-production-0001}
+      - JwtSettings__Issuer=http://api:8080
+      - JwtSettings__Audience=http://app:8080
+      - Cors__AllowedOrigins__0=http://localhost:5200
       - Cors__AllowCredentials=false
-      - AppUrl=https://app.opencashflow.cloud
-      - EmailConfiguration__From=noreply@opencashflow.cloud
-      - EmailConfiguration__SmtpServer=smtps.aruba.it
-      - EmailConfiguration__Port=465
-      - EmailConfiguration__UserName=noreply@opencashflow.cloud
-      - EmailConfiguration__Password=${SMTP_PASSWORD:-set-me}
-    env_file:
-      - env/.env.api.production
+      - AppUrl=${APP_URL:-http://localhost:5200}
+      - EmailConfiguration__From=${SMTP_FROM:-noreply@example.local}
+      - EmailConfiguration__SmtpServer=${SMTP_HOST:-}
+      - EmailConfiguration__Port=${SMTP_PORT:-587}
+      - EmailConfiguration__UserName=${SMTP_USERNAME:-}
+      - EmailConfiguration__Password=${SMTP_PASSWORD:-}
     ports:
       - "5100:8080"
 
   app:
     build:
       context: .
-      dockerfile: OpenCashFlow.App/Dockerfile
-    container_name: gi-app
+      dockerfile: src/OpenCashFlow.App/Dockerfile
+    container_name: opencashflow-app
     depends_on:
-      - api
+      api:
+        condition: service_started
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - Account__API=http://api:8080
-      - Account__Login=https://app.opencashflow.cloud/Login
-      - Account__FastLogin=https://app.opencashflow.cloud/FastLogin
-      - Account__Logout=https://app.opencashflow.cloud/Logout
-      - Account__AppUrl=https://app.opencashflow.cloud/
-      - Account__CookieDomain=.opencashflow.cloud
-      - Account__SessionCookieDomain=.opencashflow.cloud
-      - JwtSettings__SecretKey=${JWT_SECRET:-change-me}
-      - JwtSettings__Issuer=https://api.opencashflow.cloud
-      - JwtSettings__Audience=https://app.opencashflow.cloud
-      - EmailConfiguration__From=noreply@opencashflow.cloud
-      - EmailConfiguration__SmtpServer=smtps.aruba.it
-      - EmailConfiguration__Port=465
-      - EmailConfiguration__UserName=noreply@opencashflow.cloud
-      - EmailConfiguration__Password=${SMTP_PASSWORD:-set-me}
+      - Account__Login=${APP_URL:-http://localhost:5200}/Login
+      - Account__FastLogin=${APP_URL:-http://localhost:5200}/FastLogin
+      - Account__Logout=${APP_URL:-http://localhost:5200}/Logout
+      - Account__AppUrl=${APP_URL:-http://localhost:5200}/
+      - Account__CookieDomain=
+      - Account__SessionCookieDomain=
+      - JwtSettings__SecretKey=${JWT_SECRET:-local-development-secret-key-change-before-production-0001}
+      - JwtSettings__Issuer=http://api:8080
+      - JwtSettings__Audience=http://app:8080
+      - EmailConfiguration__From=${SMTP_FROM:-noreply@example.local}
+      - EmailConfiguration__SmtpServer=${SMTP_HOST:-}
+      - EmailConfiguration__Port=${SMTP_PORT:-587}
+      - EmailConfiguration__UserName=${SMTP_USERNAME:-}
+      - EmailConfiguration__Password=${SMTP_PASSWORD:-}
     ports:
       - "5200:8080"
-
-  web:
-    build:
-      context: .
-      dockerfile: OpenCashFlow/Dockerfile
-    container_name: gi-web
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - EmailConfiguration__From=noreply@opencashflow.cloud
-      - EmailConfiguration__SmtpServer=smtps.aruba.it
-      - EmailConfiguration__Port=465
-      - EmailConfiguration__UserName=noreply@opencashflow.cloud
-      - EmailConfiguration__Password=${SMTP_PASSWORD:-set-me}
-    ports:
-      - "5300:8080"
-
-  landing:
-    build:
-      context: .
-      dockerfile: OpenCashFlow-Landing/Dockerfile
-    container_name: gi-landing
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - EmailConfiguration__From=noreply@opencashflow.cloud
-      - EmailConfiguration__SmtpServer=smtps.aruba.it
-      - EmailConfiguration__Port=465
-      - EmailConfiguration__UserName=noreply@opencashflow.cloud
-      - EmailConfiguration__Password=${SMTP_PASSWORD:-set-me}
-    ports:
-      - "5400:8080"
 
 volumes:
   pgdata:

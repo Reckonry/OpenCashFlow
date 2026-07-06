@@ -22,8 +22,8 @@ Questo repo usa **3 workflow** principali:
 
 | Scopo | Globale | Per componente |
 |---|---|---|
-| **RC (Staging)** | `vX.Y.Z-RC` | `app-vX.Y.Z-RC`, `api-…-RC`, `landing-…-RC`, `www-…-RC`, `admin-…-RC` |
-| **Produzione** | `vX.Y.Z` | `app-vX.Y.Z`, `api-vX.Y.Z`, `landing-vX.Y.Z`, `www-vX.Y.Z`, `admin-vX.Y.Z` |
+| **RC (Staging)** | `vX.Y.Z-RC` | `app-vX.Y.Z-RC`, `api-vX.Y.Z-RC` |
+| **Produzione** | `vX.Y.Z` | `app-vX.Y.Z`, `api-vX.Y.Z` |
 
 - In **Prod**, il gate verifica che esista una RC compatibile (es. `v1.2.3` ⇒ richiede `v1.2.3-RC`).  
 - Per i tag **per componente** in Prod, è accettata anche la presenza del **plain tag** RC corrispondente (`app-v1.2.3` accetta `app-v1.2.3-RC` *o* `app-v1.2.3`).
@@ -38,7 +38,7 @@ Per **ogni componente** abilitato in RC vengono generati **due** artifact omonim
 - `*-docker/*.tar.gz`  
   Bundle Docker salvato con `docker save | gzip` (allegato anche alla Release RC). Gli artifact vengono trasferiti tra workflow usando `dawidd6/action-download-artifact@v11`, che permette di scaricare artifact da run precedenti (non possibile con `actions/download-artifact` ufficiale).
 
-**Nomi standard:** `app-publish`, `api-publish`, `landing-publish`, `www-publish`, `admin-publish` e `app-docker`, `api-docker`, `landing-docker`, `www-docker`, `admin-docker`.
+**Nomi standard:** `app-publish`, `api-publish`, `app-docker`, `api-docker`.
 
 ---
 
@@ -137,8 +137,8 @@ This repository uses **3 main workflows**:
 
 | Purpose | Global | Per component |
 |---|---|---|
-| **RC (Staging)** | `vX.Y.Z-RC` | `app-vX.Y.Z-RC`, `api-…-RC`, `landing-…-RC`, `www-…-RC`, `admin-…-RC` |
-| **Production** | `vX.Y.Z` | `app-vX.Y.Z`, `api-vX.Y.Z`, `landing-vX.Y.Z`, `www-vX.Y.Z`, `admin-vX.Y.Z` |
+| **RC (Staging)** | `vX.Y.Z-RC` | `app-vX.Y.Z-RC`, `api-vX.Y.Z-RC` |
+| **Production** | `vX.Y.Z` | `app-vX.Y.Z`, `api-vX.Y.Z` |
 
 - In **Production**, a gate checks that a compatible RC exists (e.g. `v1.2.3` ⇒ requires `v1.2.3-RC`).  
 - For **per-component** Production tags, the corresponding **plain RC tag** is also accepted (`app-v1.2.3` accepts `app-v1.2.3-RC` *or* `app-v1.2.3`).
@@ -156,9 +156,9 @@ For **each enabled component** in RC, **two artifacts** are generated:
   Artifacts are transferred between workflows using `dawidd6/action-download-artifact@v11`, which allows downloading artifacts from previous runs (not supported by the official `actions/download-artifact`).
 
 **Standard names:**  
-`app-publish`, `api-publish`, `landing-publish`, `www-publish`, `admin-publish`  
+`app-publish`, `api-publish`  
 and  
-`app-docker`, `api-docker`, `landing-docker`, `www-docker`, `admin-docker`.
+`app-docker`, `api-docker`.
 
 ---
 

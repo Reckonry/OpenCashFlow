@@ -6,13 +6,12 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-COPY ["OpenCashFlow.App/OpenCashFlow.App.csproj", "OpenCashFlow.App/"]
-COPY ["OpenCashFlow.Shared/OpenCashFlow.Shared.csproj", "OpenCashFlow.Shared/"]
-RUN dotnet restore "OpenCashFlow.App/OpenCashFlow.App.csproj"
+COPY ["src/OpenCashFlow.App/OpenCashFlow.App.csproj", "src/OpenCashFlow.App/"]
+COPY ["src/OpenCashFlow.Shared/OpenCashFlow.Shared.csproj", "src/OpenCashFlow.Shared/"]
+RUN dotnet restore "src/OpenCashFlow.App/OpenCashFlow.App.csproj"
 
 COPY . .
-WORKDIR "/src/OpenCashFlow.App"
-RUN dotnet publish "OpenCashFlow.App.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "src/OpenCashFlow.App/OpenCashFlow.App.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app

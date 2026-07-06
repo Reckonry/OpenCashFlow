@@ -16,9 +16,13 @@
 ![Serilog](https://img.shields.io/badge/Logging-Serilog-informational?style=for-the-badge)
 ![Slack Integration](https://img.shields.io/badge/Slack-Integration-4A154B?logo=slack&style=for-the-badge)
 
-**OpenCashFlow** is an open-source platform for managing, tracking, and analyzing cash flows and receipts.
-It is designed to provide full transparency over incoming and outgoing payments, with strong auditability,
-advanced filtering, and access control.
+**OpenCashFlow** is an open-source, self-hosted platform for managing, tracking, and analyzing cash flows and receipts.
+It is designed to be installed by a company on its own server, with full transparency over incoming and outgoing payments,
+strong auditability, advanced filtering, and access control.
+
+OpenCashFlow can support multi-company scenarios for consultants, accounting studios, groups, or shared internal instances.
+That model is not a mandatory SaaS monetization layer. Managed hosting, setup, support, or consulting can be offered as
+external services, but they are not required to run the software.
 
 ---
 
@@ -65,17 +69,66 @@ See the `LICENSE` file for full details.
 - **Database:** PostgreSQL
 - **Logging:** Serilog with Slack notifier and retry strategy
 - **Security:** JWT authentication + ACL (multi-company ready)
+- **Runtime components:** API, Web App, Shared domain library, tests
 
 ---
 
 ## 🧰 Quick Setup
 
-> ⚙️ Requirements: .NET 9 SDK, PostgreSQL, Visual Studio or VS Code
+### Requirements
+
+- .NET 9 SDK
+- PostgreSQL 16+ for local/manual runs
+- Docker and Docker Compose for containerized runs
+- Visual Studio, Rider, or VS Code
+
+### Restore, build, and test
 
 ```bash
 git clone https://github.com/<your-username>/OpenCashFlow.git
 cd OpenCashFlow
 
-# Configure your connection string in appsettings.Development.json
-dotnet ef database update
-dotnet run
+dotnet restore OpenCashFlow.sln
+dotnet build OpenCashFlow.sln --configuration Release --no-restore
+dotnet test OpenCashFlow.sln --configuration Release --no-build
+```
+
+### Run with Docker Compose
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+Local URLs:
+
+- Web app: `http://localhost:5200`
+- API: `http://localhost:5100`
+- PostgreSQL: `localhost:5432`
+
+Development compose file:
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+Development URLs:
+
+- Web app: `http://localhost:5200`
+- API: `http://localhost:5100`
+
+### Self-hosted defaults
+
+Standard installations do not require Stripe, SaaS plans, active subscriptions, a separate Admin application, or a real
+SMTP provider to start the core application. Historical Billing/Stripe schema artifacts may still exist for migration
+compatibility, but they are not part of the core runtime.
+
+For manual local runs, configure `DEFAULT_CONN_STRING` or `ConnectionStrings:DefaultConnectionString` and then run the project you need:
+
+```bash
+dotnet run --project src/OpenCashFlow.API/OpenCashFlow.API.csproj
+dotnet run --project src/OpenCashFlow.App/OpenCashFlow.App.csproj
+```
+
+Detailed installation, migration, backup, and reverse proxy notes are in
+[Docs/installation.md](Docs/installation.md).

@@ -1,3 +1,4 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35931.197
@@ -6,16 +7,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCashFlow.App", "src\Ope
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCashFlow.Shared", "src\OpenCashFlow.Shared\OpenCashFlow.Shared.csproj", "{B4B82C3D-9E6D-4CEA-9BD1-11DD9BDEAB27}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCashFlow.Api", "src\OpenCashFlow.Api\OpenCashFlow.Api.csproj", "{F77C6DA6-3895-4625-86C5-05B6C4560685}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCashFlow.API", "src\OpenCashFlow.API\OpenCashFlow.API.csproj", "{F77C6DA6-3895-4625-86C5-05B6C4560685}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\ci-cd-production.yml = .github\workflows\ci-cd-production.yml
+		.github\workflows\ci-staging-to-production.yml = .github\workflows\ci-staging-to-production.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCashFlow.Test", "tests\OpenCashFlow.Test\OpenCashFlow.Test.csproj", "{5423D44D-9DC2-4C9F-97B9-CDF94BC45F2A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCashFlow.Admin", "src\OpenCashFlow.Admin\OpenCashFlow.Admin.csproj", "{AF677083-21F6-42F8-8970-BAA54EB84C88}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{165EE37F-DFDD-4A81-8772-333E2E004B84}"
 EndProject
@@ -43,22 +42,17 @@ Global
 		{5423D44D-9DC2-4C9F-97B9-CDF94BC45F2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5423D44D-9DC2-4C9F-97B9-CDF94BC45F2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5423D44D-9DC2-4C9F-97B9-CDF94BC45F2A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AF677083-21F6-42F8-8970-BAA54EB84C88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AF677083-21F6-42F8-8970-BAA54EB84C88}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AF677083-21F6-42F8-8970-BAA54EB84C88}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AF677083-21F6-42F8-8970-BAA54EB84C88}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3049FEC3-3C66-4529-AAF6-8238FBEF19E7} = {165EE37F-DFDD-4A81-8772-333E2E004B84}
+		{B4B82C3D-9E6D-4CEA-9BD1-11DD9BDEAB27} = {165EE37F-DFDD-4A81-8772-333E2E004B84}
+		{F77C6DA6-3895-4625-86C5-05B6C4560685} = {165EE37F-DFDD-4A81-8772-333E2E004B84}
+		{5423D44D-9DC2-4C9F-97B9-CDF94BC45F2A} = {9BE36780-75DB-4BFE-BCA3-1799549F4556}
+	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {96084FEB-7ED7-4016-933A-7C16D6B806C8}
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{5423D44D-9DC2-4C9F-97B9-CDF94BC45F2A} = {9BE36780-75DB-4BFE-BCA3-1799549F4556}
-		{B4B82C3D-9E6D-4CEA-9BD1-11DD9BDEAB27} = {165EE37F-DFDD-4A81-8772-333E2E004B84}
-		{3049FEC3-3C66-4529-AAF6-8238FBEF19E7} = {165EE37F-DFDD-4A81-8772-333E2E004B84}
-		{F77C6DA6-3895-4625-86C5-05B6C4560685} = {165EE37F-DFDD-4A81-8772-333E2E004B84}
-		{AF677083-21F6-42F8-8970-BAA54EB84C88} = {165EE37F-DFDD-4A81-8772-333E2E004B84}
 	EndGlobalSection
 EndGlobal

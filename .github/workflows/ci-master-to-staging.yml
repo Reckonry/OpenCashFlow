@@ -1,15 +1,18 @@
-name: CI - Master ➜ RC Prerelease (Global & Per-Component)
+name: CI - RC Prerelease Artifacts
 
 on:
   push:
     tags:
-      # Global RC tags
       - "v*.*.*-RC"
       - "v*.*.*.*-RC"
+      - "app-v*.*.*-RC"
+      - "app-v*.*.*.*-RC"
+      - "api-v*.*.*-RC"
+      - "api-v*.*.*.*-RC"
   workflow_dispatch:
     inputs:
       tag:
-        description: "Version tag to use for RC run (e.g., v1.2.3-RC, app-v1.2.3-RC)"
+        description: "Version tag to use for RC run (e.g. v1.2.3-RC, app-v1.2.3-RC)"
         required: true
         type: string
       create_release:
@@ -33,290 +36,131 @@ env:
 
 jobs:
   build-and-test:
-    name: 🔧 Build & Test
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
-      - name: ⬇️ Checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 🧰 Setup .NET
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: 📦 Restore
+      - name: Restore
         run: dotnet restore OpenCashFlow.sln
 
-      - name: 🛠️ Build
+      - name: Build
         run: dotnet build OpenCashFlow.sln --configuration Release --no-restore
 
-      - name: 🧪 Test
+      - name: Test
         run: dotnet test OpenCashFlow.sln --configuration Release --no-build
 
-  promote-master-to-staging:
-    name: 🔀 Merge master ➜ staging (optional)
-    needs: build-and-test
-    if: github.ref == 'refs/heads/master' && vars.ENABLE_BRANCH_MERGE == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: ⬇️ Checkout (full)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: 🧰 Configure git
-        run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"
-
-      - name: 🔀 Merge master ➜ staging
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ "${ACT}" = "true" ]; then
-            echo "[ACT] Simulating merge master -> staging"
-            echo "In a real run this would execute:"
-            echo "  git fetch origin"
-            echo "  git checkout staging"
-            echo "  git merge origin/master"
-            echo "  git push origin staging"
-            echo ""
-            echo "⚠️  To merge manually:"
-            echo "  git checkout staging && git merge master && git push origin staging"
-            exit 0
-          fi
-
-          git fetch origin
-          git checkout staging
-          git pull origin staging
-          git merge origin/master --no-ff --commit -m "chore(ci): auto-merge master into staging"
-          git push https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}.git HEAD:staging
-
   rc-release:
-    name: 🚀 RC Prerelease (Artifacts)
+    name: RC Artifacts
     needs: build-and-test
     if: ${{ (startsWith(github.ref, 'refs/tags/') && endsWith(github.ref_name, '-RC')) || (github.event_name == 'workflow_dispatch' && endsWith(github.event.inputs.tag, '-RC')) }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: ⬇️ Checkout (full)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 🧰 Setup .NET
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: 🐳 Setup Docker Buildx
+      - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 📁 Prep artifacts dir
+      - name: Prepare artifacts
         run: mkdir -p artifacts/docker
 
-      - name: 🔎 Determine scope (global vs component)
+      - name: Determine scope
         id: scope
         shell: bash
         run: |
+          set -euo pipefail
           TAG="${TAG_NAME}"
 
           DEPLOY_APP=0
           DEPLOY_API=0
-          DEPLOY_LANDING=0
-          DEPLOY_WWW=0
-          DEPLOY_ADMIN=0
 
           if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?-RC$ ]]; then
-            # Global RC: build everything
             DEPLOY_APP=1
             DEPLOY_API=1
-            DEPLOY_LANDING=1
-            DEPLOY_ADMIN=1
-            DEPLOY_WWW=1
           elif [[ "$TAG" =~ ^app-v.*-RC$ ]]; then
             DEPLOY_APP=1
           elif [[ "$TAG" =~ ^api-v.*-RC$ ]]; then
             DEPLOY_API=1
-          elif [[ "$TAG" =~ ^landing-v.*-RC$ ]]; then
-            DEPLOY_LANDING=1
-          elif [[ "$TAG" =~ ^www-v.*-RC$ ]]; then
-            DEPLOY_WWW=1
-          elif [[ "$TAG" =~ ^admin-v.*-RC$ ]]; then
-            DEPLOY_ADMIN=1
           else
-            echo "Unrecognized RC tag format"; exit 1
+            echo "Unrecognized RC tag format: $TAG"
+            exit 1
           fi
 
-          echo "DEPLOY_APP=$DEPLOY_APP"           >> $GITHUB_OUTPUT
-          echo "DEPLOY_API=$DEPLOY_API"           >> $GITHUB_OUTPUT
-          echo "DEPLOY_LANDING=$DEPLOY_LANDING"   >> $GITHUB_OUTPUT
-          echo "DEPLOY_WWW=$DEPLOY_WWW"           >> $GITHUB_OUTPUT
-          echo "DEPLOY_ADMIN=$DEPLOY_ADMIN"       >> $GITHUB_OUTPUT
+          echo "DEPLOY_APP=$DEPLOY_APP" >> "$GITHUB_OUTPUT"
+          echo "DEPLOY_API=$DEPLOY_API" >> "$GITHUB_OUTPUT"
 
-      # ---------- BUILD/PUBLISH ----------
-      - name: 📦 Publish App
+      - name: Publish App
         if: steps.scope.outputs.DEPLOY_APP == '1'
-        run: |
-          cd OpenCashFlow.App
-          dotnet publish -c Release -o publish
+        run: dotnet publish src/OpenCashFlow.App/OpenCashFlow.App.csproj --configuration Release --output artifacts/app-publish
 
-      - name: 📤 Upload App publish artifact
+      - name: Upload App publish artifact
         if: steps.scope.outputs.DEPLOY_APP == '1'
         uses: actions/upload-artifact@v4
         with:
           name: app-publish
-          path: OpenCashFlow.App/publish/
+          path: artifacts/app-publish/
 
-      - name: 🧩 Build Docker image – App
+      - name: Build App Docker image
         if: steps.scope.outputs.DEPLOY_APP == '1'
         run: |
           TAG="${TAG_NAME}"
           REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           IMAGE="ghcr.io/${REPO}-app:${TAG}"
-          echo "Building $IMAGE using Dockerfile OpenCashFlow.App/Dockerfile from repo root..."
-          ls -la OpenCashFlow.App/Dockerfile
-          docker build -t "$IMAGE" -f OpenCashFlow.App/Dockerfile .
-          docker save "$IMAGE" | gzip > artifacts/docker/app-${TAG}.tar.gz
+          docker build -t "$IMAGE" -f src/OpenCashFlow.App/Dockerfile .
+          docker save "$IMAGE" | gzip > "artifacts/docker/app-${TAG}.tar.gz"
 
-      - name: 📤 Upload App docker image artifact
+      - name: Upload App Docker artifact
         if: steps.scope.outputs.DEPLOY_APP == '1'
         uses: actions/upload-artifact@v4
         with:
           name: app-docker
           path: artifacts/docker/app-${{ env.TAG_NAME }}.tar.gz
 
-      - name: 📦 Publish API
+      - name: Publish API
         if: steps.scope.outputs.DEPLOY_API == '1'
-        run: |
-          cd OpenCashFlow.Api
-          dotnet publish -c Release -o publish
+        run: dotnet publish src/OpenCashFlow.API/OpenCashFlow.API.csproj --configuration Release --output artifacts/api-publish
 
-      - name: 📤 Upload API publish artifact
+      - name: Upload API publish artifact
         if: steps.scope.outputs.DEPLOY_API == '1'
         uses: actions/upload-artifact@v4
         with:
           name: api-publish
-          path: OpenCashFlow.Api/publish/
+          path: artifacts/api-publish/
 
-      - name: 🧩 Build Docker image – API
+      - name: Build API Docker image
         if: steps.scope.outputs.DEPLOY_API == '1'
         run: |
           TAG="${TAG_NAME}"
           REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           IMAGE="ghcr.io/${REPO}-api:${TAG}"
-          echo "Building $IMAGE using Dockerfile OpenCashFlow.Api/Dockerfile from repo root..."
-          ls -la OpenCashFlow.Api/Dockerfile
-          docker build -t "$IMAGE" -f OpenCashFlow.Api/Dockerfile .
-          docker save "$IMAGE" | gzip > artifacts/docker/api-${TAG}.tar.gz
+          docker build -t "$IMAGE" -f src/OpenCashFlow.API/Dockerfile .
+          docker save "$IMAGE" | gzip > "artifacts/docker/api-${TAG}.tar.gz"
 
-      - name: 📤 Upload API docker image artifact
+      - name: Upload API Docker artifact
         if: steps.scope.outputs.DEPLOY_API == '1'
         uses: actions/upload-artifact@v4
         with:
           name: api-docker
           path: artifacts/docker/api-${{ env.TAG_NAME }}.tar.gz
 
-      - name: 📦 Publish Landing
-        if: steps.scope.outputs.DEPLOY_LANDING == '1'
-        run: |
-          cd OpenCashFlow.Landing
-          dotnet publish -c Release -o publish
-
-      - name: 📤 Upload Landing publish artifact
-        if: steps.scope.outputs.DEPLOY_LANDING == '1'
-        uses: actions/upload-artifact@v4
-        with:
-          name: landing-publish
-          path: OpenCashFlow.Landing/publish/
-
-      - name: 🧩 Build Docker image – Landing
-        if: steps.scope.outputs.DEPLOY_LANDING == '1'
-        run: |
-          TAG="${TAG_NAME}"
-          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE="ghcr.io/${REPO}-landing:${TAG}"
-          echo "Building $IMAGE using Dockerfile OpenCashFlow.Landing/Dockerfile from repo root..."
-          ls -la OpenCashFlow.Landing/Dockerfile
-          docker build -t "$IMAGE" -f OpenCashFlow.Landing/Dockerfile .
-          docker save "$IMAGE" | gzip > artifacts/docker/landing-${TAG}.tar.gz
-
-      - name: 📤 Upload Landing docker image artifact
-        if: steps.scope.outputs.DEPLOY_LANDING == '1'
-        uses: actions/upload-artifact@v4
-        with:
-          name: landing-docker
-          path: artifacts/docker/landing-${{ env.TAG_NAME }}.tar.gz
-
-      - name: 📦 Publish WWW
-        if: steps.scope.outputs.DEPLOY_WWW == '1'
-        run: |
-          cd OpenCashFlow.Core
-          dotnet publish -c Release -o publish
-
-      - name: 📤 Upload WWW publish artifact
-        if: steps.scope.outputs.DEPLOY_WWW == '1'
-        uses: actions/upload-artifact@v4
-        with:
-          name: www-publish
-          path: OpenCashFlow.Core/publish/
-
-      - name: 🧩 Build Docker image – WWW
-        if: steps.scope.outputs.DEPLOY_WWW == '1'
-        run: |
-          TAG="${TAG_NAME}"
-          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE="ghcr.io/${REPO}-www:${TAG}"
-          echo "Building $IMAGE using Dockerfile OpenCashFlow.Core/Dockerfile from repo root..."
-          ls -la OpenCashFlow.Core/Dockerfile
-          docker build -t "$IMAGE" -f OpenCashFlow.Core/Dockerfile .
-          docker save "$IMAGE" | gzip > artifacts/docker/www-${TAG}.tar.gz
-
-      - name: 📤 Upload WWW docker image artifact
-        if: steps.scope.outputs.DEPLOY_WWW == '1'
-        uses: actions/upload-artifact@v4
-        with:
-          name: www-docker
-          path: artifacts/docker/www-${{ env.TAG_NAME }}.tar.gz
-
-      - name: 📦 Publish Admin
-        if: steps.scope.outputs.DEPLOY_ADMIN == '1'
-        run: |
-          cd OpenCashFlow.Admin
-          dotnet publish -c Release -o publish
-
-      - name: 📤 Upload Admin publish artifact
-        if: steps.scope.outputs.DEPLOY_ADMIN == '1'
-        uses: actions/upload-artifact@v4
-        with:
-          name: admin-publish
-          path: OpenCashFlow.Admin/publish/
-
-      - name: 🧩 Build Docker image – Admin
-        if: steps.scope.outputs.DEPLOY_ADMIN == '1'
-        run: |
-          TAG="${TAG_NAME}"
-          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE="ghcr.io/${REPO}-admin:${TAG}"
-          if [ -f OpenCashFlow.Admin/Dockerfile ]; then
-            echo "Building $IMAGE using Dockerfile OpenCashFlow.Admin/Dockerfile from repo root..."
-            ls -la OpenCashFlow.Admin/Dockerfile
-            docker build -t "$IMAGE" -f OpenCashFlow.Admin/Dockerfile .
-            docker save "$IMAGE" | gzip > artifacts/docker/admin-${TAG}.tar.gz
-          else
-            echo "⚠️ Dockerfile for Admin not found at OpenCashFlow.Admin/Dockerfile. Skipping image build."
-          fi
-
-      - name: 📤 Upload Admin docker image artifact
-        if: steps.scope.outputs.DEPLOY_ADMIN == '1' && hashFiles('OpenCashFlow.Admin/Dockerfile') != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: admin-docker
-          path: artifacts/docker/admin-${{ env.TAG_NAME }}.tar.gz
-
-      - name: 🏷️ Create/Update GitHub Release (RC) + attach Docker bundles
+      - name: Create/Update GitHub Release
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.create_release == 'true' }}
         uses: softprops/action-gh-release@v2
         with:
@@ -324,7 +168,6 @@ jobs:
           name: ${{ env.TAG_NAME }}
           prerelease: true
           generate_release_notes: true
-          files: |
-            artifacts/docker/*.tar.gz
+          files: artifacts/docker/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

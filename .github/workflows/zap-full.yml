@@ -21,13 +21,9 @@ jobs:
       # URLs exposed by docker-compose (host published ports)
       API_BASE_URL: http://localhost:5100
       APP_BASE_URL: http://localhost:5200
-      WEB_BASE_URL: http://localhost:5300
-      LANDING_BASE_URL: http://localhost:5400
 
       ZAP_API_TARGET: http://host.docker.internal:5100
       ZAP_APP_TARGET: http://host.docker.internal:5200
-      ZAP_WEB_TARGET: http://host.docker.internal:5300
-      ZAP_LANDING_TARGET: http://host.docker.internal:5400
 
       REPORTS_DIR: ${{ github.workspace }}/reports
 
@@ -52,7 +48,7 @@ jobs:
         run: |
           # Variabili consumate dal tuo compose
           cat > .env << 'EOF'
-          JWT_SECRET=test-secret-key-for-ci-only
+          JWT_SECRET=test-secret-key-for-ci-only-change-before-prod-0001
           SMTP_PASSWORD=dummy-password
           EOF
 
@@ -91,8 +87,6 @@ jobs:
 
           wait_url "${API_BASE_URL}" "API"
           wait_url "${APP_BASE_URL}" "APP"
-          wait_url "${WEB_BASE_URL}" "WEB" || true
-          wait_url "${LANDING_BASE_URL}" "LANDING" || true
 
       - name: Pre-pull ZAP image (amd64)
         run: |
@@ -158,31 +152,6 @@ jobs:
           hline 60
           echo "📦 Reports directory:"; ls -lh "${REPORTS_DIR}" || true
           hline 60
-
-      # (Optional) enable scans for Web / Landing
-      #- name: Run ZAP scan (WEB - optional)
-      #  run: |
-      #    set -euo pipefail
-      #    docker run --rm --platform linux/amd64 --add-host host.docker.internal:host-gateway \
-      #      -v "${REPORTS_DIR}:/zap/wrk" \
-      #      "${ZAP_IMAGE}" \
-      #      /zap/zap-full-scan.py \
-      #        -I \
-      #        -t "${ZAP_WEB_TARGET}" \
-      #        -r "zap-web-report.html" \
-      #        -x "zap-web-report.xml" || true
-
-      #- name: Run ZAP scan (LANDING - optional)
-      #  run: |
-      #    set -euo pipefail
-      #    docker run --rm --platform linux/amd64 --add-host host.docker.internal:host-gateway \
-      #      -v "${REPORTS_DIR}:/zap/wrk" \
-      #      "${ZAP_IMAGE}" \
-      #      /zap/zap-full-scan.py \
-      #        -I \
-      #        -t "${ZAP_LANDING_TARGET}" \
-      #        -r "zap-landing-report.html" \
-      #        -x "zap-landing-report.xml" || true
 
       - name: Quality Gate (Medium/High thresholds)
         run: |

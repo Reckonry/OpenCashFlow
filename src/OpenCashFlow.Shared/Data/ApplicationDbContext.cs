@@ -49,7 +49,7 @@ namespace Shared.Data
         public DbSet<Payment_DailyPayments> DailyCash_DS { get; set; }
         #endregion
 
-        #region Billing
+        #region Legacy SaaS Schema
         public DbSet<Plan> Plan_DS { get; set; }
         public DbSet<Company_Subscription> Company_Subscription_DS { get; set; }
         public DbSet<Company_Renewal> Company_Renewal_DS { get; set; }
@@ -124,58 +124,6 @@ namespace Shared.Data
             });
 
 
-            modelBuilder.Entity<Company>().HasData(
-                new Company
-                {
-                    TenantID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
-                    CompanyName = "Company SRL",
-                    MaxUsers = 50,
-                    Avatar = null,
-                    BusinessCategory = null,
-                    EstimatedAnnualRevenue = null,
-                    BusinessHours = null,
-                    Website = null,
-                    SocialLinks = null,
-                    InternalRating = null,
-                    PriorityLevel = 0,
-                    VATRates = 22,
-                    VAT = null,
-                    SDI = null,
-                    TIN = null,
-                    AttorneyName = null,
-                    AttorneyMiddleName = null,
-                    AttorneySurname = null,
-                    IBAN = null,
-                    BIC = null,
-                    SWIFT = null,
-                    PreferredPaymentMethod = null,
-                    MonthlyExpenseLimit = null,
-                    BaseDiscountPercentage = null,
-                    StartingContract = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                    EndingContract = new DateTime(2035, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                    LicenseType = null,
-                    GdprConsent = false,
-                    GdprConsentDate = null,
-                    ContractAcepted = false,
-                    ContractAcceptedDate = null,
-                    ContractVersion = null,
-                    DefaultCurrency = "&euro;",
-                    DefaultTimezone = null,
-                    MobilePin = null,
-                    MasterPassword = null,
-                    IsActive = true,
-                    StatusID = null,
-                    IsDeleted = false,
-                    IsDeletedBy = null,
-                    IsDeletedWhy = null,
-                    DateDeleted = null,
-                    CreatedBy = null,
-                    DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                    EditedBy = null,
-                    DateEdit = null,
-                    CompanySecret = "bS8gmD_6L7zsADdQ17Q-MeeWB1yB5G4k0Q2Wy72yaFdEEJVzy2DhcinmWR3Tx45e68Bn8_b1t-1F35Co9uf_Bg",
-                }
-            );
             modelBuilder.Entity<Payment_Method_LookUps>().HasData(
                 new Payment_Method_LookUps
                 {
@@ -199,32 +147,6 @@ namespace Shared.Data
                     Visible = true,
                     DisplayOrder = 0,
                     TenantID = null,
-                    IsDeleted = false,
-                    CreatedBy = null,
-                    DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                },
-                // new Payment_Method_LookUps
-                // {
-                //     PaymentMethodID = Guid.Parse("00000000-0000-0000-0000-000000000003"),
-                //     PaymentMethodName = "Custom method",
-                //     PaymentMethodDescription = "method that can be deleted from company",
-                //     PaymentMethodIcon = null,
-                //     Visible = true,
-                //     DisplayOrder = 0,
-                //     TenantID = null,
-                //     IsDeleted = false,
-                //     CreatedBy = null,
-                //     DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                // },
-                new Payment_Method_LookUps
-                {
-                    PaymentMethodID = Guid.Parse("00000000-0000-0000-0000-000000000004"),
-                    PaymentMethodName = "Cash",
-                    PaymentMethodDescription = "Cash payments",
-                    PaymentMethodIcon = null,
-                    Visible = true,
-                    DisplayOrder = 0,
-                    TenantID = Guid.Parse("00000000-0000-0000-0000-000000000002"), // secondary company
                     IsDeleted = false,
                     CreatedBy = null,
                     DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
@@ -266,223 +188,28 @@ namespace Shared.Data
                     DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
                     DateEdit = null,
                     EditedBy = null
-                },
-                new Payment_DocumentType_LookUp()
-                {
-                    DocumentTypeID = Guid.Parse("00000000-0000-0000-0000-000000000002"),
-                    DocumentTypeName = "Second receipt type",
-                    DocumentTypeDescription = "Receipt that can be deleted",
-                    DocumentTypeIcon = null,
-                    Visible = true,
-                    DisplayOrder = 0,
-                    TenantID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
-                    IsDeleted = false,
-                    IsDeletedBy = null,
-                    IsDeletedWhy = null,
-                    DateDeleted = null,
-                    CreatedBy = null,
-                    DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                    DateEdit = null,
-                    EditedBy = null
-                },
-                new Payment_DocumentType_LookUp()
-                {
-                    DocumentTypeID = Guid.Parse("00000000-0000-0000-0000-000000000003"),
-                    DocumentTypeName = "Third receipt type",
-                    DocumentTypeDescription = "Receipt that cannot be deleted",
-                    DocumentTypeIcon = null,
-                    Visible = true,
-                    DisplayOrder = 0,
-                    TenantID = Guid.Parse("00000000-0000-0000-0000-000000000002"),
-                    IsDeleted = false,
-                    IsDeletedBy = null,
-                    IsDeletedWhy = null,
-                    DateDeleted = null,
-                    CreatedBy = null,
-                    DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                    DateEdit = null,
-                    EditedBy = null
                 }
             );
             modelBuilder.Entity<AspNetRole>().HasData(
                 new AspNetRole
                 {
                     RoleID = Configuration.AdministratorRoleID,
-                    RoleName = "Administrator",
+                    RoleName = Configuration.CompanyAdminRoleName,
                     DateIns = new DateTime(2025, 6, 13, 22, 24, 27, 530, DateTimeKind.Utc),
                 },
                 new AspNetRole
                 {
                     RoleID = Configuration.EmployeeRoleID,
-                    RoleName = "Employee",
+                    RoleName = Configuration.EmployeeRoleName,
                     DateIns = new DateTime(2025, 6, 13, 22, 24, 27, 530, DateTimeKind.Utc),
                 },
                 new AspNetRole
                 {
-                    RoleID = Configuration.GIManagerRoleID,
-                    RoleName = "GIManagers",
+                    RoleID = Configuration.InstanceAdminRoleID,
+                    RoleName = Configuration.InstanceAdminRoleName,
                     IsVisible = false,
                     DateIns = new DateTime(2025, 6, 13, 22, 24, 27, 530, DateTimeKind.Utc),
                 }
-            );
-            modelBuilder.Entity<AspNetUser>().HasData(
-                new AspNetUser
-                {
-                    UserID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
-                    UserName = "Nestia User",
-                    UserAvatar = null,
-                    Language = "IT",
-                    Country = "IT",
-                    Timezone = null,
-                    UserTitle = null,
-                    UserFirstName = "Luca",
-                    UserMiddleName = null,
-                    UserLastName = "Baron",
-                    Email = "baron_luca@nestia.local",
-                    EmailConfirmed = true,
-                    PhoneNumberPrefix = "+39",
-                    PhoneNumber = "1234567890",
-                    PhoneNumberConfirmed = true,
-                    Gender = "Male",
-                    Pronouns = null,
-                    DoB = null,
-                    PoB = null,
-                    SoB = null,
-                    CoB = null,
-                    Nationality = "Italian",
-                    PrivacyPolicyAcepted = false,
-                    PrivacyPolicyAcceptedDate = null,
-                    PrivacyPolicyVersion = null,
-                    PasswordHash = "1J9y+7vb6zYOykos44K6UIWBs6yTIR52f6yJVE55N13=",
-                    PasswordSalt = "4cB1NmkERk/TiMqrc2DONA==",
-                    MobilePin = null,
-                    SecurityStamp = null,
-                    ConcurrencyStamp = null,
-                    PasswordQuestion = "a",
-                    PasswordAnswer = "dewafev[pi[w",
-                    TwoFactorEnabled = false,
-                    AccountValidUntil = null,
-                    PasswordValidUntil = null,
-                    LockoutEnd = null,
-                    LockoutEnabled = false,
-                    IsApproved = true,
-                    AccessFailedCount = 0,
-                    FailedPasswordAnswerAttemptCount = 0,
-                    LastLoginDate = null,
-                    LastAppLoginDate = null,
-                    IpAddress = null,
-                    LastKnownLocation = null,
-                    IsDeleted = false,
-                    IsDeletedBy = null,
-                    IsDeletedWhy = null,
-                    CreatedBy = null,
-                    DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                    EditedBy = null,
-                    DateEdit = null,
-                    QuickLoginPinHash = "lRpzr9szDAtETNymgtm7JJQT3PRIfmnjllPASChPxHk=",
-                    UserMustChangePassword = false,
-                    QuickLoginPinValidUntil = null
-                }/*,
-                new AspNetUser
-                {
-                    UserID = Guid.Parse("00000000-0000-0000-0000-000000000005"),
-                    UserName = "TPignatta",
-                    UserAvatar = null,
-                    Language = "IT",
-                    Country = "IT",
-                    Timezone = null,
-                    UserTitle = null,
-                    UserFirstName = "Toni",
-                    UserMiddleName = null,
-                    UserLastName = "Pignatta",
-                    Email = "ciccioamante63@aol.com",
-                    EmailConfirmed = true,
-                    PhoneNumberPrefix = "+39",
-                    PhoneNumber = "3589545874",
-                    PhoneNumberConfirmed = true,
-                    Gender = "Male",
-                    Pronouns = null,
-                    DoB = null,
-                    PoB = null,
-                    SoB = null,
-                    CoB = null,
-                    Nationality = "Italian",
-                    PrivacyPolicyAcepted = false,
-                    PrivacyPolicyAcceptedDate = null,
-                    PrivacyPolicyVersion = null,
-                    PasswordHash = "1J9y+7vb6zYOykos49K6UIWBs6yTIR52f6yJVE55N18=",
-                    PasswordSalt = "4cB1NmkERk/TiMqrc2DONA==",
-                    MobilePin = null,
-                    SecurityStamp = null,
-                    ConcurrencyStamp = null,
-                    PasswordQuestion = "a",
-                    PasswordAnswer = "dewafev[pi[w",
-                    TwoFactorEnabled = false,
-                    AccountValidUntil = null,
-                    PasswordValidUntil = null,
-                    LockoutEnd = null,
-                    LockoutEnabled = false,
-                    IsApproved = true,
-                    AccessFailedCount = 0,
-                    FailedPasswordAnswerAttemptCount = 0,
-                    LastLoginDate = null,
-                    LastAppLoginDate = null,
-                    IpAddress = null,
-                    LastKnownLocation = null,
-                    IsDeleted = false,
-                    IsDeletedBy = null,
-                    IsDeletedWhy = null,
-                    CreatedBy = null,
-                    DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                    EditedBy = null,
-                    DateEdit = null,
-                    QuickLoginPinHash = "edjJX2/CU8gLFoHEWzgNBH5848+Z+OLGTczG7PrEujI=",
-                    UserMustChangePassword = false,
-                    QuickLoginPinValidUntil = null
-                }*/
-            );
-            modelBuilder.Entity<AspNetUserRole>().HasData(
-                new AspNetUserRole { RoleID = Configuration.AdministratorRoleID, UserID = Guid.Parse("00000000-0000-0000-0000-000000000001") },
-                new AspNetUserRole { RoleID = Configuration.GIManagerRoleID, UserID = Guid.Parse("00000000-0000-0000-0000-000000000001") }
-                );
-            modelBuilder.Entity<Company_Staff>().HasData(
-               new Company_Staff
-               {
-                   TenantID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
-                   UserID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
-                   TimeCost = null,
-                   BadgeID = null,
-                   OutOfReports = false,
-                   RequireShiftCheckIn = true,
-                   LastCheckIn = null,
-                   LastCheckOut = null,
-                   Role = null,
-                   Department = null,
-                   WorkLocation = null,
-                   ContractStartDate = null,
-                   ContractEndDate = null,
-                   MonthlySalary = null,
-                   Bonuses = null,
-                   Allowances = null,
-                   EmploymentType = null,
-                   OvertimeRate = null,
-                   Skills = null,
-                   SupervisorID = null,
-                   AccessLevel = null,
-                   AuthorizedAreas = null,
-                   InternalNotes = null,
-                   PublicNotes = null,
-                   ExternalSystemReference = null,
-                   SyncStatus = null,
-                   IsDeleted = false,
-                   IsDeletedBy = null,
-                   IsDeletedWhy = null,
-                   DateDeleted = null,
-                   CreatedBy = null,
-                   DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                   DateEdit = null,
-                   EditedBy = null
-               }
             );
         }
 
@@ -491,7 +218,7 @@ namespace Shared.Data
             if (!optionsBuilder.IsConfigured)
             {
                 var connectionString = Environment.GetEnvironmentVariable("DEFAULT_CONN_STRING") ??
-                "Host=localhost;Database=opencashflow.cloud;Username=postgres;Password=postgres;";
+                "Host=localhost;Database=opencashflow;Username=postgres;Password=postgres;";
                 optionsBuilder.UseNpgsql(connectionString);
             }
         }

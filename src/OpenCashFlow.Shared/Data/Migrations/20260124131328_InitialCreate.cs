@@ -945,20 +945,10 @@ namespace Shared.Data.Migrations
                 columns: new[] { "RoleID", "ConcurrencyStamp", "CreatedBy", "DateEdit", "DateIns", "EditedBy", "IsDeleted", "IsDeletedBy", "IsDeletedWhy", "IsVisible", "RoleImage", "RoleName" },
                 values: new object[,]
                 {
-                    { new Guid("00000000-0000-0000-0000-000000000001"), null, null, null, new DateTime(2025, 6, 13, 22, 24, 27, 530, DateTimeKind.Utc), null, false, null, null, true, null, "Administrator" },
+                    { new Guid("00000000-0000-0000-0000-000000000001"), null, null, null, new DateTime(2025, 6, 13, 22, 24, 27, 530, DateTimeKind.Utc), null, false, null, null, true, null, "CompanyAdmin" },
                     { new Guid("00000000-0000-0000-0000-000000000002"), null, null, null, new DateTime(2025, 6, 13, 22, 24, 27, 530, DateTimeKind.Utc), null, false, null, null, true, null, "Employee" },
-                    { new Guid("00000000-9999-9999-9999-000000000009"), null, null, null, new DateTime(2025, 6, 13, 22, 24, 27, 530, DateTimeKind.Utc), null, false, null, null, false, null, "GIManagers" }
+                    { new Guid("00000000-0000-0000-0000-000000000003"), null, null, null, new DateTime(2025, 6, 13, 22, 24, 27, 530, DateTimeKind.Utc), null, false, null, null, false, null, "InstanceAdmin" }
                 });
-
-            migrationBuilder.InsertData(
-                table: "AspNetUsers",
-                columns: new[] { "UserID", "AccessFailedCount", "AccountValidUntil", "CoB", "ConcurrencyStamp", "Country", "CreatedBy", "DateEdit", "DateIns", "DoB", "EditedBy", "Email", "EmailConfirmed", "FailedPasswordAnswerAttemptCount", "Gender", "IpAddress", "IsApproved", "IsDeleted", "IsDeletedBy", "IsDeletedWhy", "Language", "LastAppLoginDate", "LastKnownLocation", "LastLoginDate", "LockoutEnabled", "LockoutEnd", "MobilePin", "Nationality", "PasswordAnswer", "PasswordHash", "PasswordQuestion", "PasswordResetToken", "PasswordResetTokenValidUntil", "PasswordSalt", "PasswordValidUntil", "PhoneNumber", "PhoneNumberConfirmed", "PhoneNumberPrefix", "PoB", "PrivacyPolicyAcceptedDate", "PrivacyPolicyAcepted", "PrivacyPolicyVersion", "Pronouns", "QuickLoginPinHash", "QuickLoginPinValidUntil", "SecurityStamp", "SoB", "Timezone", "TwoFactorEnabled", "UserAvatar", "UserFirstName", "UserLastName", "UserMiddleName", "UserMustChangePassword", "UserName", "UserTitle" },
-                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), 0, null, null, null, "IT", null, null, new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc), null, null, "baron_luca@nestia.local", true, 0, "Male", null, true, false, null, null, "IT", null, null, null, false, null, null, "Italian", "dewafev[pi[w", "1J9y+7vb6zYOykos44K6UIWBs6yTIR52f6yJVE55N13=", "a", null, null, "4cB1NmkERk/TiMqrc2DONA==", null, "1234567890", true, "+39", null, null, false, null, null, "lRpzr9szDAtETNymgtm7JJQT3PRIfmnjllPASChPxHk=", null, null, null, null, false, null, "Luca", "Baron", null, false, "Nestia User", null });
-
-            migrationBuilder.InsertData(
-                table: "Companies",
-                columns: new[] { "TenantID", "AttorneyMiddleName", "AttorneyName", "AttorneySurname", "Avatar", "BIC", "BaseDiscountPercentage", "BillingEmail", "BusinessCategory", "BusinessHours", "CompanyName", "CompanySecret", "ContractAcceptedDate", "ContractAcepted", "ContractVersion", "CreatedBy", "DateDeleted", "DateEdit", "DateIns", "DefaultCountry", "DefaultCurrency", "DefaultLanguage", "DefaultTimezone", "EditedBy", "EndingContract", "EstimatedAnnualRevenue", "GdprConsent", "GdprConsentDate", "IBAN", "InternalRating", "IsActive", "IsDeleted", "IsDeletedBy", "IsDeletedWhy", "LicenseType", "MasterPassword", "MaxUsers", "MobilePin", "MonthlyExpenseLimit", "PreferredPaymentMethod", "PriorityLevel", "SDI", "SWIFT", "SocialLinks", "StartingContract", "StatusID", "StripeCustomerID", "StripeDefaultPaymentMethodID", "TIN", "VAT", "VATRates", "Website" },
-                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), null, null, null, null, null, null, null, null, null, "Company SRL", "bS8gmD_6L7zsADdQ17Q-MeeWB1yB5G4k0Q2Wy72yaFdEEJVzy2DhcinmWR3Tx45e68Bn8_b1t-1F35Co9uf_Bg", null, false, null, null, null, null, new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc), null, "&euro;", null, null, null, new DateTime(2035, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc), null, false, null, null, null, true, false, null, null, null, null, 50L, null, null, null, 0, null, null, null, new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc), null, null, null, null, null, 22.0, null });
 
             migrationBuilder.InsertData(
                 table: "Payments_DocumentTypes_LookUps",
@@ -966,8 +956,6 @@ namespace Shared.Data.Migrations
                 values: new object[,]
                 {
                     { new Guid("00000000-0000-0000-0000-000000000001"), null, null, null, new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc), 0, "Invoice", null, "Invoice", null, false, null, null, null, true },
-                    { new Guid("00000000-0000-0000-0000-000000000002"), null, null, null, new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc), 0, "Receipt that can be deleted", null, "Second receipt type", null, false, null, null, new Guid("00000000-0000-0000-0000-000000000001"), true },
-                    { new Guid("00000000-0000-0000-0000-000000000003"), null, null, null, new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc), 0, "Receipt that cannot be deleted", null, "Third receipt type", null, false, null, null, new Guid("00000000-0000-0000-0000-000000000002"), true },
                     { new Guid("00000000-0000-0000-0000-000000000099"), null, null, null, new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc), 0, "Receipt", null, "Receipt", null, false, null, null, null, true }
                 });
 
@@ -977,23 +965,8 @@ namespace Shared.Data.Migrations
                 values: new object[,]
                 {
                     { new Guid("00000000-0000-0000-0000-000000000001"), null, null, null, new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc), 1, null, false, null, null, "Payment By Credit Card", null, "Credit Card", null, true },
-                    { new Guid("00000000-0000-0000-0000-000000000002"), null, null, null, new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc), 0, null, false, null, null, "Cash payments", null, "Cash", null, true },
-                    { new Guid("00000000-0000-0000-0000-000000000004"), null, null, null, new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc), 0, null, false, null, null, "Cash payments", null, "Cash", new Guid("00000000-0000-0000-0000-000000000002"), true }
+                    { new Guid("00000000-0000-0000-0000-000000000002"), null, null, null, new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc), 0, null, false, null, null, "Cash payments", null, "Cash", null, true }
                 });
-
-            migrationBuilder.InsertData(
-                table: "AspNetUsersRoles",
-                columns: new[] { "RoleID", "UserID" },
-                values: new object[,]
-                {
-                    { new Guid("00000000-0000-0000-0000-000000000001"), new Guid("00000000-0000-0000-0000-000000000001") },
-                    { new Guid("00000000-9999-9999-9999-000000000009"), new Guid("00000000-0000-0000-0000-000000000001") }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Companies_Staff",
-                columns: new[] { "UserID", "AccessLevel", "Allowances", "AuthorizedAreas", "BadgeID", "Bonuses", "ContractEndDate", "ContractStartDate", "CreatedBy", "DateDeleted", "DateEdit", "DateIns", "Department", "EditedBy", "EmploymentType", "ExternalSystemReference", "InternalNotes", "IsDeleted", "IsDeletedBy", "IsDeletedWhy", "LastCheckIn", "LastCheckOut", "MonthlySalary", "OutOfReports", "OvertimeRate", "PublicNotes", "RequireShiftCheckIn", "Role", "Skills", "SupervisorID", "SyncStatus", "TenantID", "TimeCost", "WorkLocation" },
-                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), null, null, null, null, null, null, null, null, null, null, new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc), null, null, null, null, null, false, null, null, null, null, null, false, null, null, true, null, null, null, null, new Guid("00000000-0000-0000-0000-000000000001"), null, null });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Admin_AuditLog_EventType_Timestamp",

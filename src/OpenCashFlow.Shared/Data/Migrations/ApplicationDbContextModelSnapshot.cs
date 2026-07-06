@@ -388,25 +388,6 @@ namespace Shared.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Companies", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            TenantID = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CompanyName = "Company SRL",
-                            CompanySecret = "bS8gmD_6L7zsADdQ17Q-MeeWB1yB5G4k0Q2Wy72yaFdEEJVzy2DhcinmWR3Tx45e68Bn8_b1t-1F35Co9uf_Bg",
-                            ContractAcepted = false,
-                            DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                            DefaultCurrency = "&euro;",
-                            EndingContract = new DateTime(2035, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                            GdprConsent = false,
-                            IsActive = true,
-                            IsDeleted = false,
-                            MaxUsers = 50L,
-                            PriorityLevel = 0,
-                            StartingContract = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                            VATRates = 22.0
-                        });
                 });
 
             modelBuilder.Entity("Shared.Models.Company_Address", b =>
@@ -1130,17 +1111,6 @@ namespace Shared.Data.Migrations
                     b.HasKey("UserID");
 
                     b.ToTable("Companies_Staff", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            UserID = new Guid("00000000-0000-0000-0000-000000000001"),
-                            DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                            IsDeleted = false,
-                            OutOfReports = false,
-                            RequireShiftCheckIn = true,
-                            TenantID = new Guid("00000000-0000-0000-0000-000000000001")
-                        });
                 });
 
             modelBuilder.Entity("Shared.Models.Company_Subscription", b =>
@@ -1385,7 +1355,7 @@ namespace Shared.Data.Migrations
                             DateIns = new DateTime(2025, 6, 13, 22, 24, 27, 530, DateTimeKind.Utc),
                             IsDeleted = false,
                             IsVisible = true,
-                            RoleName = "Administrator"
+                            RoleName = "CompanyAdmin"
                         },
                         new
                         {
@@ -1397,11 +1367,11 @@ namespace Shared.Data.Migrations
                         },
                         new
                         {
-                            RoleID = new Guid("00000000-9999-9999-9999-000000000009"),
+                            RoleID = new Guid("00000000-0000-0000-0000-000000000003"),
                             DateIns = new DateTime(2025, 6, 13, 22, 24, 27, 530, DateTimeKind.Utc),
                             IsDeleted = false,
                             IsVisible = false,
-                            RoleName = "GIManagers"
+                            RoleName = "InstanceAdmin"
                         });
                 });
 
@@ -1725,38 +1695,6 @@ namespace Shared.Data.Migrations
                     b.HasKey("UserID");
 
                     b.ToTable("AspNetUsers");
-
-                    b.HasData(
-                        new
-                        {
-                            UserID = new Guid("00000000-0000-0000-0000-000000000001"),
-                            AccessFailedCount = 0,
-                            Country = "IT",
-                            DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                            Email = "baron_luca@nestia.local",
-                            EmailConfirmed = true,
-                            FailedPasswordAnswerAttemptCount = 0,
-                            Gender = "Male",
-                            IsApproved = true,
-                            IsDeleted = false,
-                            Language = "IT",
-                            LockoutEnabled = false,
-                            Nationality = "Italian",
-                            PasswordAnswer = "dewafev[pi[w",
-                            PasswordHash = "1J9y+7vb6zYOykos44K6UIWBs6yTIR52f6yJVE55N13=",
-                            PasswordQuestion = "a",
-                            PasswordSalt = "4cB1NmkERk/TiMqrc2DONA==",
-                            PhoneNumber = "1234567890",
-                            PhoneNumberConfirmed = true,
-                            PhoneNumberPrefix = "+39",
-                            PrivacyPolicyAcepted = false,
-                            QuickLoginPinHash = "lRpzr9szDAtETNymgtm7JJQT3PRIfmnjllPASChPxHk=",
-                            TwoFactorEnabled = false,
-                            UserFirstName = "Luca",
-                            UserLastName = "Baron",
-                            UserMustChangePassword = false,
-                            UserName = "Nestia User"
-                        });
                 });
 
             modelBuilder.Entity("Shared.Models.Identity.AspNetUserClaim", b =>
@@ -1934,18 +1872,6 @@ namespace Shared.Data.Migrations
                     b.HasIndex("RoleID");
 
                     b.ToTable("AspNetUsersRoles");
-
-                    b.HasData(
-                        new
-                        {
-                            UserID = new Guid("00000000-0000-0000-0000-000000000001"),
-                            RoleID = new Guid("00000000-0000-0000-0000-000000000001")
-                        },
-                        new
-                        {
-                            UserID = new Guid("00000000-0000-0000-0000-000000000001"),
-                            RoleID = new Guid("00000000-9999-9999-9999-000000000009")
-                        });
                 });
 
             modelBuilder.Entity("Shared.Models.Identity.AspNetUserToken", b =>
@@ -2224,28 +2150,6 @@ namespace Shared.Data.Migrations
                             DocumentTypeName = "Receipt",
                             IsDeleted = false,
                             Visible = true
-                        },
-                        new
-                        {
-                            DocumentTypeID = new Guid("00000000-0000-0000-0000-000000000002"),
-                            DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                            DisplayOrder = 0,
-                            DocumentTypeDescription = "Receipt that can be deleted",
-                            DocumentTypeName = "Second receipt type",
-                            IsDeleted = false,
-                            TenantID = new Guid("00000000-0000-0000-0000-000000000001"),
-                            Visible = true
-                        },
-                        new
-                        {
-                            DocumentTypeID = new Guid("00000000-0000-0000-0000-000000000003"),
-                            DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                            DisplayOrder = 0,
-                            DocumentTypeDescription = "Receipt that cannot be deleted",
-                            DocumentTypeName = "Third receipt type",
-                            IsDeleted = false,
-                            TenantID = new Guid("00000000-0000-0000-0000-000000000002"),
-                            Visible = true
                         });
                 });
 
@@ -2337,17 +2241,6 @@ namespace Shared.Data.Migrations
                             IsDeleted = false,
                             PaymentMethodDescription = "Cash payments",
                             PaymentMethodName = "Cash",
-                            Visible = true
-                        },
-                        new
-                        {
-                            PaymentMethodID = new Guid("00000000-0000-0000-0000-000000000004"),
-                            DateIns = new DateTime(2025, 5, 27, 22, 24, 27, 530, DateTimeKind.Utc),
-                            DisplayOrder = 0,
-                            IsDeleted = false,
-                            PaymentMethodDescription = "Cash payments",
-                            PaymentMethodName = "Cash",
-                            TenantID = new Guid("00000000-0000-0000-0000-000000000002"),
                             Visible = true
                         });
                 });

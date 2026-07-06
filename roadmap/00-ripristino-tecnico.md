@@ -20,7 +20,7 @@ Obiettivo: rendere OpenCashFlow riproducibile da clone pulito. Prima di qualsias
 
 1. Correggi `OpenCashFlow.sln` in modo che includa i progetti reali:
    - `src/OpenCashFlow.API/OpenCashFlow.API.csproj`
-   - `src/OpenCashFlow.App/OpenCashFlow.App.csproj`
+   - `src/OpenCashFlow.WebApp/OpenCashFlow.WebApp.csproj`
    - `src/OpenCashFlow.Admin/OpenCashFlow.Admin.csproj`
    - `src/OpenCashFlow.Shared/OpenCashFlow.Shared.csproj`
    - `tests/OpenCashFlow.Test/OpenCashFlow.Test.csproj`
@@ -31,12 +31,12 @@ Obiettivo: rendere OpenCashFlow riproducibile da clone pulito. Prima di qualsias
    - mantieni solo `src/OpenCashFlow.API` e `src/OpenCashFlow.Shared`.
 
 3. Correggi `docker-compose.yml` e `docker-compose.dev.yml`:
-   - usa Dockerfile sotto `src/OpenCashFlow.API/Dockerfile` e `src/OpenCashFlow.App/Dockerfile`;
+   - usa Dockerfile sotto `src/OpenCashFlow.API/Dockerfile` e `src/OpenCashFlow.WebApp/Dockerfile`;
    - elimina o commenta servizi inesistenti come `web` e `landing`;
    - usa nomi container coerenti, non legacy;
    - usa variabili locali e non domini `opencashflow.cloud`.
 
-4. Correggi `src/OpenCashFlow.API/Dockerfile` e `src/OpenCashFlow.App/Dockerfile`:
+4. Correggi `src/OpenCashFlow.API/Dockerfile` e `src/OpenCashFlow.WebApp/Dockerfile`:
    - i path di `COPY` devono essere relativi al build context reale;
    - devono funzionare con `docker compose build`.
 

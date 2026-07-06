@@ -5,7 +5,7 @@ set -euo pipefail
 # Config (adatta solo se serve)
 # -----------------------------
 TABLER_SRC="${TABLER_SRC:-../templates/tabler}"
-DEST="${DEST:-../src/OpenCashFlow.App/wwwroot/vendor/tabler}"
+DEST="${DEST:-../src/OpenCashFlow.WebApp/wwwroot/vendor/tabler}"
 
 echo "🚀 Tabler update starting..."
 echo "   - Source: $TABLER_SRC"

@@ -45,10 +45,10 @@ Then run:
 dotnet restore OpenCashFlow.sln
 dotnet build OpenCashFlow.sln
 dotnet run --project src/OpenCashFlow.API/OpenCashFlow.API.csproj
-dotnet run --project src/OpenCashFlow.App/OpenCashFlow.App.csproj
+dotnet run --project src/OpenCashFlow.WebApp/OpenCashFlow.WebApp.csproj
 ```
 
-Open the App URL and complete `/Setup`.
+Open the WebApp URL and complete `/Setup`.
 
 ## Upgrades And Migrations
 

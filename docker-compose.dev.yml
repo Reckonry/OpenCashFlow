@@ -30,10 +30,10 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       # DB connection for EF Core
       - DEFAULT_CONN_STRING=Host=db;Database=opencashflow;Username=postgres;Password=postgres
-      # JWT settings (match App)
+      # JWT settings (match WebApp)
       - JwtSettings__SecretKey=local-development-secret-key-change-before-production-0001
       - JwtSettings__Issuer=http://api:8080
-      - JwtSettings__Audience=http://app:8080
+      - JwtSettings__Audience=http://webapp:8080
       # CORS origins (host ports)
       - Cors__AllowedOrigins__0=http://localhost:5200
       - Cors__AllowCredentials=false
@@ -51,16 +51,16 @@ services:
     ports:
       - "5100:8080"
 
-  app:
+  webapp:
     build:
       context: .
-      dockerfile: src/OpenCashFlow.App/Dockerfile
-    container_name: opencashflow-dev-app
+      dockerfile: src/OpenCashFlow.WebApp/Dockerfile
+    container_name: opencashflow-dev-webapp
     depends_on:
       - api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      # App talks to API via internal DNS
+      # WebApp talks to API via internal DNS
       - Account__API=http://api:8080
       # Redirects must be reachable by the browser on host
       - Account__Login=http://localhost:5200/Login
@@ -72,7 +72,7 @@ services:
       # JWT settings (must match API)
       - JwtSettings__SecretKey=local-development-secret-key-change-before-production-0001
       - JwtSettings__Issuer=http://api:8080
-      - JwtSettings__Audience=http://app:8080
+      - JwtSettings__Audience=http://webapp:8080
       # Email placeholders to satisfy DI
       - EmailConfiguration__From=${SMTP_FROM:-noreply@example.local}
       - EmailConfiguration__SmtpServer=${SMTP_HOST:-}

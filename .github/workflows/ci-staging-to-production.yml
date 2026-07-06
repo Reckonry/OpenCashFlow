@@ -5,14 +5,14 @@ on:
     tags:
       - "v*.*.*"
       - "v*.*.*.*"
-      - "app-v*.*.*"
-      - "app-v*.*.*.*"
+      - "webapp-v*.*.*"
+      - "webapp-v*.*.*.*"
       - "api-v*.*.*"
       - "api-v*.*.*.*"
   workflow_dispatch:
     inputs:
       tag:
-        description: "Version tag to release (e.g. v1.2.3 or app-v1.2.3)"
+        description: "Version tag to release (e.g. v1.2.3 or webapp-v1.2.3)"
         required: true
         type: string
       create_release:
@@ -57,7 +57,7 @@ jobs:
           version=""
           if [[ "$TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?)$ ]]; then
             version="${BASH_REMATCH[1]}"
-          elif [[ "$TAG" =~ ^(app|api)-v([0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?)$ ]]; then
+          elif [[ "$TAG" =~ ^(webapp|api)-v([0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?)$ ]]; then
             component="${BASH_REMATCH[1]}"
             version="${BASH_REMATCH[2]}"
           else
@@ -109,14 +109,14 @@ jobs:
         run: |
           set -euo pipefail
           TAG="${TAG_NAME}"
-          DEPLOY_APP=0
+          DEPLOY_WEBAPP=0
           DEPLOY_API=0
 
           if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
-            DEPLOY_APP=1
+            DEPLOY_WEBAPP=1
             DEPLOY_API=1
-          elif [[ "$TAG" =~ ^app-v.*$ ]]; then
-            DEPLOY_APP=1
+          elif [[ "$TAG" =~ ^webapp-v.*$ ]]; then
+            DEPLOY_WEBAPP=1
           elif [[ "$TAG" =~ ^api-v.*$ ]]; then
             DEPLOY_API=1
           else
@@ -124,18 +124,18 @@ jobs:
             exit 1
           fi
 
-          echo "DEPLOY_APP=$DEPLOY_APP" >> "$GITHUB_OUTPUT"
+          echo "DEPLOY_WEBAPP=$DEPLOY_WEBAPP" >> "$GITHUB_OUTPUT"
           echo "DEPLOY_API=$DEPLOY_API" >> "$GITHUB_OUTPUT"
 
-      - name: Download App publish artifact from RC
-        if: steps.scope.outputs.DEPLOY_APP == '1'
+      - name: Download WebApp publish artifact from RC
+        if: steps.scope.outputs.DEPLOY_WEBAPP == '1'
         uses: dawidd6/action-download-artifact@v11
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow: ci-master-to-staging.yml
           workflow_conclusion: success
-          name: app-publish
-          path: artifacts/app-publish
+          name: webapp-publish
+          path: artifacts/webapp-publish
           search_artifacts: true
 
       - name: Download API publish artifact from RC
@@ -168,7 +168,7 @@ jobs:
             Production release promoted from RC: ${{ needs.gate-has-rc.outputs.rc_tag }}
 
             Components:
-            ${{ steps.scope.outputs.DEPLOY_APP == '1' && 'APP' || 'APP skipped' }}
+            ${{ steps.scope.outputs.DEPLOY_WEBAPP == '1' && 'WEBAPP' || 'WEBAPP skipped' }}
             ${{ steps.scope.outputs.DEPLOY_API == '1' && 'API' || 'API skipped' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

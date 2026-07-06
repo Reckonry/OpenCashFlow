@@ -77,7 +77,7 @@ Esegui:
 ```bash
 dotnet build OpenCashFlow.sln
 dotnet test OpenCashFlow.sln
-rg -n "Stripe|Subscription|Plan|Pricing|Customer Portal|Upgrade" src/OpenCashFlow.App/Views src/OpenCashFlow.Admin/Views
+rg -n "Stripe|Subscription|Plan|Pricing|Customer Portal|Upgrade" src/OpenCashFlow.WebApp/Views src/OpenCashFlow.Admin/Views
 ```
 
 I match UI rimasti devono essere dietro feature flag o documentati come modulo opzionale.

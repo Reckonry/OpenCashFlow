@@ -5,14 +5,14 @@ on:
     tags:
       - "v*.*.*-RC"
       - "v*.*.*.*-RC"
-      - "app-v*.*.*-RC"
-      - "app-v*.*.*.*-RC"
+      - "webapp-v*.*.*-RC"
+      - "webapp-v*.*.*.*-RC"
       - "api-v*.*.*-RC"
       - "api-v*.*.*.*-RC"
   workflow_dispatch:
     inputs:
       tag:
-        description: "Version tag to use for RC run (e.g. v1.2.3-RC, app-v1.2.3-RC)"
+        description: "Version tag to use for RC run (e.g. v1.2.3-RC, webapp-v1.2.3-RC)"
         required: true
         type: string
       create_release:
@@ -88,14 +88,14 @@ jobs:
           set -euo pipefail
           TAG="${TAG_NAME}"
 
-          DEPLOY_APP=0
+          DEPLOY_WEBAPP=0
           DEPLOY_API=0
 
           if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?-RC$ ]]; then
-            DEPLOY_APP=1
+            DEPLOY_WEBAPP=1
             DEPLOY_API=1
-          elif [[ "$TAG" =~ ^app-v.*-RC$ ]]; then
-            DEPLOY_APP=1
+          elif [[ "$TAG" =~ ^webapp-v.*-RC$ ]]; then
+            DEPLOY_WEBAPP=1
           elif [[ "$TAG" =~ ^api-v.*-RC$ ]]; then
             DEPLOY_API=1
           else
@@ -103,35 +103,35 @@ jobs:
             exit 1
           fi
 
-          echo "DEPLOY_APP=$DEPLOY_APP" >> "$GITHUB_OUTPUT"
+          echo "DEPLOY_WEBAPP=$DEPLOY_WEBAPP" >> "$GITHUB_OUTPUT"
           echo "DEPLOY_API=$DEPLOY_API" >> "$GITHUB_OUTPUT"
 
-      - name: Publish App
-        if: steps.scope.outputs.DEPLOY_APP == '1'
-        run: dotnet publish src/OpenCashFlow.App/OpenCashFlow.App.csproj --configuration Release --output artifacts/app-publish
+      - name: Publish WebApp
+        if: steps.scope.outputs.DEPLOY_WEBAPP == '1'
+        run: dotnet publish src/OpenCashFlow.WebApp/OpenCashFlow.WebApp.csproj --configuration Release --output artifacts/webapp-publish
 
-      - name: Upload App publish artifact
-        if: steps.scope.outputs.DEPLOY_APP == '1'
+      - name: Upload WebApp publish artifact
+        if: steps.scope.outputs.DEPLOY_WEBAPP == '1'
         uses: actions/upload-artifact@v4
         with:
-          name: app-publish
-          path: artifacts/app-publish/
+          name: webapp-publish
+          path: artifacts/webapp-publish/
 
-      - name: Build App Docker image
-        if: steps.scope.outputs.DEPLOY_APP == '1'
+      - name: Build WebApp Docker image
+        if: steps.scope.outputs.DEPLOY_WEBAPP == '1'
         run: |
           TAG="${TAG_NAME}"
           REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE="ghcr.io/${REPO}-app:${TAG}"
-          docker build -t "$IMAGE" -f src/OpenCashFlow.App/Dockerfile .
-          docker save "$IMAGE" | gzip > "artifacts/docker/app-${TAG}.tar.gz"
+          IMAGE="ghcr.io/${REPO}-webapp:${TAG}"
+          docker build -t "$IMAGE" -f src/OpenCashFlow.WebApp/Dockerfile .
+          docker save "$IMAGE" | gzip > "artifacts/docker/webapp-${TAG}.tar.gz"
 
-      - name: Upload App Docker artifact
-        if: steps.scope.outputs.DEPLOY_APP == '1'
+      - name: Upload WebApp Docker artifact
+        if: steps.scope.outputs.DEPLOY_WEBAPP == '1'
         uses: actions/upload-artifact@v4
         with:
-          name: app-docker
-          path: artifacts/docker/app-${{ env.TAG_NAME }}.tar.gz
+          name: webapp-docker
+          path: artifacts/docker/webapp-${{ env.TAG_NAME }}.tar.gz
 
       - name: Publish API
         if: steps.scope.outputs.DEPLOY_API == '1'

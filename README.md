@@ -127,7 +127,7 @@ For manual local runs, configure `DEFAULT_CONN_STRING` or `ConnectionStrings:Def
 
 ```bash
 dotnet run --project src/OpenCashFlow.API/OpenCashFlow.API.csproj
-dotnet run --project src/OpenCashFlow.App/OpenCashFlow.App.csproj
+dotnet run --project src/OpenCashFlow.WebApp/OpenCashFlow.WebApp.csproj
 ```
 
 Detailed installation, migration, backup, and reverse proxy notes are in

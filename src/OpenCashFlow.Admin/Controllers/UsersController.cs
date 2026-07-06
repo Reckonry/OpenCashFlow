@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace OpenCashFlow.Admin.Controllers
 {
-    [Authorize(Policy = "GIManagers")]
+    [Authorize(Policy = "InstanceAdmin")]
     public class UsersController : Controller
     {
         private readonly ILogger<UsersController> _logger;

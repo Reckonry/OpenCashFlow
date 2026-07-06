@@ -66,7 +66,7 @@ builder.Services.AddHttpClient("API-Client", client =>
 // Add services to the container.
 
 builder.Services.AddScoped<AuthenticationAPIService>();
-builder.Services.AddScoped<BillingAPIService>();
+builder.Services.AddScoped<SetupAPIService>();
 builder.Services.AddScoped<CompanyAPIService>();
 builder.Services.AddScoped<EmployeeAPIService>();
 builder.Services.AddScoped<PaymentAPIService>();

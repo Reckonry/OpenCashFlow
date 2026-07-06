@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace OpenCashFlow.Admin.Controllers;
 
-[Authorize(Policy = "GIManagers")]
+[Authorize(Policy = "InstanceAdmin")]
 public class AuditLogController : Controller
 {
     private readonly AuditLogAPIService _auditLogService;

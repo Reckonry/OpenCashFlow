@@ -12,15 +12,19 @@ using System.Linq;
 
 namespace OpenCashFlow.Admin.Controllers
 {
-    [Authorize(Policy = "GIManagers")]
+    [Authorize(Policy = "InstanceAdmin")]
     public class CompaniesController(
         ILogger<CompaniesController> logger,
         CompanyAPIService companyAPIService,
-        BillingPlansAPIService billingPlansService) : Controller
+        BillingPlansAPIService billingPlansService,
+        IConfiguration configuration) : Controller
     {
         private readonly ILogger<CompaniesController> _logger = logger;
         private readonly CompanyAPIService _companyAPIService = companyAPIService;
         private readonly BillingPlansAPIService _billingPlansService = billingPlansService;
+        private readonly IConfiguration _configuration = configuration;
+
+        private bool BillingEnabled => string.Equals(_configuration["Features:Billing"], "true", StringComparison.OrdinalIgnoreCase);
 
         public async Task<IActionResult> IndexAsync()
         {
@@ -37,15 +41,21 @@ namespace OpenCashFlow.Admin.Controllers
                 return RedirectToAction(nameof(IndexAsync));
             }
 
-            var subscriptionResponse = await _billingPlansService.GetSubscriptionsAsync(new BillingSubscription_Filter_DTO
-            {
-                TenantID = TenantID,
-                IncludeAllCompanies = true,
-                Page = 1,
-                PageSize = 25
-            });
+            ApiResponse<IReadOnlyList<BillingSubscription_List_DTO>>? subscriptionResponse = null;
+            var subscriptions = new List<BillingSubscription_List_DTO>();
 
-            var subscriptions = subscriptionResponse.Data?.ToList() ?? new List<BillingSubscription_List_DTO>();
+            if (BillingEnabled)
+            {
+                subscriptionResponse = await _billingPlansService.GetSubscriptionsAsync(new BillingSubscription_Filter_DTO
+                {
+                    TenantID = TenantID,
+                    IncludeAllCompanies = true,
+                    Page = 1,
+                    PageSize = 25
+                });
+
+                subscriptions = subscriptionResponse.Data?.ToList() ?? new List<BillingSubscription_List_DTO>();
+            }
 
             var activeSubscription = subscriptions
                 .OrderByDescending(s => s.NextBillingDate)
@@ -63,7 +73,7 @@ namespace OpenCashFlow.Admin.Controllers
                 }
             };
 
-            if (!subscriptionResponse.Success)
+            if (BillingEnabled && subscriptionResponse?.Success == false)
             {
                 ViewData["BillingWarning"] = subscriptionResponse.Message;
             }

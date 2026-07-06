@@ -12,12 +12,11 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="subheader mb-2">Pages</div>
+                    <div class="subheader mb-2">Product</div>
                     <ul class="list-unstyled list-separated gap-2">
-                        <li><a asp-controller="FrontPages" asp-action="PricingPage" class="link-secondary">Pricing</a></li>
-                        <li><a asp-controller="FrontPages" asp-action="PaymentPage" class="link-secondary">Payment</a></li>
-                        <li><a asp-controller="FrontPages" asp-action="CheckoutPage" class="link-secondary">Checkout</a></li>
-                        <li><a asp-controller="FrontPages" asp-action="HelpCenterLanding" class="link-secondary">Help Center</a></li>
+                        <li><a asp-controller="FrontPages" asp-action="LandingPage" asp-fragment="landingFeatures" class="link-secondary">Features</a></li>
+                        <li><a asp-controller="FrontPages" asp-action="LandingPage" asp-fragment="landingFAQ" class="link-secondary">FAQ</a></li>
+                        <li><a asp-controller="FrontPages" asp-action="LandingPage" asp-fragment="landingContact" class="link-secondary">Contact</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4">

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using AutoMapper;
 using Shared.DTOs;
-using Shared.DTOs.Billing;
 using Shared.DTOs.Companies;
 using Shared.DTOs.Employees;
 using Shared.Models;
@@ -77,30 +76,6 @@ namespace OpenCashFlow.Shared.Mappings
             CreateMap<Payment_DocumentType_LookUp, Payment_DocumentType_Update_DTO>();
             CreateMap<Payment_DocumentType_Create_DTO, Payment_DocumentType_LookUp>();
             CreateMap<Payment_DocumentType_Update_DTO, Payment_DocumentType_LookUp>();
-
-            #endregion
-
-            #region Billing
-
-            CreateMap<Plan, BillingPlan_List_DTO>()
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.CreatedAt, DateTimeKind.Utc)))
-                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt.HasValue ? DateTime.SpecifyKind(src.UpdatedAt.Value, DateTimeKind.Utc) : (DateTime?)null));
-
-            CreateMap<Company_Subscription, BillingSubscription_List_DTO>()
-                .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.Company != null ? src.Company.CompanyName : string.Empty))
-                .ForMember(dest => dest.PlanName, opt => opt.MapFrom(src => src.Plan != null ? src.Plan.Name : string.Empty))
-                .ForMember(dest => dest.PlanCode, opt => opt.MapFrom(src => src.Plan != null ? src.Plan.PlanCode : string.Empty))
-                .ForMember(dest => dest.PlanHasTrial, opt => opt.MapFrom(src => src.Plan != null && src.Plan.HasTrial))
-                .ForMember(dest => dest.PlanTrialDays, opt => opt.MapFrom(src => src.Plan != null ? src.Plan.TrialDays : null))
-                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.StartDate, DateTimeKind.Utc)))
-                .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.EndDate, DateTimeKind.Utc)))
-                .ForMember(dest => dest.NextBillingDate, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.NextBillingDate, DateTimeKind.Utc)))
-                .ForMember(dest => dest.LastReminderDate, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.LastReminderDate, DateTimeKind.Utc)))
-                .ForMember(dest => dest.NextReminderDate, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.NextReminderDate, DateTimeKind.Utc)))
-                .ForMember(dest => dest.DiscountExpiration, opt => opt.MapFrom(src => src.DiscountExpiration.HasValue ? DateTime.SpecifyKind(src.DiscountExpiration.Value, DateTimeKind.Utc) : (DateTime?)null))
-                .ForMember(dest => dest.CancellationDate, opt => opt.MapFrom(src => src.CancellationDate.HasValue ? DateTime.SpecifyKind(src.CancellationDate.Value, DateTimeKind.Utc) : (DateTime?)null))
-                .ForMember(dest => dest.DateIns, opt => opt.MapFrom(src => DateTime.SpecifyKind(src.DateIns, DateTimeKind.Utc)))
-                .ForMember(dest => dest.DateEdit, opt => opt.MapFrom(src => src.DateEdit.HasValue ? DateTime.SpecifyKind(src.DateEdit.Value, DateTimeKind.Utc) : (DateTime?)null));
 
             #endregion
 

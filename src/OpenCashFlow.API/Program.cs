@@ -3,19 +3,16 @@ using OpenCashFlow.API.Repositories.Interfaces;
 using OpenCashFlow.API.Services;
 using OpenCashFlow.API.Services.Interfaces;
 using OpenCashFlow.Shared.Mappings;
-using OpenCashFlow.API.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using global::Shared.Data;
-using global::Shared.Options;
 using global::Shared.Services;
 using global::Shared.Services.Interfaces;
 using System.Reflection;
@@ -35,8 +32,6 @@ builder.AppStartConfigureRateLimiting();
 builder.AppStartConfigureAuth();
 builder.AppStartConfigureEmail();
 builder.AppStartConfigureSlack();
-//builder.AppStartConfigureStripe();
-builder.AppStartConfigureSubscriptionAuthorization();
 builder.AppStartConfigureSwagger();
 builder.AppStartConfigureAutoMapper();
 builder.AppStartConfigureCors();
@@ -49,7 +44,6 @@ builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-builder.Services.AddScoped<IBillingRepository, BillingRepository>();
 #endregion
 
 #region Services
@@ -60,11 +54,6 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ICashService, CashService>();
 builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
-// builder.Services.AddScoped<IBillingService, BillingService>();
-// builder.Services.AddScoped<IStripeService, StripeService>();
-// builder.Services.AddScoped<IStripeSyncService, StripeSyncService>();
-// builder.Services.AddScoped<IStripeWebhookEventService, StripeWebhookEventService>();
-// builder.Services.AddScoped<IStripeWebhookProcessor, StripeWebhookProcessor>();
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 #endregion
@@ -95,8 +84,6 @@ var app = builder.Build();
 // porta il flag sentry dal builder all'app
 //app.AppStartPropagateSentryFlag(builder);
 
-//app.AppStartValidateStripeInProduction();
-
 app.AppStartUseSwaggerIfDev();
 
 await app.AppStartApplyMigrationsAndSeeds();
@@ -107,4 +94,3 @@ app.AppStartConfigureMiddlewarePipeline();
 app.Run();
 
 public partial class Program { }
-

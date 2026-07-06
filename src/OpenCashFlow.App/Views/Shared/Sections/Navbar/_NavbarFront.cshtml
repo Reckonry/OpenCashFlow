@@ -40,20 +40,8 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="FrontPages" asp-action="LandingPage" asp-fragment="landingContact">Contact us</a>
                         </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="javascript:void(0);" data-bs-toggle="dropdown" aria-expanded="false">Pages</a>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <a class='dropdown-item@(currentPage == "/FrontPages/PricingPage" ? " active" : "")' asp-controller="FrontPages" asp-action="PricingPage">Pricing</a>
-                                <a class='dropdown-item@(currentPage == "/FrontPages/PaymentPage" ? " active" : "")' asp-controller="FrontPages" asp-action="PaymentPage">Payment</a>
-                                <a class='dropdown-item@(currentPage == "/FrontPages/CheckoutPage" ? " active" : "")' asp-controller="FrontPages" asp-action="CheckoutPage">Checkout</a>
-                                <a class='dropdown-item@(currentPage == "/FrontPages/HelpCenterLanding" ? " active" : "")' asp-controller="FrontPages" asp-action="HelpCenterLanding">Help Center</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" asp-controller="Auth" asp-action="LoginBasic" target="_blank">Login (Basic)</a>
-                                <a class="dropdown-item" asp-controller="Auth" asp-action="RegisterBasic" target="_blank">Register (Basic)</a>
-                            </div>
-                        </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Ecommerce" asp-action="Dashboard" target="_blank">Admin</a>
+                            <a class="nav-link" asp-controller="FrontPages" asp-action="LandingPage" asp-fragment="landingDocs">Docs</a>
                         </li>
                     </ul>
                 </nav>

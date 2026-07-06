@@ -27,7 +27,7 @@
                                         <span class="nav-link-title">Calendario Incassi</span>
                                     </a>
                                 </li>
-                                @if (User.Claims.Any(c => c.Type == System.Security.Claims.ClaimTypes.Role && c.Value == "Administrator"))
+                                @if (User.Claims.Any(c => c.Type == System.Security.Claims.ClaimTypes.Role && c.Value == "CompanyAdmin"))
                                 {
                                     <li class="nav-item">
                                         <a class='nav-link@(currentPage?.StartsWith("/Company") == true ? " active" : "")' href="~/Company">

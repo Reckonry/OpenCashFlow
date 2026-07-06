@@ -1,6 +1,9 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
 @{
     TempData.Keep();
     string? currentPage = ViewContext.HttpContext.Request.Path;
+    bool billingEnabled = string.Equals(Configuration["Features:Billing"], "true", StringComparison.OrdinalIgnoreCase);
 }
 
 <!-- Menu -->
@@ -52,12 +55,15 @@
                 <div>Payments</div>
             </a>
         </li>
-        <li class='menu-item@(currentPage.StartsWith("/Billing") ? " active" : "")'>
-            <a href="~/Billing/Subscriptions" class="menu-link">
-                <i class="menu-icon tf-icons ri-price-tag-3-line"></i>
-                <div>Billing</div>
-            </a>
-        </li>
+        @if (billingEnabled)
+        {
+            <li class='menu-item@(currentPage.StartsWith("/Billing") ? " active" : "")'>
+                <a href="~/Billing/Subscriptions" class="menu-link">
+                    <i class="menu-icon tf-icons ri-price-tag-3-line"></i>
+                    <div>Billing</div>
+                </a>
+            </li>
+        }
         <li class='menu-item@(currentPage.StartsWith("/AuditLog") ? " active" : "")'>
             <a href="~/AuditLog" class="menu-link">
                 <i class="menu-icon tf-icons ri-file-chart-line"></i>

@@ -168,7 +168,5 @@ namespace Shared.DTOs
 
         public DateTime? DateEdit { get; set; }
         #endregion
-
-        public Company_Subscription? Company_Subscription { get; set; }
     }
 }

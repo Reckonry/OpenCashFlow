@@ -13,17 +13,33 @@ using System.Text.Json;
 
 namespace OpenCashFlow.Admin.Controllers
 {
-    [Authorize(Policy = "GIManagers")]
-    public class BillingController(BillingPlansAPIService billingPlansService, ILogger<BillingController> logger) : Controller
+    [Authorize(Policy = "InstanceAdmin")]
+    public class BillingController(
+        BillingPlansAPIService billingPlansService,
+        IConfiguration configuration,
+        ILogger<BillingController> logger) : Controller
     {
         private const string SavedViewsCookieName = "gi-admin-billing-views";
         private static readonly JsonSerializerOptions SavedViewSerializerOptions = new(JsonSerializerDefaults.Web);
         private readonly BillingPlansAPIService _billingPlansService = billingPlansService;
+        private readonly IConfiguration _configuration = configuration;
         private readonly ILogger<BillingController> _logger = logger;
+
+        private bool BillingEnabled => string.Equals(_configuration["Features:Billing"], "true", StringComparison.OrdinalIgnoreCase);
+
+        private IActionResult BillingDisabled()
+        {
+            return NotFound("Billing is disabled for this self-hosted installation.");
+        }
 
         [HttpGet]
         public async Task<IActionResult> Subscriptions([FromQuery] BillingSubscriptionFilters? filters, CancellationToken cancellationToken)
         {
+            if (!BillingEnabled)
+            {
+                return BillingDisabled();
+            }
+
             var sanitizedFilters = SanitizeFilters(filters);
 
             var dtoFilters = new BillingSubscription_Filter_DTO
@@ -149,6 +165,11 @@ namespace OpenCashFlow.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Dashboard(CancellationToken cancellationToken)
         {
+            if (!BillingEnabled)
+            {
+                return BillingDisabled();
+            }
+
             var response = await _billingPlansService.GetDashboardKPIAsync(cancellationToken);
 
             var viewModel = new BillingDashboardViewModel
@@ -169,6 +190,11 @@ namespace OpenCashFlow.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> ManageSubscription(Guid id, CancellationToken cancellationToken)
         {
+            if (!BillingEnabled)
+            {
+                return BillingDisabled();
+            }
+
             var response = await _billingPlansService.GetSubscriptionDetailAsync(id, cancellationToken);
 
             // Also load the list of available plans for plan changes
@@ -199,6 +225,11 @@ namespace OpenCashFlow.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SyncSubscription(Guid id, CancellationToken cancellationToken)
         {
+            if (!BillingEnabled)
+            {
+                return BillingDisabled();
+            }
+
             var response = await _billingPlansService.SyncSubscriptionAsync(id, cancellationToken);
 
             if (response.Success)
@@ -217,6 +248,11 @@ namespace OpenCashFlow.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExtendTrial(Guid id, int days, string? reason, CancellationToken cancellationToken)
         {
+            if (!BillingEnabled)
+            {
+                return BillingDisabled();
+            }
+
             var response = await _billingPlansService.ExtendTrialAsync(id, days, reason, cancellationToken);
 
             if (response.Success)
@@ -235,6 +271,11 @@ namespace OpenCashFlow.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ApplyCredit(Guid id, decimal amount, string description, CancellationToken cancellationToken)
         {
+            if (!BillingEnabled)
+            {
+                return BillingDisabled();
+            }
+
             var response = await _billingPlansService.ApplyCreditAsync(id, amount, description, "EUR", cancellationToken);
 
             if (response.Success)
@@ -253,6 +294,11 @@ namespace OpenCashFlow.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SendInvoice(Guid id, string stripeInvoiceId, CancellationToken cancellationToken)
         {
+            if (!BillingEnabled)
+            {
+                return BillingDisabled();
+            }
+
             var response = await _billingPlansService.SendInvoiceAsync(stripeInvoiceId, null, cancellationToken);
 
             if (response.Success)
@@ -271,6 +317,11 @@ namespace OpenCashFlow.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AdminCancelSubscription(Guid id, bool immediately, string adminReason, CancellationToken cancellationToken)
         {
+            if (!BillingEnabled)
+            {
+                return BillingDisabled();
+            }
+
             var response = await _billingPlansService.AdminCancelSubscriptionAsync(id, immediately, adminReason, true, cancellationToken);
 
             if (response.Success)
@@ -289,6 +340,11 @@ namespace OpenCashFlow.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ManualExtendSubscription(Guid id, int months, string? reason, CancellationToken cancellationToken)
         {
+            if (!BillingEnabled)
+            {
+                return BillingDisabled();
+            }
+
             var response = await _billingPlansService.ManualExtendSubscriptionAsync(id, months, reason, cancellationToken);
 
             if (response.Success)
@@ -307,6 +363,11 @@ namespace OpenCashFlow.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePlan(Guid id, Guid newPlanId, string? reason, bool prorate, CancellationToken cancellationToken)
         {
+            if (!BillingEnabled)
+            {
+                return BillingDisabled();
+            }
+
             var response = await _billingPlansService.AdminChangePlanAsync(id, newPlanId, reason, prorate, cancellationToken);
 
             if (response.Success)

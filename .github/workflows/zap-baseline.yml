@@ -8,8 +8,9 @@ name: ZAP Baseline check
 on:
   workflow_dispatch:
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
   push:
+    branches: [ main ]
     tags:
       # Global RC tags
       - 'v*.*.*-RC'
@@ -37,7 +38,7 @@ jobs:
       # Targets (App + API)
       TARGET_APP: http://127.0.0.1:7000
       TARGET_API: http://127.0.0.1:9000
-      ZAP_IMAGE: owasp/zap2docker-stable   # Stable ZAP Docker image
+      ZAP_IMAGE: zaproxy/zap-stable   # Stable ZAP Docker image
       REPORTS_DIR: ${{ github.workspace }}/reports
 
       # Quality gate thresholds: max allowed Medium/High alerts
@@ -102,15 +103,16 @@ jobs:
 
           # Start WebApp and API with logs
           nohup bash -lc 'ASPNETCORE_URLS=${ASPNETCORE_URLS_APP} dotnet run --project src/OpenCashFlow.WebApp/OpenCashFlow.WebApp.csproj --no-build > app.log 2>&1' &
-          nohup bash -lc 'ASPNETCORE_URLS=${ASPNETCORE_URLS_API} ConnectionStrings__Default=${DB_CS} ConnectionStrings__DefaultConnection=${DB_CS} dotnet run --project src/OpenCashFlow.API/OpenCashFlow.API.csproj --no-build > api.log 2>&1' &
+          nohup bash -lc 'ASPNETCORE_URLS=${ASPNETCORE_URLS_API} DEFAULT_CONN_STRING=${DB_CS} ConnectionStrings__DefaultConnectionString=${DB_CS} dotnet run --project src/OpenCashFlow.API/OpenCashFlow.API.csproj --no-build > api.log 2>&1' &
 
-          APP_HEALTH="${TARGET_APP%/}/healthz"
-          API_HEALTH="${TARGET_API%/}/healthz"
+          APP_URL="${TARGET_APP%/}/"
+          API_HEALTH="${TARGET_API%/}/health"
 
-          # Wait up to 120s for readiness (health endpoints preferred)
+          # Wait up to 120s for readiness. API has /health; WebApp is ready if root responds.
           for i in {1..120}; do
             OK=0
-            curl -ksSf "$APP_HEALTH" >/dev/null 2>&1 && OK=$((OK+1)) || true
+            APP_CODE=$(curl -ksS -o /dev/null -w "%{http_code}" "$APP_URL" 2>/dev/null || true)
+            [[ "$APP_CODE" =~ ^[0-9]{3}$ ]] && OK=$((OK+1)) || true
             curl -ksSf "$API_HEALTH" >/dev/null 2>&1 && OK=$((OK+1)) || true
             if [ "$OK" -eq 2 ]; then echo "App and API are up"; break; fi
             sleep 1

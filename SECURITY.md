@@ -192,6 +192,20 @@ The .NET 10 migration updates the supported runtime baseline to:
 
 ## 4. Data Protection
 
+### 4.0 Web Security Headers
+
+The WebApp emits security headers from `OpenCashFlow.WebApp/Program.cs`:
+
+- `Content-Security-Policy`
+- `X-Frame-Options: DENY`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Permissions-Policy`
+
+The CSP uses a per-request nonce for Razor-rendered `<script>` and `<style>` elements through the WebApp CSP nonce tag helper. The policy intentionally avoids `unsafe-inline` and `unsafe-eval`. External script/style sources must be explicit; broad wildcard sources are not allowed.
+
+The ZAP Baseline workflow parses JSON reports and fails on any non-accepted Medium/High finding. CSP findings are not allowlisted.
+
 ### 4.1 Encryption
 
 **In Transit**

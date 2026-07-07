@@ -208,3 +208,16 @@ API services may still reference public `OpenCashFlow.Contracts` DTOs and collec
 Fase 3K removed residual `OpenCashFlow.Infrastructure.Persistence.Entities` imports from API controllers, API services and API service interfaces. The only runtime type that still crossed the payment report boundary, `Payment_DailyPayments`, was replaced with a neutral contract under `OpenCashFlow.Contracts.DTOs.Payments` preserving the existing JSON shape.
 
 Result: API boundary code uses Contracts, Application records, primitives and HTTP types only. Infrastructure remains the owner of EF persistence entities.
+
+## WebApp CSP Hardening
+
+The WebApp security header slice introduced request-scoped CSP nonces:
+
+```text
+OpenCashFlow.WebApp/Security/CspNonce
+OpenCashFlow.WebApp/Security/CspNonceTagHelper
+```
+
+`Program.cs` now emits CSP without `unsafe-inline`, `unsafe-eval` or broad wildcard sources. Razor `<script>` and `<style>` tags receive the nonce automatically through the WebApp tag helper. The ZAP Baseline quality gate still parses structured JSON reports, but the temporary CSP allowlist has been removed.
+
+Future frontend cleanup should continue extracting page scripts/styles into static assets and remove external CDN dependencies where local assets are available.

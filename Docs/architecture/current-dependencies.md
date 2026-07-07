@@ -97,6 +97,7 @@ OpenCashFlow.Domain
 - Consumes `OpenCashFlow.Contracts`.
 - Uses local WebApp view models for Razor-only form/list/detail models.
 - Does not reference `OpenCashFlow.Infrastructure`.
+- Owns WebApp-only security header composition, including CSP nonce generation and the Razor tag helper that applies nonces to script/style elements.
 
 ## Removed Project
 
@@ -154,3 +155,9 @@ Deferred dependency tracks:
 - `Sentry` 5 -> 6 requires telemetry initialization review.
 - `Asp.Versioning` 8 -> 10 requires route/version compatibility testing.
 - `coverlet`, `Testcontainers` and `Microsoft.NET.Test.Sdk` major upgrades should be handled as test-infrastructure work.
+
+## WebApp CSP Hardening
+
+The WebApp now emits a nonce-based CSP without `unsafe-inline` or `unsafe-eval`. `OpenCashFlow.WebApp.Security.CspNonceTagHelper` applies the request nonce to Razor-rendered `<script>` and `<style>` tags, allowing the legacy Razor views to keep working while the frontend is progressively moved toward external JS/CSS assets.
+
+The ZAP Baseline workflow keeps the structured JSON quality gate and no longer contains a CSP allowlist. New Medium/High ZAP findings fail the workflow.

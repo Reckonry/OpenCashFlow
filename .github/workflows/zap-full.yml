@@ -3,18 +3,13 @@ name: ZAP Full Scan (Docker Compose)
 on:
   # schedule:
   #   - cron: "0 2 * * *" # nightly 02:00 UTC
-  workflow_dispatch:
   pull_request:
     branches: [ main ]
-  push:
-    branches: [ main ]
-    tags:
-      # Global RC tags
-      - 'v*.*.*-RC'
-      - 'v*.*.*.*-RC'
+    types: [ opened, synchronize, reopened, ready_for_review ]
 
 jobs:
   zap-compose:
+    if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
 

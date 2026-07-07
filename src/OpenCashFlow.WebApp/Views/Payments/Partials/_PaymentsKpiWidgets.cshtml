@@ -1,0 +1,20 @@
+@using System.Security.Claims
+
+<div class="row row-cards mb-4" id="reports">
+  @{ var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "CompanyAdmin"); }
+
+  @if (isAdmin)
+  {
+    <div class="col-12 col-sm-6 col-lg-4">
+      @await Html.PartialAsync("Partials/_WidgetCard", ("CashAmountTotal", Localizer["CashAmountTotal"].Value, "ri ri-user-line", "h-100"))
+    </div>
+  }
+
+  <div class="col-12 col-sm-6 @(isAdmin ? "col-lg-4" : "col-lg-6")">
+    @await Html.PartialAsync("Partials/_WidgetCard", ("DailyCashTotal", Localizer["DailyCashTotal"].Value, "ri ri-pages-line", "h-100"))
+  </div>
+
+  <div class="col-12 col-sm-6 @(isAdmin ? "col-lg-4" : "col-lg-6")">
+    @await Html.PartialAsync("Partials/_WidgetCard", ("DailyElectronicPaymentsTotal", Localizer["DailyElectronicPaymentsTotal"].Value, "ri ri-wallet-line", "h-100"))
+  </div>
+</div>

@@ -1,0 +1,31 @@
+@model IEnumerable<Payment_List_DTO>
+
+<div class="card">
+  <div class="card-header">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-2 w-100">
+      <div class="d-flex align-items-center gap-2">
+        <h3 class="card-title mb-0">@(SharedLocalizer?["DailyTransactionsList"].Value ?? "Daily transactions")</h3>
+        <button type="button" id="compactViewToggle" class="btn btn-outline-secondary btn-sm"
+                title="@(SharedLocalizer?["ToggleCompactView"]?.Value ?? "Toggle Compact View")">
+          <i class="ri-layout-row-line"></i>
+        </button>
+      </div>
+
+      <div class="d-flex flex-wrap justify-content-end align-items-center gap-2" id="dayNav">
+        <div class="input-group input-group-sm">
+          <button class="btn btn-outline-secondary" type="button" id="dayPrev" title="@(SharedLocalizer?["PreviousDay"].Value ?? "Previous day")">
+            <i class="ri-arrow-left-s-line"></i>
+          </button>
+          <input type="text" class="form-control payments-day-picker" id="dayPicker" />
+          <button class="btn btn-outline-secondary" type="button" id="dayNext" title="@(SharedLocalizer?["NextDay"].Value ?? "Next day")">
+            <i class="ri-arrow-right-s-line"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="paymentsList">
+    @await Html.PartialAsync("Partials/_PaymentsList", Model)
+  </div>
+</div>

@@ -44,6 +44,8 @@ jobs:
       # Quality gate thresholds: max allowed Medium/High alerts
       MAX_MEDIUM: "0"  # -m 0 (zero Medium allowed)
       MAX_HIGH: "0"    # -u 0 (zero High allowed)
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
 
     steps:
       - name: Checkout repository
@@ -187,10 +189,7 @@ jobs:
 
 
       - name: Send reports to Slack
-        if: always() && secrets.SLACK_BOT_TOKEN != '' && secrets.SLACK_CHANNEL_ID != ''
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        if: always() && env.SLACK_BOT_TOKEN != '' && env.SLACK_CHANNEL_ID != ''
         run: |
           for REPORT in zap-baseline-report-app.html zap-baseline-report-api.html; do
             curl -F "file=@${REPORTS_DIR}/$REPORT" \

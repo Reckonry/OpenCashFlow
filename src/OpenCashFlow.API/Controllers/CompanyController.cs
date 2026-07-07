@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpenCashFlow.Contracts.DTOs;
 using Asp.Versioning;
+using System.Security.Claims;
 
 namespace OpenCashFlow.API.Controllers
 {
-    [ApiController, Authorize]
+    [ApiController, Authorize(Policy = "CompanyMember")]
     [Route("v{version:apiVersion}/")]
     [ApiVersion("1.0")]
     public partial class CompanyController(ICompanyService CompanyService, ILogger<CompanyController> logger) : Controller
@@ -25,7 +26,17 @@ namespace OpenCashFlow.API.Controllers
         [HttpGet("[controller]/View/{TenantID}")]
         public async Task<ActionResult<Company_Detail_DTO>> GetCompanyDetails(Guid TenantID, CancellationToken cancellationToken)
         {
-            var company = await _companyService.GetCompanyAsync(cancellationToken);
+            if (!CanAccessTenant(TenantID))
+            {
+                return Forbid();
+            }
+
+            var company = await _companyService.GetCompanyAsync(TenantID, cancellationToken);
+            if (company == null)
+            {
+                return NotFound();
+            }
+
             return Ok(company);
         }
 
@@ -35,6 +46,48 @@ namespace OpenCashFlow.API.Controllers
         {
             var company = await _companyService.GetAllCompaniesAsync(cancellationToken);
             return Ok(company);
+        }
+
+        [Authorize(Policy = "CompanyAdmin")]
+        [HttpPost("[controller]")]
+        public IActionResult CreateCompany()
+        {
+            return StatusCode(StatusCodes.Status501NotImplemented);
+        }
+
+        [Authorize(Policy = "CompanyAdmin")]
+        [HttpPut("[controller]/{TenantID:guid}")]
+        public IActionResult UpdateCompany(Guid TenantID)
+        {
+            if (!CanAccessTenant(TenantID))
+            {
+                return Forbid();
+            }
+
+            return StatusCode(StatusCodes.Status501NotImplemented);
+        }
+
+        [Authorize(Policy = "CompanyAdmin")]
+        [HttpDelete("[controller]/{TenantID:guid}")]
+        public IActionResult DeleteCompany(Guid TenantID)
+        {
+            if (!CanAccessTenant(TenantID))
+            {
+                return Forbid();
+            }
+
+            return StatusCode(StatusCodes.Status501NotImplemented);
+        }
+
+        private bool CanAccessTenant(Guid tenantId)
+        {
+            if (User.IsInRole("InstanceAdmin"))
+            {
+                return true;
+            }
+
+            var tenantClaim = User.FindFirst("TenantID")?.Value;
+            return Guid.TryParse(tenantClaim, out var currentTenantId) && currentTenantId == tenantId;
         }
     }
 }

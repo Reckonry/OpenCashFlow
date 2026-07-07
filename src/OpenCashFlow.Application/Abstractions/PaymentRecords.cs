@@ -39,6 +39,10 @@ public sealed record PaymentMethodSnapshot(
     Guid PaymentMethodId,
     string? Name);
 
+public sealed record DocumentTypeSnapshot(
+    Guid DocumentTypeId,
+    string? Name);
+
 public sealed record PaymentUpdateAudit(
     PaymentSnapshot Before,
     PaymentSnapshot After,

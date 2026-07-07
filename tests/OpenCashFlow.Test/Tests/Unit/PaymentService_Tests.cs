@@ -77,7 +77,7 @@ public class PaymentService_Tests
         var paymentMethodWriter = new PaymentMethodWriter(context, NullLogger<PaymentMethodWriter>.Instance);
         var documentTypeReader = new DocumentTypeReader(context);
         var documentTypeWriter = new DocumentTypeWriter(context, NullLogger<DocumentTypeWriter>.Instance);
-        var paymentReader = new PaymentPersistenceReader(context, paymentMethodReader);
+        var paymentReader = new PaymentPersistenceReader(context, paymentMethodReader, documentTypeReader);
         var paymentWriter = new PaymentPersistenceWriter(context, NullLogger<PaymentPersistenceWriter>.Instance);
         var dailyPaymentPersistence = new DailyPaymentPersistence(context);
         var cashLedgerRepository = new CashLedgerRepository(context);

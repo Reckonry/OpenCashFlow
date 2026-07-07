@@ -241,6 +241,8 @@ public sealed class CreatePaymentOrchestratorTests
 
         public PaymentMethodSnapshot? PaymentMethod { get; init; }
 
+        public DocumentTypeSnapshot? DocumentType { get; init; }
+
         public List<string>? OperationLog { get; init; }
 
         public bool ReturnNullOnCreate { get; init; }
@@ -262,7 +264,12 @@ public sealed class CreatePaymentOrchestratorTests
 
         public Task<PaymentMethodSnapshot?> GetPaymentMethodByIdAsync(Guid paymentMethodId, Guid tenantId, CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(PaymentMethod);
+            return Task.FromResult<PaymentMethodSnapshot?>(PaymentMethod ?? new PaymentMethodSnapshot(paymentMethodId, "Bank transfer"));
+        }
+
+        public Task<DocumentTypeSnapshot?> GetDocumentTypeByIdAsync(Guid documentTypeId, Guid tenantId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<DocumentTypeSnapshot?>(DocumentType ?? new DocumentTypeSnapshot(documentTypeId, "Document"));
         }
 
         public Task<PaymentSnapshot?> CreateAsync(PaymentDraft payment, CancellationToken cancellationToken = default)

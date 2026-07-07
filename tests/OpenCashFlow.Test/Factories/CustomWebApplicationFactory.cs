@@ -117,7 +117,7 @@ namespace OpenCashFlow.Test.Factories
 
         public async Task<string> GenerateJwtTokenAsync(Guid userId)
         {
-            return await JwtTokenGenerator.GenerateTokenAsync(Services, userId);
+            return await JwtTokenGenerator.GenerateTokenAsync(Services, userId, role: "CompanyAdmin");
         }
 
         public ApplicationDbContext CreateDbContext()

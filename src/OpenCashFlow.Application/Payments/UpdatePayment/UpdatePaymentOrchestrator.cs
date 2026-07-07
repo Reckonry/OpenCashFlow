@@ -33,6 +33,26 @@ public sealed class UpdatePaymentOrchestrator(
                 return null;
             }
 
+            var newMethod = await paymentReader.GetPaymentMethodByIdAsync(
+                validatedPayment.PaymentMethodId,
+                validatedPayment.TenantId,
+                ct);
+
+            if (newMethod == null)
+            {
+                throw new ArgumentException("Payment method does not exist for the current tenant.", nameof(command.PaymentMethodId));
+            }
+
+            var documentType = await paymentReader.GetDocumentTypeByIdAsync(
+                validatedPayment.DocumentTypeId,
+                validatedPayment.TenantId,
+                ct);
+
+            if (documentType == null)
+            {
+                throw new ArgumentException("Document type does not exist for the current tenant.", nameof(command.DocumentTypeId));
+            }
+
             var paymentDraft = new PaymentUpdateDraft(
                 validatedPayment.PaymentId,
                 validatedPayment.TenantId,
@@ -67,11 +87,6 @@ public sealed class UpdatePaymentOrchestrator(
             var originalMethod = await paymentReader.GetPaymentMethodByIdAsync(
                 originalPayment.PaymentMethodId,
                 originalPayment.TenantId,
-                ct);
-
-            var newMethod = await paymentReader.GetPaymentMethodByIdAsync(
-                validatedPayment.PaymentMethodId,
-                validatedPayment.TenantId,
                 ct);
 
             var cashLedgerApplied = await ApplyCashLedgerAsync(

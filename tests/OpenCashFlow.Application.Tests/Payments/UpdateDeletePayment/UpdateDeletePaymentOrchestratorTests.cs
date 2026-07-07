@@ -234,6 +234,7 @@ public sealed class UpdateDeletePaymentOrchestratorTests
     {
         public PaymentSnapshot? ExistingPayment { get; init; }
         public Dictionary<Guid, PaymentMethodSnapshot> PaymentMethods { get; } = [];
+        public Dictionary<Guid, DocumentTypeSnapshot> DocumentTypes { get; } = [];
         public List<PaymentUpdateDraft> UpdatedPayments { get; } = [];
         public List<(Guid PaymentId, Guid TenantId)> DeletedPayments { get; } = [];
 
@@ -252,8 +253,18 @@ public sealed class UpdateDeletePaymentOrchestratorTests
 
         public Task<PaymentMethodSnapshot?> GetPaymentMethodByIdAsync(Guid paymentMethodId, Guid tenantId, CancellationToken cancellationToken = default)
         {
-            PaymentMethods.TryGetValue(paymentMethodId, out var method);
-            return Task.FromResult(method);
+            return Task.FromResult<PaymentMethodSnapshot?>(
+                PaymentMethods.TryGetValue(paymentMethodId, out var method)
+                    ? method
+                    : new PaymentMethodSnapshot(paymentMethodId, "Bank transfer"));
+        }
+
+        public Task<DocumentTypeSnapshot?> GetDocumentTypeByIdAsync(Guid documentTypeId, Guid tenantId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<DocumentTypeSnapshot?>(
+                DocumentTypes.TryGetValue(documentTypeId, out var documentType)
+                    ? documentType
+                    : new DocumentTypeSnapshot(documentTypeId, "Document"));
         }
 
         public Task<PaymentSnapshot?> CreateAsync(PaymentDraft payment, CancellationToken cancellationToken = default)

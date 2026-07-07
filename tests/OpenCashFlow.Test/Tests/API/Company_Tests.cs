@@ -50,7 +50,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Security")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "POST /v1/company by unauthorized user should fail", Skip = "Role/Policy not enforced yet")]
+        [Fact(DisplayName = "POST /v1/company by unauthorized user should fail")]
         public async Task CreateCompany_UnauthorizedUser_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000002");
@@ -184,7 +184,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Security")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "GET /v1/company/view/{id} should fail when accessing other company", Skip = "Access control not implemented: endpoint returns current company ignoring route id")]
+        [Fact(DisplayName = "GET /v1/company/view/{id} should fail when accessing other company")]
         public async Task GetCompanyDetails_OtherCompany_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -243,7 +243,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Security")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "PUT /v1/company/{id} by unauthorized user should fail", Skip = "Role/Policy not enforced yet")]
+        [Fact(DisplayName = "PUT /v1/company/{id} by unauthorized user should fail")]
         public async Task UpdateCompany_UnauthorizedUser_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000002");
@@ -262,7 +262,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Security")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "PUT /v1/company/{id} should fail when updating other company", Skip = "Access control not implemented yet")]
+        [Fact(DisplayName = "PUT /v1/company/{id} should fail when updating other company")]
         public async Task UpdateCompany_OtherCompany_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -339,7 +339,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Security")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "DELETE /v1/company/{id} by unauthorized user should fail", Skip = "Role/Policy not enforced yet")]
+        [Fact(DisplayName = "DELETE /v1/company/{id} by unauthorized user should fail")]
         public async Task DeleteCompany_UnauthorizedUser_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000002");
@@ -431,7 +431,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Security")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "GET /v1/company with insufficient role should fail", Skip = "Role policy not enforced on endpoints yet")]
+        [Fact(DisplayName = "GET /v1/company with insufficient role should fail")]
         public async Task GetCompany_InsufficientRole_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");

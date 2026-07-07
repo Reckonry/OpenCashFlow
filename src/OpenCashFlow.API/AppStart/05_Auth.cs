@@ -63,7 +63,8 @@ public static class AuthAppStart
 
         builder.Services.AddAuthorizationBuilder()
             .AddPolicy("InstanceAdmin", policy => policy.RequireClaim(ClaimTypes.Role, "InstanceAdmin"))
-            .AddPolicy("CompanyAdmin", policy => policy.RequireClaim(ClaimTypes.Role, "CompanyAdmin"));
+            .AddPolicy("CompanyAdmin", policy => policy.RequireClaim(ClaimTypes.Role, "CompanyAdmin"))
+            .AddPolicy("CompanyMember", policy => policy.RequireClaim(ClaimTypes.Role, "InstanceAdmin", "CompanyAdmin", "Employee"));
 
         return builder;
     }

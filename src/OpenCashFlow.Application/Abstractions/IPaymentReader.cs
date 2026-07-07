@@ -7,4 +7,6 @@ public interface IPaymentReader
     Task<PaymentSnapshot?> GetByRequestIdAsync(Guid requestId, Guid tenantId, CancellationToken cancellationToken = default);
 
     Task<PaymentMethodSnapshot?> GetPaymentMethodByIdAsync(Guid paymentMethodId, Guid tenantId, CancellationToken cancellationToken = default);
+
+    Task<DocumentTypeSnapshot?> GetDocumentTypeByIdAsync(Guid documentTypeId, Guid tenantId, CancellationToken cancellationToken = default);
 }

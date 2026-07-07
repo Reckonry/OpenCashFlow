@@ -121,7 +121,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Payments")]
         [Trait("Type", "Security")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "POST /v1/payments with unauthorized employee should fail", Skip = "non ancora implementati ruoli")]
+        [Fact(DisplayName = "POST /v1/payments with unauthorized employee should fail")]
         public async Task CreatePayment_UnauthorizedEmployee_ShouldFail()
         {
             // user 000000000002 belongs to the same company but we'll generate a token with an invalid role
@@ -152,7 +152,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Payments")]
         [Trait("Type", "Security")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "POST /v1/payments to different company should fail", Skip = "TBF")]
+        [Fact(DisplayName = "POST /v1/payments to different company should fail")]
         public async Task CreatePayment_ToDifferentCompany_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -172,18 +172,7 @@ namespace OpenCashFlow.Test.Tests
             };
 
             var response = await client.PostAsJsonAsync("/v1/Payment", payment);
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var paymentResponse = JsonSerializer.Deserialize<ApiResponse<Payment_Detail_DTO>>(responseBody, options: new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            Assert.NotNull(paymentResponse);
-            Assert.NotNull(paymentResponse.Data);
-            Assert.True(paymentResponse.Data.TenantID == Guid.Parse("00000000-0000-0000-0000-000000000001"));
-
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         // Payment creation [FAIL] (missing required field - es: Amount)
@@ -559,7 +548,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Payments")]
         [Trait("Type", "Validation")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "PUT /v1/payments/{id} should fail if PaymentMethod is from another company", Skip = "Da capire come limitare nel db stesso questo")]
+        [Fact(DisplayName = "PUT /v1/payments/{id} should fail if PaymentMethod is from another company")]
         public async Task UpdatePayment_PaymentMethodFromAnotherCompany_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -577,7 +566,7 @@ namespace OpenCashFlow.Test.Tests
 
             var response = await client.PutAsJsonAsync($"/v1/Payment/{paymentId}", dto);
 
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         // Payment update [FAIL] (DocumentType from another company)
@@ -585,7 +574,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Payments")]
         [Trait("Type", "Validation")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "PUT /v1/payments/{id} should fail if DocumentType is from another company", Skip = "Da capire come limitare nel db questo...")]
+        [Fact(DisplayName = "PUT /v1/payments/{id} should fail if DocumentType is from another company")]
         public async Task UpdatePayment_DocumentTypeFromAnotherCompany_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -611,7 +600,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Payments")]
         [Trait("Type", "Validation")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "PUT /v1/payments/{id} should fail if trying to modify locked field (UserID)", Skip = "non ancora previso a sistema...")]
+        [Fact(DisplayName = "PUT /v1/payments/{id} should fail if trying to modify locked field (UserID)")]
         public async Task UpdatePayment_ModifyLockedField_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -769,7 +758,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Payments")]
         [Trait("Type", "Security")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "Any /v1/payments API access with invalid role should fail", Skip = "not done yet roles")]
+        [Fact(DisplayName = "Any /v1/payments API access with invalid role should fail")]
         public async Task AccessPaymentsApi_WithInvalidRole_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");

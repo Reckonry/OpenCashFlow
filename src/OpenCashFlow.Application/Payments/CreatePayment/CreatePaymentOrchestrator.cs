@@ -35,6 +35,26 @@ public sealed class CreatePaymentOrchestrator(
                     CashLedgerApplied: false);
             }
 
+            var paymentMethod = await paymentReader.GetPaymentMethodByIdAsync(
+                validatedPayment.PaymentMethodId,
+                validatedPayment.TenantId,
+                ct);
+
+            if (paymentMethod == null)
+            {
+                throw new ArgumentException("Payment method does not exist for the current tenant.", nameof(command.PaymentMethodId));
+            }
+
+            var documentType = await paymentReader.GetDocumentTypeByIdAsync(
+                validatedPayment.DocumentTypeId,
+                validatedPayment.TenantId,
+                ct);
+
+            if (documentType == null)
+            {
+                throw new ArgumentException("Document type does not exist for the current tenant.", nameof(command.DocumentTypeId));
+            }
+
             var paymentDraft = new PaymentDraft(
                 validatedPayment.PaymentId,
                 validatedPayment.TenantId,
@@ -58,11 +78,6 @@ public sealed class CreatePaymentOrchestrator(
                 createdPayment.DateIns,
                 createdPayment.Amount,
                 createdPayment.EntryType,
-                ct);
-
-            var paymentMethod = await paymentReader.GetPaymentMethodByIdAsync(
-                validatedPayment.PaymentMethodId,
-                validatedPayment.TenantId,
                 ct);
 
             var cashLedgerApplied = false;

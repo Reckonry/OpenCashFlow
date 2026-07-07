@@ -11,7 +11,7 @@ using Asp.Versioning;
 
 namespace OpenCashFlow.API.Controllers
 {
-    [ApiController, Authorize]
+    [ApiController, Authorize(Policy = "CompanyMember")]
     [Route("v{version:apiVersion}/")]
     [ApiVersion("1.0")]
     public partial class PaymentController(IPaymentService PaymentService, IAuditLogService auditLogService, ILogger<PaymentController> logger) : Controller

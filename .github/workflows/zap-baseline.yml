@@ -62,8 +62,9 @@ jobs:
           set -euo pipefail
 
           cat > .env << 'EOF'
-          JwtSettings__SecretKey=test-secret-key-for-ci-only-change-before-prod-0001
-          EmailConfiguration__Password=dummy-password
+          APP_URL=http://host.docker.internal:5200
+          JWT_SECRET=test-secret-key-for-ci-only-change-before-prod-0001
+          SMTP_PASSWORD=dummy-password
           EOF
 
           docker compose version

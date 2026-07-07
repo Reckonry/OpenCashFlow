@@ -160,4 +160,6 @@ Deferred dependency tracks:
 
 The WebApp now emits a nonce-based CSP without `unsafe-inline` or `unsafe-eval`. `OpenCashFlow.WebApp.Security.CspNonceTagHelper` applies the request nonce to Razor-rendered `<script>` and `<style>` tags, allowing the legacy Razor views to keep working while the frontend is progressively moved toward external JS/CSS assets.
 
+The first frontend cleanup slice moved shared session watchdog scripts, shared layout styles and small auth page scripts into static assets under `wwwroot/js` and `wwwroot/css`. Runtime CDN dependencies still exist for flatpickr and SignalR in a few views and are tracked in `Docs/architecture/frontend-csp-cleanup.md`.
+
 The ZAP Baseline workflow keeps the structured JSON quality gate and no longer contains a CSP allowlist. New Medium/High ZAP findings fail the workflow.

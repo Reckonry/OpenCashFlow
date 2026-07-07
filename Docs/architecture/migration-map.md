@@ -220,4 +220,6 @@ OpenCashFlow.WebApp/Security/CspNonceTagHelper
 
 `Program.cs` now emits CSP without `unsafe-inline`, `unsafe-eval` or broad wildcard sources. Razor `<script>` and `<style>` tags receive the nonce automatically through the WebApp tag helper. The ZAP Baseline quality gate still parses structured JSON reports, but the temporary CSP allowlist has been removed.
 
+The follow-up frontend cleanup moved shared session watchdog code, shared layout CSS/font declarations and small auth page behavior to static assets. Remaining inline scripts/styles and runtime CDN references are tracked in `Docs/architecture/frontend-csp-cleanup.md`.
+
 Future frontend cleanup should continue extracting page scripts/styles into static assets and remove external CDN dependencies where local assets are available.

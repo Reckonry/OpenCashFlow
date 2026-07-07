@@ -9,7 +9,7 @@
             <div class="col-auto">
                 <ul class="list-inline list-inline-dots mb-0">
                     <li class="list-inline-item">
-                        &copy; <script>document.write(new Date().getFullYear())</script> <a href='@TempData.Peek("authorUrl")' target="_blank" class="link-secondary">@TempData.Peek("authorName")</a>
+                        &copy; @DateTime.UtcNow.Year <a href='@TempData.Peek("authorUrl")' target="_blank" class="link-secondary">@TempData.Peek("authorName")</a>
                     </li>
                 </ul>
             </div>

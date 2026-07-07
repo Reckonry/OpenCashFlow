@@ -30,7 +30,7 @@
             </div>
             <div class="row align-items-center mt-4">
                 <div class="col">
-                    <span class="text-secondary">&copy; <script>document.write(new Date().getFullYear())</script> </span>
+                    <span class="text-secondary">&copy; @DateTime.UtcNow.Year </span>
                     <a href='@TempData.Peek("authorUrl")' target="_blank" class="link-secondary">@TempData.Peek("authorName")</a>
                 </div>
                 <div class="col-auto">

@@ -204,6 +204,8 @@ The WebApp emits security headers from `OpenCashFlow.WebApp/Program.cs`:
 
 The CSP uses a per-request nonce for Razor-rendered `<script>` and `<style>` elements through the WebApp CSP nonce tag helper. The policy intentionally avoids `unsafe-inline` and `unsafe-eval`. External script/style sources must be explicit; broad wildcard sources are not allowed.
 
+Shared layout scripts/styles and several small auth page scripts have been moved into static assets. Some legacy Razor views still use nonce-backed inline blocks while they are migrated page by page; runtime CDN usage is explicitly limited and tracked in `Docs/architecture/frontend-csp-cleanup.md`.
+
 The ZAP Baseline workflow parses JSON reports and fails on any non-accepted Medium/High finding. CSP findings are not allowlisted.
 
 ### 4.1 Encryption

@@ -20,19 +20,7 @@
 
 @section PageScripts {
     <script src="~/js/pages-auth.js"></script>
-    <script>
-      'use strict';
-      document.addEventListener('DOMContentLoaded', function () {
-        const pwd = document.getElementById('Password');
-        const toggle = document.getElementById('togglePassword');
-        if (pwd && toggle) {
-          toggle.addEventListener('click', function (e) {
-            e.preventDefault();
-            pwd.type = (pwd.type === 'password') ? 'text' : 'password';
-          });
-        }
-      });
-    </script>
+    <script src="~/js/pages/auth-password-toggle.js" asp-append-version="true"></script>
 }
 
 <div class="page page-center">
@@ -107,7 +95,7 @@
                   <input class="form-check-input" type="checkbox" asp-for="AcceptPrivacyPolicy" />
                   <span class="form-check-label">
                     @Localizer["IAgreeTo"]
-                    <a href="javascript:void(0);" tabindex="-1">@Localizer["PrivacyPolicyAndTerms"]</a>
+                    <a href="#" tabindex="-1" aria-disabled="true">@Localizer["PrivacyPolicyAndTerms"]</a>
                   </span>
                 </label>
               </div>

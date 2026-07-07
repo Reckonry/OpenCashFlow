@@ -1,48 +1,34 @@
 # OWASP ZAP Baseline Scan workflow
 # - Runs a passive (baseline) scan against the locally started app
 # - Generates HTML reports under reports/
-# - Simple quality gate: fails if Medium/High alerts are found (> 0)
+# - Structured quality gate: fails if Medium/High alerts are found (> 0)
 
 name: ZAP Baseline check
 
 on:
-  workflow_dispatch:
   pull_request:
-    branches: [ master ]
-  push:
-    tags:
-      # Global RC tags
-      - 'v*.*.*-RC'
-      - 'v*.*.*.*-RC'
+    branches: [ main ]
+    types: [ opened, synchronize, reopened, ready_for_review ]
 
 jobs:
   zap-baseline:
     name: zap-baseline
+    if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: gi
-          POSTGRES_PASSWORD: gi
-          POSTGRES_DB: gi_ci
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U gi -d gi_ci"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
     env:
       # Targets (App + API)
-      TARGET_APP: http://127.0.0.1:7000
-      TARGET_API: http://127.0.0.1:9000
-      ZAP_IMAGE: owasp/zap2docker-stable   # Stable ZAP Docker image
+      APP_BASE_URL: http://localhost:5200
+      API_BASE_URL: http://localhost:5100
+      TARGET_APP: http://host.docker.internal:5200
+      TARGET_API: http://host.docker.internal:5100
+      ZAP_IMAGE: zaproxy/zap-stable   # Stable ZAP Docker image
       REPORTS_DIR: ${{ github.workspace }}/reports
 
       # Quality gate thresholds: max allowed Medium/High alerts
-      MAX_MEDIUM: "0"  # -m 0 (zero Medium allowed)
-      MAX_HIGH: "0"    # -u 0 (zero High allowed)
+      MAX_MEDIUM: "0"
+      MAX_HIGH: "0"
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
 
     steps:
       - name: Checkout repository
@@ -51,7 +37,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "9.0.x"
+          dotnet-version: "10.0.x"
 
       - name: Restore and build solution
         run: |
@@ -64,67 +50,50 @@ jobs:
       - name: Ensure reports directory
         run: |
           mkdir -p "${REPORTS_DIR}"
+          chmod 777 "${REPORTS_DIR}"
 
-      # Avvia APP e API via dotnet run su porte note da launchSettings
-      - name: Start APP and API locally
+      - name: Start stack with Docker Compose
         run: |
           set -euo pipefail
 
-          # Wait for Postgres (GitHub Actions service) to be ready
-          for i in {1..60}; do
-            if docker run --rm --network host postgres:16 pg_isready -h 127.0.0.1 -p 5432 -U gi -d gi_ci >/dev/null 2>&1; then
-              echo "Postgres is ready"; break; fi
-            sleep 1
-            if [ "$i" -eq 60 ]; then echo "Timeout waiting for Postgres"; exit 1; fi
+          cat > .env << 'EOF'
+          APP_URL=http://host.docker.internal:5200
+          JWT_SECRET=test-secret-key-for-ci-only-change-before-prod-0001
+          SMTP_PASSWORD=dummy-password
+          EOF
+
+          docker compose version
+          docker compose up -d --build --quiet-pull
+          docker compose ps
+
+          for i in {1..180}; do
+            if curl -fsS "${API_BASE_URL%/}/health" >/dev/null 2>&1; then
+              echo "API is healthy"; break
+            fi
+            sleep 2
+            if [ "$i" -eq 180 ]; then
+              echo "Timeout waiting for API";
+              docker compose logs --no-color --timestamps --tail=200 api || true
+              exit 1
+            fi
           done
 
-          # Provision fallback DB/user that the API might expect by default
-          docker run --rm --network host -e PGPASSWORD=gi postgres:16 \
-            psql -h 127.0.0.1 -U gi -d postgres -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='opencashflow') THEN CREATE ROLE opencashflow WITH LOGIN PASSWORD 'opencashflow'; END IF; END \$\$;"
-
-          docker run --rm --network host -e PGPASSWORD=gi postgres:16 \
-            psql -h 127.0.0.1 -U gi -d postgres -v ON_ERROR_STOP=1 <<'SQL'
-            SELECT 'CREATE DATABASE opencashflow OWNER opencashflow'
-            WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname='opencashflow')\gexec
-            SQL
-
-          # Common env
-          export DOTNET_ENVIRONMENT=CI
-          export ASPNETCORE_ENVIRONMENT=CI
-          export DOTNET_LAUNCH_PROFILE=""
-
-          # Bind URLs
-          export ASPNETCORE_URLS_APP="${TARGET_APP}"
-          export ASPNETCORE_URLS_API="${TARGET_API}"
-
-          # Connection string for API (provide both common keys)
-          export DB_CS="Host=127.0.0.1;Port=5432;Database=opencashflow;Username=opencashflow;Password=opencashflow"
-
-          # Start WebApp and API with logs
-          nohup bash -lc 'ASPNETCORE_URLS=${ASPNETCORE_URLS_APP} dotnet run --project src/OpenCashFlow.WebApp/OpenCashFlow.WebApp.csproj --no-build > app.log 2>&1' &
-          nohup bash -lc 'ASPNETCORE_URLS=${ASPNETCORE_URLS_API} ConnectionStrings__Default=${DB_CS} ConnectionStrings__DefaultConnection=${DB_CS} dotnet run --project src/OpenCashFlow.API/OpenCashFlow.API.csproj --no-build > api.log 2>&1' &
-
-          APP_HEALTH="${TARGET_APP%/}/healthz"
-          API_HEALTH="${TARGET_API%/}/healthz"
-
-          # Wait up to 120s for readiness (health endpoints preferred)
-          for i in {1..120}; do
-            OK=0
-            curl -ksSf "$APP_HEALTH" >/dev/null 2>&1 && OK=$((OK+1)) || true
-            curl -ksSf "$API_HEALTH" >/dev/null 2>&1 && OK=$((OK+1)) || true
-            if [ "$OK" -eq 2 ]; then echo "App and API are up"; break; fi
-            sleep 1
-            if [ "$i" -eq 120 ]; then
-              echo 'Service startup timeout';
-              echo '--- APP LOG ---'; tail -n 200 app.log || true; echo '--------------';
-              echo '--- API LOG ---'; tail -n 200 api.log || true; echo '--------------';
-              exit 1;
+          for i in {1..180}; do
+            APP_CODE=$(curl -sS -o /dev/null -w "%{http_code}" "${APP_BASE_URL%/}/" 2>/dev/null || true)
+            if [[ "$APP_CODE" =~ ^[0-9]{3}$ ]]; then
+              echo "WebApp is reachable"; break
+            fi
+            sleep 2
+            if [ "$i" -eq 180 ]; then
+              echo "Timeout waiting for WebApp";
+              docker compose logs --no-color --timestamps --tail=200 webapp || true
+              exit 1
             fi
           done
 
       # Esegue la baseline scan (APP):
       # - Monta reports/ in /zap/wrk
-      # - --network=host per raggiungere i target localhost
+      # - host.docker.internal per raggiungere le porte pubblicate da Docker Compose
       # - -I per ignorare gli INFO
       # - -t TARGET_APP e -r output HTML
       # - Non fallire immediatamente (|| true), il fallimento viene gestito dalla quality gate
@@ -137,9 +106,9 @@ jobs:
             zap-baseline.py \
               -I \
               -m 0 \
-              -u 0 \
-              -t "http://host.docker.internal:7000" \
-              -r "zap-baseline-report-app.html" || true
+              -t "${TARGET_APP}" \
+              -r "zap-baseline-report-app.html" \
+              -J "zap-baseline-report-app.json" || true
 
       # Esegue la baseline scan (API)
       - name: Run ZAP Baseline scan (API)
@@ -151,44 +120,86 @@ jobs:
             zap-baseline.py \
               -I \
               -m 0 \
-              -u 0 \
-              -t "http://host.docker.internal:9000" \
-              -r "zap-baseline-report-api.html" || true
+              -t "${TARGET_API}" \
+              -r "zap-baseline-report-api.html" \
+              -J "zap-baseline-report-api.json" || true
 
       # Quality Gate: fallisce se il report contiene Medium/High > delle soglie
       - name: Quality gate (Medium/High)
         run: |
-          for REPORT in zap-baseline-report-app.html zap-baseline-report-api.html; do
-            FILE="${REPORTS_DIR}/$REPORT"
-            if [ ! -s "$FILE" ]; then echo "Report non trovato o vuoto: $FILE" >&2; exit 2; fi
-            MEDIUM=$(grep -o "Medium" "$FILE" | wc -l | xargs)
-            HIGH=$(grep -o "High" "$FILE" | wc -l | xargs)
-            echo "$REPORT -> Medium=$MEDIUM, High=$HIGH (Soglie: Medium<=${MAX_MEDIUM}, High<=${MAX_HIGH})"
-            if [ "$MEDIUM" -gt "$MAX_MEDIUM" ] || [ "$HIGH" -gt "$MAX_HIGH" ]; then
-              echo "Quality gate fallita per $REPORT" >&2; exit 1
-            fi
-          done
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          reports = [
+              ("APP", "zap-baseline-report-app.json"),
+              ("API", "zap-baseline-report-api.json"),
+          ]
+          thresholds = {
+              "medium": int(os.environ["MAX_MEDIUM"]),
+              "high": int(os.environ["MAX_HIGH"]),
+          }
+          failed = False
+
+          for label, report in reports:
+              path = os.path.join(os.environ["REPORTS_DIR"], report)
+              if not os.path.exists(path) or os.path.getsize(path) == 0:
+                  print(f"Report non trovato o vuoto: {path}", file=sys.stderr)
+                  failed = True
+                  continue
+
+              with open(path, encoding="utf-8") as handle:
+                  data = json.load(handle)
+
+              counts = {"medium": 0, "high": 0}
+              findings = []
+              for site in data.get("site", []):
+                  for alert in site.get("alerts", []):
+                      alert_name = alert.get("alert", "Unknown alert")
+                      risk = str(alert.get("riskdesc") or alert.get("risk") or "").lower()
+
+                      if risk.startswith("medium"):
+                          counts["medium"] += 1
+                          findings.append(("Medium", alert_name))
+                      elif risk.startswith("high"):
+                          counts["high"] += 1
+                          findings.append(("High", alert_name))
+
+              print(
+                  f"{label} -> Medium={counts['medium']}, High={counts['high']} "
+                  f"(Soglie: Medium<={thresholds['medium']}, High<={thresholds['high']})"
+              )
+
+              for risk, alert_name in findings:
+                  print(f"  {risk}: {alert_name}")
+
+              if counts["medium"] > thresholds["medium"] or counts["high"] > thresholds["high"]:
+                  failed = True
+
+          if failed:
+              sys.exit(1)
+          PY
 
       - name: Upload ZAP Baseline HTML report (APP)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: zap-baseline-report-app
-          path: reports/zap-baseline-report-app.html
+          path: reports/zap-baseline-report-app.*
           if-no-files-found: error
 
       - name: Upload ZAP Baseline HTML report (API)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: zap-baseline-report-api
-          path: reports/zap-baseline-report-api.html
+          path: reports/zap-baseline-report-api.*
           if-no-files-found: error
 
 
       - name: Send reports to Slack
-        if: always() && secrets.SLACK_BOT_TOKEN != '' && secrets.SLACK_CHANNEL_ID != ''
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        if: always() && env.SLACK_BOT_TOKEN != '' && env.SLACK_CHANNEL_ID != ''
         run: |
           for REPORT in zap-baseline-report-app.html zap-baseline-report-api.html; do
             curl -F "file=@${REPORTS_DIR}/$REPORT" \
@@ -197,3 +208,13 @@ jobs:
                  -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
                  https://slack.com/api/files.uploadV2
           done
+
+      - name: Show docker logs (on failure)
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs --no-color --timestamps --tail=300 || true
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

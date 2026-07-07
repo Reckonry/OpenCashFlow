@@ -97,6 +97,7 @@ OpenCashFlow.Domain
 - Consumes `OpenCashFlow.Contracts`.
 - Uses local WebApp view models for Razor-only form/list/detail models.
 - Does not reference `OpenCashFlow.Infrastructure`.
+- Owns WebApp-only security header composition, including CSP nonce generation and the Razor tag helper that applies nonces to script/style elements.
 
 ## Removed Project
 
@@ -132,3 +133,33 @@ Dependency direction remains:
 - Application -> Domain only;
 - WebApp -> Contracts only;
 - Infrastructure -> EF entities/persistence.
+
+## .NET 10 LTS Migration
+
+The active solution now targets `net10.0` across core and test projects. `global.json` selects the .NET 10 SDK line with feature roll-forward enabled.
+
+Runtime package baseline:
+
+- ASP.NET Core, EF Core and Microsoft.Extensions packages use `10.0.9`.
+- `Npgsql.EntityFrameworkCore.PostgreSQL` uses `10.0.2`.
+- `System.IdentityModel.Tokens.Jwt` uses `8.19.1`.
+- `System.Linq.Dynamic.Core` uses `1.7.2`.
+- `Microsoft.OpenApi` is pinned to `2.10.0` to avoid the vulnerable `2.0.x` transitive resolution.
+- `Swashbuckle.AspNetCore` uses `10.2.3` because version 6.x is not compatible with the safe Microsoft.OpenApi 2.x namespace layout.
+
+Docker images use `mcr.microsoft.com/dotnet/sdk:10.0` and `mcr.microsoft.com/dotnet/aspnet:10.0`. GitHub Actions use `10.0.x`.
+
+Deferred dependency tracks:
+
+- `Polly` 7 -> 8 requires a focused resilience-policy migration.
+- `Sentry` 5 -> 6 requires telemetry initialization review.
+- `Asp.Versioning` 8 -> 10 requires route/version compatibility testing.
+- `coverlet`, `Testcontainers` and `Microsoft.NET.Test.Sdk` major upgrades should be handled as test-infrastructure work.
+
+## WebApp CSP Hardening
+
+The WebApp now emits a nonce-based CSP without `unsafe-inline` or `unsafe-eval`. `OpenCashFlow.WebApp.Security.CspNonceTagHelper` applies the request nonce to Razor-rendered `<script>` and `<style>` tags, allowing the legacy Razor views to keep working while the frontend is progressively moved toward external JS/CSS assets.
+
+The first frontend cleanup slice moved shared session watchdog scripts, shared layout styles and small auth page scripts into static assets under `wwwroot/js` and `wwwroot/css`. Runtime CDN dependencies still exist for flatpickr and SignalR in a few views and are tracked in `Docs/architecture/frontend-csp-cleanup.md`.
+
+The ZAP Baseline workflow keeps the structured JSON quality gate and no longer contains a CSP allowlist. New Medium/High ZAP findings fail the workflow.

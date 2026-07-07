@@ -3,17 +3,13 @@ name: ZAP Full Scan (Docker Compose)
 on:
   # schedule:
   #   - cron: "0 2 * * *" # nightly 02:00 UTC
-  workflow_dispatch:
   pull_request:
-    branches: [ master ]
-  push:
-    tags:
-      # Global RC tags
-      - 'v*.*.*-RC'
-      - 'v*.*.*.*-RC'
+    branches: [ main ]
+    types: [ opened, synchronize, reopened, ready_for_review ]
 
 jobs:
   zap-compose:
+    if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -39,6 +35,8 @@ jobs:
       CONTEXT_FILE: ${{ github.workspace }}/zap.context
 
       ACT: "false"
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
 
     steps:
       - name: Checkout
@@ -65,27 +63,31 @@ jobs:
           set -euo pipefail
 
           wait_url () {
-            local url="$1" name="$2"
+            local url="$1" name="$2" health_path="${3:-}" require_success="${4:-false}"
             echo "⏳ Waiting for $name at $url"
-            # Consider it UP if ANY HTTP response is returned (even 404/401, etc.)
-            timeout 180 bash -c '
-              until code=$(curl -sS -o /dev/null -w "%{http_code}" "'"$url"'/healthz" || true); \
-                    [[ "$code" =~ ^[0-9]{3}$ ]] ; do
-                sleep 5
-              done
-            ' || {
-              # fallback: prova la root /
-              timeout 120 bash -c '
-                until code=$(curl -sS -o /dev/null -w "%{http_code}" "'"$url"'" || true); \
+            local probe_url="$url"
+            if [ -n "$health_path" ]; then
+              probe_url="${url%/}${health_path}"
+            fi
+            # Consider WebApp UP if any HTTP response is returned; API health must return success.
+            if [ "$require_success" = "true" ]; then
+              timeout 180 bash -c '
+                until curl -fsS "'"$probe_url"'" >/dev/null; do
+                  sleep 5
+                done
+              '
+            else
+              timeout 180 bash -c '
+                until code=$(curl -sS -o /dev/null -w "%{http_code}" "'"$probe_url"'" || true); \
                       [[ "$code" =~ ^[0-9]{3}$ ]] ; do
                   sleep 5
                 done
               '
-            }
+            fi
             echo "✅ $name reachable"
           }
 
-          wait_url "${API_BASE_URL}" "API"
+          wait_url "${API_BASE_URL}" "API" "/health" "true"
           wait_url "${APP_BASE_URL}" "APP"
 
       - name: Pre-pull ZAP image (amd64)
@@ -204,10 +206,7 @@ jobs:
 
       # (Optional) send HTML reports to Slack: add secrets to enable
       - name: Send reports to Slack (optional)
-        if: ${{ always() && env.ACT != 'true' && secrets.SLACK_BOT_TOKEN != '' && secrets.SLACK_CHANNEL_ID != '' }}
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        if: ${{ always() && env.ACT != 'true' && env.SLACK_BOT_TOKEN != '' && env.SLACK_CHANNEL_ID != '' }}
         run: |
           for f in "${REPORTS_DIR}"/*.html; do
             [ -f "$f" ] || continue

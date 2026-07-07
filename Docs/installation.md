@@ -28,7 +28,7 @@ startup. SMTP variables can stay empty for first setup.
 
 Requirements:
 
-- .NET 9 SDK
+- .NET 10 SDK
 - PostgreSQL 16+
 
 Create a database and export configuration:

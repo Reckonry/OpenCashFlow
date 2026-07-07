@@ -1,14 +1,17 @@
-# Multi-stage build for OpenCashFlow.API (.NET 9)
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+# Multi-stage build for OpenCashFlow.API (.NET 10)
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 8080
 
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy csproj for restore with layer caching
 COPY ["src/OpenCashFlow.API/OpenCashFlow.API.csproj", "src/OpenCashFlow.API/"]
 COPY ["src/OpenCashFlow.Contracts/OpenCashFlow.Contracts.csproj", "src/OpenCashFlow.Contracts/"]
+COPY ["src/OpenCashFlow.Application/OpenCashFlow.Application.csproj", "src/OpenCashFlow.Application/"]
+COPY ["src/OpenCashFlow.Domain/OpenCashFlow.Domain.csproj", "src/OpenCashFlow.Domain/"]
+COPY ["src/OpenCashFlow.Infrastructure/OpenCashFlow.Infrastructure.csproj", "src/OpenCashFlow.Infrastructure/"]
 RUN dotnet restore "src/OpenCashFlow.API/OpenCashFlow.API.csproj"
 
 # Copy the remaining source

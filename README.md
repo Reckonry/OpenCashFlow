@@ -2,10 +2,10 @@
 
 # 💰 OpenCashFlow
 
-![.NET](https://img.shields.io/badge/.NET-9.0-blueviolet?logo=dotnet&style=for-the-badge)
+![.NET](https://img.shields.io/badge/.NET-10.0-blueviolet?logo=dotnet&style=for-the-badge)
 ![ASP.NET Core](https://img.shields.io/badge/ASP.NET-Core-blue?logo=dotnet&style=for-the-badge)
-![CSharp](https://img.shields.io/badge/C%23-9.0-239120?logo=c-sharp&logoColor=white&style=for-the-badge)
-![EF Core](https://img.shields.io/badge/EF%20Core-9.0-success?style=for-the-badge&logo=ef)
+![CSharp](https://img.shields.io/badge/C%23-14.0-239120?logo=c-sharp&logoColor=white&style=for-the-badge)
+![EF Core](https://img.shields.io/badge/EF%20Core-10.0-success?style=for-the-badge&logo=ef)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-DB-blue?logo=postgresql&logoColor=white&style=for-the-badge)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.x-purple?logo=bootstrap&style=for-the-badge)
 ![jQuery](https://img.shields.io/badge/jQuery-3.x-blue?logo=jquery&style=for-the-badge)
@@ -77,7 +77,7 @@ See the `LICENSE` file for full details.
 
 ### Requirements
 
-- .NET 9 SDK
+- .NET 10 SDK
 - PostgreSQL 16+ for local/manual runs
 - Docker and Docker Compose for containerized runs
 - Visual Studio, Rider, or VS Code

@@ -132,3 +132,25 @@ Dependency direction remains:
 - Application -> Domain only;
 - WebApp -> Contracts only;
 - Infrastructure -> EF entities/persistence.
+
+## .NET 10 LTS Migration
+
+The active solution now targets `net10.0` across core and test projects. `global.json` selects the .NET 10 SDK line with feature roll-forward enabled.
+
+Runtime package baseline:
+
+- ASP.NET Core, EF Core and Microsoft.Extensions packages use `10.0.9`.
+- `Npgsql.EntityFrameworkCore.PostgreSQL` uses `10.0.2`.
+- `System.IdentityModel.Tokens.Jwt` uses `8.19.1`.
+- `System.Linq.Dynamic.Core` uses `1.7.2`.
+- `Microsoft.OpenApi` is pinned to `2.10.0` to avoid the vulnerable `2.0.x` transitive resolution.
+- `Swashbuckle.AspNetCore` uses `10.2.3` because version 6.x is not compatible with the safe Microsoft.OpenApi 2.x namespace layout.
+
+Docker images use `mcr.microsoft.com/dotnet/sdk:10.0` and `mcr.microsoft.com/dotnet/aspnet:10.0`. GitHub Actions use `10.0.x`.
+
+Deferred dependency tracks:
+
+- `Polly` 7 -> 8 requires a focused resilience-policy migration.
+- `Sentry` 5 -> 6 requires telemetry initialization review.
+- `Asp.Versioning` 8 -> 10 requires route/version compatibility testing.
+- `coverlet`, `Testcontainers` and `Microsoft.NET.Test.Sdk` major upgrades should be handled as test-infrastructure work.

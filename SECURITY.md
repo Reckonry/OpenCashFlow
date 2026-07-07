@@ -174,6 +174,20 @@ The July 2026 dependency audit remediated:
 
 SMTP remains optional. Password reset token creation must continue to work even when email delivery is not configured.
 
+### .NET 10 LTS Baseline
+
+The .NET 10 migration updates the supported runtime baseline to:
+
+- `net10.0` for all core and test projects.
+- Microsoft ASP.NET Core, EF Core and Extensions packages `10.0.9`.
+- `Npgsql.EntityFrameworkCore.PostgreSQL` `10.0.2`.
+- `System.IdentityModel.Tokens.Jwt` `8.19.1`.
+- `System.Linq.Dynamic.Core` `1.7.2`.
+- `Microsoft.OpenApi` `2.10.0`.
+- `Swashbuckle.AspNetCore` `10.2.3`.
+
+`Swashbuckle.AspNetCore` was upgraded across a major version because the .NET 10 OpenAPI graph otherwise resolved a vulnerable `Microsoft.OpenApi` package and was not source-compatible with the safe `Microsoft.OpenApi` 2.x namespace layout.
+
 ---
 
 ## 4. Data Protection

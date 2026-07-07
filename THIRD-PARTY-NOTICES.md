@@ -14,6 +14,21 @@ OpenCashFlow depends on open-source frameworks and libraries distributed under t
 - Asp.Versioning: MIT.
 - Sentry SDK, if enabled: MIT.
 
+## Runtime Dependency Baseline
+
+OpenCashFlow targets `.NET 10` and uses the .NET 10 Microsoft package line for ASP.NET Core, Entity Framework Core and Microsoft.Extensions packages.
+
+Current release-sensitive packages include:
+
+- `Npgsql.EntityFrameworkCore.PostgreSQL` `10.0.2`.
+- `System.IdentityModel.Tokens.Jwt` `8.19.1`.
+- `System.Linq.Dynamic.Core` `1.7.2`.
+- `Microsoft.OpenApi` `2.10.0`.
+- `Swashbuckle.AspNetCore` `10.2.3`.
+- `MailKit` / `MimeKit` `4.17.0`.
+
+Major upgrades not required by .NET 10 compatibility, such as `Polly` 8, `Sentry` 6 and `Asp.Versioning` 10, should be reviewed separately before release.
+
 ## Client-side libraries and assets
 
 The web projects include vendored assets under `wwwroot/libs`. Before publishing a release archive, verify each asset directory against its upstream package metadata. Current expected major families include:

@@ -208,6 +208,28 @@ var locOptions = app.Services
     .GetRequiredService<Microsoft.Extensions.Options.IOptions<RequestLocalizationOptions>>()
     .Value;
 
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers.TryAdd("Content-Security-Policy",
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+        "style-src 'self' 'unsafe-inline'; " +
+        "img-src 'self' data: blob:; " +
+        "font-src 'self' data:; " +
+        "connect-src 'self' ws: wss: http://api:8080 http://localhost:5100; " +
+        "object-src 'none'; " +
+        "base-uri 'self'; " +
+        "form-action 'self'; " +
+        "frame-ancestors 'none'");
+    headers.TryAdd("X-Frame-Options", "DENY");
+    headers.TryAdd("X-Content-Type-Options", "nosniff");
+    headers.TryAdd("Referrer-Policy", "strict-origin-when-cross-origin");
+    headers.TryAdd("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+
+    await next();
+});
+
 app.UseRequestLocalization(locOptions);
 
 

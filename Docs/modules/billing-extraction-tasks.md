@@ -9,7 +9,7 @@ This is the implementation backlog for removing Billing/Stripe from the core wit
 - [x] Remove Stripe client registration from API.
 - [x] Remove Billing/Stripe controllers, services, repositories and DTOs from the core runtime.
 - [x] Remove Billing/Pricing/Upgrade/Checkout UI from the App.
-- [x] Remove legacy Admin project from the solution.
+- [x] Remove legacy Admin project from the solution and active source tree.
 - [ ] Add integration test: core API starts with empty Stripe configuration and no Billing feature flag.
 
 ## Phase 2: Namespace Cleanup

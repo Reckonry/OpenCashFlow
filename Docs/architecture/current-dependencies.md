@@ -18,7 +18,8 @@ tests/OpenCashFlow.Domain.Tests/OpenCashFlow.Domain.Tests.csproj
 tests/OpenCashFlow.Test/OpenCashFlow.Test.csproj
 ```
 
-`src/OpenCashFlow.Admin` still exists physically as legacy code, but it is not part of the core solution/runtime.
+The legacy `src/OpenCashFlow.Admin` project has been removed from the active repository source tree and is not part of
+the core solution/runtime.
 
 ## Project References
 

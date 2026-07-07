@@ -10,6 +10,7 @@
 *.userosscache
 *.sln.docstates
 *.DS_Store
+.DS_Store
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -365,13 +366,19 @@ FodyWeavers.xsd
 GestioneIncassi-App/.DS_Store
 GestioneIncassi-Landing/.DS_Store
 .secrets
-# JITD Context Markers (session-specific, don't commit)
-.agent/.context-markers/
 
-# Keep the directory structure
-!.agent/.context-markers/.gitkeep
-
+# Local agent/context files
+.agent/
+myapp.context
 .claude
+
+# Environment-specific files. Keep only sanitized examples in git.
+.env
+.env.*
+!.env.example
+env/.env.*
+!env/.env.example
+
 templates/tabler/node_modules/
 templates/tabler/.turbo/
 templates/tabler/.pnpm-store/

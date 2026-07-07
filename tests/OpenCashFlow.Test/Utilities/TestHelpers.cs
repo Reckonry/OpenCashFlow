@@ -1,7 +1,7 @@
-using global::Shared.Data;
-using global::Shared.Core;
-using global::Shared.Models;
-using global::Shared.Models.Identity;
+using OpenCashFlow.Infrastructure.Persistence;
+using OpenCashFlow.Contracts.Core;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
+using OpenCashFlow.Infrastructure.Persistence.Entities.Identity;
 
 namespace  OpenCashFlow.Test.Utilities
 {

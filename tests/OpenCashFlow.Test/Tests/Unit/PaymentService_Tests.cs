@@ -2,7 +2,6 @@ using AutoMapper;
 using OpenCashFlow.API.Services;
 using OpenCashFlow.API.Services.Interfaces;
 using OpenCashFlow.Application.Abstractions;
-using OpenCashFlow.Application.Payments.Repositories;
 using OpenCashFlow.Application.Payments.Calendar;
 using OpenCashFlow.Application.Payments.CreatePayment;
 using OpenCashFlow.Application.Payments.DeletePayment;
@@ -11,19 +10,20 @@ using OpenCashFlow.Application.Payments.GetPayments;
 using OpenCashFlow.Application.Payments.PaymentMethods;
 using OpenCashFlow.Application.Payments.Reports;
 using OpenCashFlow.Application.Payments.UpdatePayment;
+using OpenCashFlow.Application.Auth.ResetPassword;
 using OpenCashFlow.Infrastructure.ApplicationAdapters;
 using OpenCashFlow.Infrastructure.Cash;
 using OpenCashFlow.Infrastructure.Payments;
 using OpenCashFlow.Infrastructure.Payments.Lookups;
+using OpenCashFlow.Infrastructure.Payments.Persistence;
 using OpenCashFlow.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
-using global::Shared.Data;
-using global::Shared.DTOs;
-using global::Shared.Models;
-using global::Shared.Models.Core;
+using OpenCashFlow.Contracts.Auth;
+using OpenCashFlow.Contracts.DTOs;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
 
 namespace OpenCashFlow.Test.Tests.Unit;
 
@@ -49,6 +49,11 @@ public class PaymentService_Tests
         public Task ForgotPasswordAsync(string email, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task ForgotPasswordAsync(Guid UserID, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task ResetPasswordAsync(Guid UserID, string token, string newPassword, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<ValidateResetTokenResult> ValidateResetTokenAsync(string token, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<Guid?> GetUserIdFromResetTokenAsync(string token, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task ChangeRequiredPasswordAsync(Guid userId, string newPassword, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task RemovePasswordChangeRequirementAsync(Guid userId, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<bool> CanRefreshTokenAsync(string username, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<Core_RegistrationResult> RegistrationAsync(Register_DTO registration, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<bool> ConfirmAccountAsync(Guid TenantID, Guid UserID, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<bool> ResendConfirmationAsync(string usernameOrEmail, CancellationToken cancellationToken) => throw new NotImplementedException();
@@ -68,11 +73,13 @@ public class PaymentService_Tests
         IMapper mapper,
         ICashLedgerWriter? cashLedgerWriter = null)
     {
-        var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
         var paymentMethodReader = new PaymentMethodReader(context);
         var paymentMethodWriter = new PaymentMethodWriter(context, NullLogger<PaymentMethodWriter>.Instance);
         var documentTypeReader = new DocumentTypeReader(context);
         var documentTypeWriter = new DocumentTypeWriter(context, NullLogger<DocumentTypeWriter>.Instance);
+        var paymentReader = new PaymentPersistenceReader(context, paymentMethodReader);
+        var paymentWriter = new PaymentPersistenceWriter(context, NullLogger<PaymentPersistenceWriter>.Instance);
+        var dailyPaymentPersistence = new DailyPaymentPersistence(context);
         var cashLedgerRepository = new CashLedgerRepository(context);
         var cashLedgerAdapter = new CashLedgerWriterAdapter(cashLedgerRepository);
         var effectiveCashLedgerWriter = cashLedgerWriter ?? cashLedgerAdapter;
@@ -81,18 +88,18 @@ public class PaymentService_Tests
 
         var createPaymentOrchestrator = new CreatePaymentOrchestrator(
             new CreatePaymentUseCase(),
-            new PaymentReaderAdapter(paymentRepository, paymentMethodReader),
-            new PaymentWriterAdapter(paymentRepository),
-            new DailyPaymentWriterAdapter(paymentRepository),
+            paymentReader,
+            paymentWriter,
+            dailyPaymentPersistence,
             effectiveCashLedgerWriter,
             auditWriter,
             unitOfWork);
 
         var updatePaymentOrchestrator = new UpdatePaymentOrchestrator(
             new UpdatePaymentUseCase(),
-            new PaymentReaderAdapter(paymentRepository, paymentMethodReader),
-            new PaymentWriterAdapter(paymentRepository),
-            new DailyPaymentWriterAdapter(paymentRepository),
+            paymentReader,
+            paymentWriter,
+            dailyPaymentPersistence,
             cashLedgerAdapter,
             effectiveCashLedgerWriter,
             auditWriter,
@@ -100,9 +107,9 @@ public class PaymentService_Tests
 
         var deletePaymentOrchestrator = new DeletePaymentOrchestrator(
             new DeletePaymentUseCase(),
-            new PaymentReaderAdapter(paymentRepository, paymentMethodReader),
-            new PaymentWriterAdapter(paymentRepository),
-            new DailyPaymentWriterAdapter(paymentRepository),
+            paymentReader,
+            paymentWriter,
+            dailyPaymentPersistence,
             effectiveCashLedgerWriter,
             auditWriter,
             unitOfWork);
@@ -127,6 +134,19 @@ public class PaymentService_Tests
             new OpenCashFlow.Application.Payments.DocumentTypes.UpdateDocumentTypeUseCase(documentTypeWriter),
             new OpenCashFlow.Application.Payments.DocumentTypes.DeleteDocumentTypeUseCase(documentTypeWriter),
             NullLogger<PaymentService>.Instance);
+    }
+
+    private static CashService CreateCashService(ApplicationDbContext context)
+    {
+        var cashReader = new OpenCashFlow.Infrastructure.Cash.CashReader(context);
+        var cashWriter = new OpenCashFlow.Infrastructure.Cash.CashWriter(context, NullLogger<OpenCashFlow.Infrastructure.Cash.CashWriter>.Instance);
+
+        return new CashService(
+            cashWriter,
+            new OpenCashFlow.Application.Cash.GetCashBalance.GetCashBalanceUseCase(cashReader),
+            new OpenCashFlow.Application.Cash.GetCashLedger.GetCashLedgerUseCase(cashReader),
+            new OpenCashFlow.Application.Cash.CreateCashAdjustment.CreateCashAdjustmentUseCase(cashWriter),
+            new OpenCashFlow.Application.Cash.RebuildCashBalance.RebuildCashBalanceUseCase(cashWriter));
     }
 
     private sealed class FailingCashLedgerWriter : ICashLedgerWriter
@@ -187,7 +207,7 @@ public class PaymentService_Tests
             DateIns = DateTime.UtcNow,
         });
 
-        context.AspNetUser_DS.Add(new global::Shared.Models.Identity.AspNetUser
+        context.AspNetUser_DS.Add(new OpenCashFlow.Infrastructure.Persistence.Entities.Identity.AspNetUser
         {
             UserID = userId,
             UserName = "tester",
@@ -215,10 +235,8 @@ public class PaymentService_Tests
 
         await context.SaveChangesAsync();
 
-        var cashService = new CashService(context, NullLogger<CashService>.Instance);
+        var cashService = CreateCashService(context);
         await cashService.ApplyPaymentAsync(companyId, paymentId, Convert.ToDecimal(paymentAmount), userId.ToString(), CancellationToken.None);
-
-        var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
         var mapper = CreateMapper();
         var authService = new StubAuthenticationService(companyId, userId);
         var paymentService = CreatePaymentService(context, authService, mapper);
@@ -280,7 +298,7 @@ public class PaymentService_Tests
             DateIns = DateTime.UtcNow,
         });
 
-        context.AspNetUser_DS.Add(new global::Shared.Models.Identity.AspNetUser
+        context.AspNetUser_DS.Add(new OpenCashFlow.Infrastructure.Persistence.Entities.Identity.AspNetUser
         {
             UserID = userId,
             UserName = "tester",
@@ -295,8 +313,7 @@ public class PaymentService_Tests
 
         await context.SaveChangesAsync();
 
-        var cashService = new CashService(context, NullLogger<CashService>.Instance);
-        var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
+        var cashService = CreateCashService(context);
         var mapper = CreateMapper(cfg =>
         {
             cfg.CreateMap<Payment_Create_DTO, Payment>();
@@ -387,7 +404,7 @@ public class PaymentService_Tests
             DateIns = DateTime.UtcNow,
         });
 
-        context.AspNetUser_DS.Add(new global::Shared.Models.Identity.AspNetUser
+        context.AspNetUser_DS.Add(new OpenCashFlow.Infrastructure.Persistence.Entities.Identity.AspNetUser
         {
             UserID = userId,
             UserName = "tester",
@@ -404,7 +421,6 @@ public class PaymentService_Tests
 
         // Create a cash ledger writer that throws an exception
         var mockCashService = new FailingCashService();
-        var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
         var mapper = CreateMapper(cfg =>
         {
             cfg.CreateMap<Payment_Create_DTO, Payment>();
@@ -463,7 +479,7 @@ public class PaymentService_Tests
         public Task<decimal> GetCurrentAsync(Guid companyId, CancellationToken ct)
             => throw new NotImplementedException();
 
-        public Task<IReadOnlyList<global::Shared.Models.Cash.CashLedger>> GetLedgerAsync(Guid companyId, DateTimeOffset? from, DateTimeOffset? to, int skip, int take, CancellationToken ct)
+        public Task<IReadOnlyList<OpenCashFlow.Contracts.Cash.CashLedger>> GetLedgerAsync(Guid companyId, DateTimeOffset? from, DateTimeOffset? to, int skip, int take, CancellationToken ct)
             => throw new NotImplementedException();
     }
 
@@ -525,7 +541,7 @@ public class PaymentService_Tests
             DateIns = DateTime.UtcNow,
         });
 
-        context.AspNetUser_DS.Add(new global::Shared.Models.Identity.AspNetUser
+        context.AspNetUser_DS.Add(new OpenCashFlow.Infrastructure.Persistence.Entities.Identity.AspNetUser
         {
             UserID = userId,
             UserName = "tester",
@@ -540,8 +556,7 @@ public class PaymentService_Tests
 
         await context.SaveChangesAsync();
 
-        var cashService = new CashService(context, NullLogger<CashService>.Instance);
-        var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
+        var cashService = CreateCashService(context);
         var mapper = CreateMapper(cfg =>
         {
             cfg.CreateMap<Payment_Create_DTO, Payment>();
@@ -691,7 +706,7 @@ public class PaymentService_Tests
             DateIns = DateTime.UtcNow,
         });
 
-        context.AspNetUser_DS.Add(new global::Shared.Models.Identity.AspNetUser
+        context.AspNetUser_DS.Add(new OpenCashFlow.Infrastructure.Persistence.Entities.Identity.AspNetUser
         {
             UserID = userId,
             UserName = "tester",
@@ -705,8 +720,7 @@ public class PaymentService_Tests
 
         await context.SaveChangesAsync();
 
-        var cashService = new CashService(context, NullLogger<CashService>.Instance);
-        var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
+        var cashService = CreateCashService(context);
         var mapper = CreateMapper(cfg =>
         {
             cfg.CreateMap<Payment_Create_DTO, Payment>();
@@ -826,7 +840,7 @@ public class PaymentService_Tests
             DateIns = DateTime.UtcNow,
         });
 
-        context.AspNetUser_DS.Add(new global::Shared.Models.Identity.AspNetUser
+        context.AspNetUser_DS.Add(new OpenCashFlow.Infrastructure.Persistence.Entities.Identity.AspNetUser
         {
             UserID = userId,
             UserName = "tester",
@@ -840,8 +854,7 @@ public class PaymentService_Tests
 
         await context.SaveChangesAsync();
 
-        var cashService = new CashService(context, NullLogger<CashService>.Instance);
-        var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
+        var cashService = CreateCashService(context);
         var mapper = CreateMapper(cfg =>
         {
             cfg.CreateMap<Payment_Create_DTO, Payment>();
@@ -949,7 +962,7 @@ public class PaymentService_Tests
             DateIns = DateTime.UtcNow,
         });
 
-        context.AspNetUser_DS.Add(new global::Shared.Models.Identity.AspNetUser
+        context.AspNetUser_DS.Add(new OpenCashFlow.Infrastructure.Persistence.Entities.Identity.AspNetUser
         {
             UserID = userId,
             UserName = "tester",
@@ -963,8 +976,7 @@ public class PaymentService_Tests
 
         await context.SaveChangesAsync();
 
-        var cashService = new CashService(context, NullLogger<CashService>.Instance);
-        var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
+        var cashService = CreateCashService(context);
         var mapper = CreateMapper(cfg =>
         {
             cfg.CreateMap<Payment_Create_DTO, Payment>();
@@ -1071,7 +1083,7 @@ public class PaymentService_Tests
             DateIns = DateTime.UtcNow,
         });
 
-        context.AspNetUser_DS.Add(new global::Shared.Models.Identity.AspNetUser
+        context.AspNetUser_DS.Add(new OpenCashFlow.Infrastructure.Persistence.Entities.Identity.AspNetUser
         {
             UserID = userId,
             UserName = "tester",
@@ -1085,8 +1097,7 @@ public class PaymentService_Tests
 
         await context.SaveChangesAsync();
 
-        var cashService = new CashService(context, NullLogger<CashService>.Instance);
-        var paymentRepository = new PaymentRepository(context, NullLogger<PaymentRepository>.Instance);
+        var cashService = CreateCashService(context);
         var mapper = CreateMapper(cfg =>
         {
             cfg.CreateMap<Payment_Create_DTO, Payment>();

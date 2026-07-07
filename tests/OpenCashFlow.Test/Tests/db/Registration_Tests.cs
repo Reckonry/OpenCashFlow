@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using OpenCashFlow.Test.Factories;
-using global::Shared.DTOs;
+using OpenCashFlow.Contracts.DTOs;
 using Xunit;
 
 namespace OpenCashFlow.Test.Tests

@@ -1,12 +1,12 @@
 using OpenCashFlow.Test.Factories;
 using OpenCashFlow.Test.Fixtures;
-using global::Shared.DTOs;
+using OpenCashFlow.Contracts.DTOs;
 using System.Net;
 using System.Text.Json;
 using Xunit;
 using Microsoft.EntityFrameworkCore;
-using global::Shared.Models;
-using global::Shared.Core;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
+using OpenCashFlow.Contracts.Core;
 
 namespace OpenCashFlow.Test.Tests
 {
@@ -560,11 +560,11 @@ namespace OpenCashFlow.Test.Tests
             {
                 builder.ConfigureServices(services =>
                 {
-                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(global::Shared.Services.Interfaces.IEmailSender));
+                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(OpenCashFlow.Application.Abstractions.IEmailSender));
                     if (existing != null) services.Remove(existing);
 
                     services.Add(new Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
-                        typeof(global::Shared.Services.Interfaces.IEmailSender),
+                        typeof(OpenCashFlow.Application.Abstractions.IEmailSender),
                         typeof(FakeEmailSender),
                         Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton));
                 });
@@ -601,11 +601,11 @@ namespace OpenCashFlow.Test.Tests
         }
 
         // Test helper used to capture outgoing emails in DI
-        private class FakeEmailSender : global::Shared.Services.Interfaces.IEmailSender
+        private class FakeEmailSender : OpenCashFlow.Application.Abstractions.IEmailSender
         {
-            public static readonly List<(global::Shared.Models.EmailMessage Msg, string Name, string Email)> Sent = new();
+            public static readonly List<(OpenCashFlow.Application.Abstractions.EmailMessage Msg, string Name, string Email)> Sent = new();
 
-            public void SendEmail(global::Shared.Models.EmailMessage message, string DestUserName, string DestUserEmail)
+            public void SendEmail(OpenCashFlow.Application.Abstractions.EmailMessage message, string DestUserName, string DestUserEmail)
             {
                 lock (Sent)
                 {
@@ -613,7 +613,7 @@ namespace OpenCashFlow.Test.Tests
                 }
             }
 
-            public Task SendEmailAsync(global::Shared.Models.EmailMessage message, string DestUserName, string DestUserEmail)
+            public Task SendEmailAsync(OpenCashFlow.Application.Abstractions.EmailMessage message, string DestUserName, string DestUserEmail)
             {
                 SendEmail(message, DestUserName, DestUserEmail);
                 return Task.CompletedTask;

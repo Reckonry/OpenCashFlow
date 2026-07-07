@@ -1,8 +1,8 @@
 ﻿using OpenCashFlow.Test.Fixtures;
 using OpenCashFlow.Test.Utilities;
 using Microsoft.EntityFrameworkCore;
-using global::Shared.Data;
-using global::Shared.Models;
+using OpenCashFlow.Infrastructure.Persistence;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
 using Xunit;
 
 namespace OpenCashFlow.Test.Tests

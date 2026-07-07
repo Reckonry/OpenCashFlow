@@ -1,9 +1,9 @@
 using AutoMapper;
-using OpenCashFlow.Shared.Mappings;
+using OpenCashFlow.API.Mapping;
 using OpenCashFlow.Test.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
-using global::Shared.Data; // ✅ Usa il vero ApplicationDbContext
+using OpenCashFlow.Infrastructure.Persistence; // ✅ Usa il vero ApplicationDbContext
 
 public abstract class BaseTest
 {

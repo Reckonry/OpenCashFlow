@@ -1,10 +1,11 @@
 using OpenCashFlow.Test.Factories;
 using OpenCashFlow.Test.Fixtures;
+using OpenCashFlow.Application.Abstractions;
 using System.Net;
 using System.Text.Json;
 using Xunit;
 using Microsoft.EntityFrameworkCore;
-using global::Shared.Models;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,11 +45,11 @@ namespace OpenCashFlow.Test.Tests.API
             {
                 builder.ConfigureServices(services =>
                 {
-                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(global::Shared.Services.Interfaces.IEmailSender));
+                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(OpenCashFlow.Application.Abstractions.IEmailSender));
                     if (existing != null) services.Remove(existing);
 
                     services.Add(new Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
-                        typeof(global::Shared.Services.Interfaces.IEmailSender),
+                        typeof(OpenCashFlow.Application.Abstractions.IEmailSender),
                         typeof(FakeEmailSender),
                         Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton));
                 });
@@ -165,11 +166,11 @@ namespace OpenCashFlow.Test.Tests.API
             {
                 builder.ConfigureServices(services =>
                 {
-                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(global::Shared.Services.Interfaces.IEmailSender));
+                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(OpenCashFlow.Application.Abstractions.IEmailSender));
                     if (existing != null) services.Remove(existing);
 
                     services.Add(new Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
-                        typeof(global::Shared.Services.Interfaces.IEmailSender),
+                        typeof(OpenCashFlow.Application.Abstractions.IEmailSender),
                         typeof(FakeEmailSender),
                         Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton));
                 });
@@ -220,11 +221,11 @@ namespace OpenCashFlow.Test.Tests.API
             {
                 builder.ConfigureServices(services =>
                 {
-                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(global::Shared.Services.Interfaces.IEmailSender));
+                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(OpenCashFlow.Application.Abstractions.IEmailSender));
                     if (existing != null) services.Remove(existing);
 
                     services.Add(new Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
-                        typeof(global::Shared.Services.Interfaces.IEmailSender),
+                        typeof(OpenCashFlow.Application.Abstractions.IEmailSender),
                         typeof(FakeEmailSender),
                         Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton));
                 });
@@ -274,11 +275,11 @@ namespace OpenCashFlow.Test.Tests.API
             {
                 builder.ConfigureServices(services =>
                 {
-                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(global::Shared.Services.Interfaces.IEmailSender));
+                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(OpenCashFlow.Application.Abstractions.IEmailSender));
                     if (existing != null) services.Remove(existing);
 
                     services.Add(new Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
-                        typeof(global::Shared.Services.Interfaces.IEmailSender),
+                        typeof(OpenCashFlow.Application.Abstractions.IEmailSender),
                         typeof(FakeEmailSender),
                         Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton));
                 });
@@ -377,11 +378,11 @@ namespace OpenCashFlow.Test.Tests.API
             {
                 builder.ConfigureServices(services =>
                 {
-                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(global::Shared.Services.Interfaces.IEmailSender));
+                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(OpenCashFlow.Application.Abstractions.IEmailSender));
                     if (existing != null) services.Remove(existing);
 
                     services.Add(new Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
-                        typeof(global::Shared.Services.Interfaces.IEmailSender),
+                        typeof(OpenCashFlow.Application.Abstractions.IEmailSender),
                         typeof(FakeEmailSender),
                         Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton));
                 });
@@ -583,11 +584,11 @@ namespace OpenCashFlow.Test.Tests.API
             {
                 builder.ConfigureServices(services =>
                 {
-                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(global::Shared.Services.Interfaces.IEmailSender));
+                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(OpenCashFlow.Application.Abstractions.IEmailSender));
                     if (existing != null) services.Remove(existing);
 
                     services.Add(new Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
-                        typeof(global::Shared.Services.Interfaces.IEmailSender),
+                        typeof(OpenCashFlow.Application.Abstractions.IEmailSender),
                         typeof(FakeEmailSender),
                         Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton));
                 });
@@ -754,7 +755,7 @@ namespace OpenCashFlow.Test.Tests.API
         /// <summary>
         /// Fake email sender per catturare le email inviate durante i test
         /// </summary>
-        private class FakeEmailSender : global::Shared.Services.Interfaces.IEmailSender
+        private class FakeEmailSender : OpenCashFlow.Application.Abstractions.IEmailSender
         {
             public static readonly List<(EmailMessage Msg, string Name, string Email)> Sent = new();
 

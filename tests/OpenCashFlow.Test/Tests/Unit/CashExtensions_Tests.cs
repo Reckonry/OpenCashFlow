@@ -1,4 +1,4 @@
-using global::Shared.Models.Payments;
+using OpenCashFlow.Infrastructure.Persistence.Entities.Payments;
 using Xunit;
 
 namespace OpenCashFlow.Test.Tests.Unit

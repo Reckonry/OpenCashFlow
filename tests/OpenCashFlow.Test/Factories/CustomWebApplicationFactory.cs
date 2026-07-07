@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using global::Shared.Data;
+using OpenCashFlow.Infrastructure.Persistence;
 using System.Text;
 
 namespace OpenCashFlow.Test.Factories

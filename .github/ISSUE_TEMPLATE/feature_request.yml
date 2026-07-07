@@ -1,0 +1,52 @@
+name: Feature request
+description: Suggest an improvement for OpenCashFlow.
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        OpenCashFlow is in Developer Preview. Please describe the workflow and user need, not only the implementation.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user or operator problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What behavior or capability are you suggesting?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Setup
+        - Authentication
+        - Authorization
+        - Company
+        - Users/Roles
+        - Payments
+        - Cash/Ledger
+        - Dashboard
+        - Reports/Export
+        - Modules
+        - Docker/Deployment
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks or compatibility concerns
+      description: Mention security, data migration, API, UI, or operational implications.

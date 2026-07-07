@@ -1,91 +1,82 @@
 ![OpenCashFlow](.github/OCF_Banner.png)
 
-# 💰 OpenCashFlow
+# OpenCashFlow
 
-![.NET](https://img.shields.io/badge/.NET-10.0-blueviolet?logo=dotnet&style=for-the-badge)
-![ASP.NET Core](https://img.shields.io/badge/ASP.NET-Core-blue?logo=dotnet&style=for-the-badge)
-![CSharp](https://img.shields.io/badge/C%23-14.0-239120?logo=c-sharp&logoColor=white&style=for-the-badge)
-![EF Core](https://img.shields.io/badge/EF%20Core-10.0-success?style=for-the-badge&logo=ef)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-DB-blue?logo=postgresql&logoColor=white&style=for-the-badge)
-![Bootstrap](https://img.shields.io/badge/Bootstrap-5.x-purple?logo=bootstrap&style=for-the-badge)
-![jQuery](https://img.shields.io/badge/jQuery-3.x-blue?logo=jquery&style=for-the-badge)
-![REST API](https://img.shields.io/badge/API-RESTful-orange?style=for-the-badge)
-![OpenAPI](https://img.shields.io/badge/OpenAPI-Swagger-yellowgreen?logo=swagger&style=for-the-badge)
-![Architecture](https://img.shields.io/badge/architecture-layered--clean--inspired-blue)
-![JWT Auth](https://img.shields.io/badge/Auth-JWT-blue?style=for-the-badge)
-![Serilog](https://img.shields.io/badge/Logging-Serilog-informational?style=for-the-badge)
-![Slack Integration](https://img.shields.io/badge/Slack-Integration-4A154B?logo=slack&style=for-the-badge)
+OpenCashFlow is an open-source, self-hosted cash-flow management system for small companies, consultants, accounting
+studios, and teams that need a transparent way to track payments, cash movements, users, company setup, audit events,
+and basic operational reporting.
 
-**OpenCashFlow** is an open-source, self-hosted platform for managing, tracking, and analyzing cash flows and receipts.
-It is designed to be installed by a company on its own server, with full transparency over incoming and outgoing payments,
-strong auditability, advanced filtering, and access control.
+## Project Status
 
-OpenCashFlow can support multi-company scenarios for consultants, accounting studios, groups, or shared internal instances.
-That model is not a mandatory SaaS monetization layer. Managed hosting, setup, support, or consulting can be offered as
-external services, but they are not required to run the software.
+**Developer Preview / Early Self-Hosted Preview**
 
----
+OpenCashFlow is not production-ready yet. The repository is being stabilized in public with a focus on self-hosted core
+workflows, clean architecture, security hardening, test coverage, and open-source project hygiene.
 
-## ⚖️ License (Important)
+Use it for evaluation, local development, architecture review, and early feedback. Do not use it for regulated or
+business-critical financial operations until the release blockers in [Docs/ROADMAP.md](Docs/ROADMAP.md) are resolved.
 
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+## What OpenCashFlow Is
 
-> **If you run OpenCashFlow as a network service (SaaS), you must provide the complete corresponding source code
-> to the users of that service, in compliance with the AGPL.**
+- A self-hosted ASP.NET Core and PostgreSQL application.
+- A core cash-flow tool for payments, cash ledger, company setup, users, roles, dashboard, audit, and basic exports.
+- A developer-preview codebase moving toward a clean architecture split:
+  - `Domain`
+  - `Application`
+  - `Infrastructure`
+  - `Contracts`
+  - `API`
+  - `WebApp`
+- AGPL-licensed software intended to remain useful without mandatory SaaS services.
 
-See the `LICENSE` file for full details.
+## What OpenCashFlow Is Not
 
----
+- Not a production-ready accounting suite.
+- Not a certified fiscal, tax, payroll, or invoicing product.
+- Not a hosted SaaS that requires subscriptions to run.
+- Not dependent on Stripe, Billing, pricing plans, customer portal flows, or a separate Admin runtime.
+- Not a replacement for professional accounting review.
 
-## 🚀 Key Features
+Historical Billing/Stripe/Admin artifacts may still appear in migration notes or schema-compatibility documentation.
+They are legacy references, not active core runtime features.
 
-- 📋 **Payment registration** (income / expense)
-- 🧾 Classification by:
-  - Payment method (Cash, Card, Bank Transfer, etc.)
-  - Document type (Invoice, Receipt, etc.)
-  - Description and reason
-- 🔐 **User management & auditing**
-  - Created / edited / deleted tracking
-  - Soft delete support
-- 🔎 **Advanced filtering system**
-  - Date ranges (`FromDate` / `ToDate`)
-  - Amount ranges (`MinAmount` / `MaxAmount`)
-  - Payment method, transaction type, operator
-- 📦 **RESTful API**
-  - Pagination
-  - Dynamic sorting (`SortBy`)
-  - Secure DTO-based queries (`Payment_Filter_DTO`)
-- 🖥️ **Responsive Web UI**
-  - Bootstrap modals
-  - Real-time updates via SignalR
-- 📊 Ready for export, dashboards, and forecasting
+## Current Scope
 
----
+The self-hosted core currently focuses on:
 
-## 🏗️ Architecture
+- first-instance setup;
+- company/workspace data;
+- users, roles, and permissions;
+- payment registration;
+- cash ledger and balances;
+- dashboard views;
+- audit trail;
+- basic API/WebApp operation;
+- Docker Compose based local evaluation.
 
-- **Backend:** ASP.NET Core + Entity Framework Core
-- **Frontend:** Bootstrap 5 + AJAX + jQuery
-- **Database:** PostgreSQL
-- **Logging:** Serilog with Slack notifier and retry strategy
-- **Security:** JWT authentication + ACL (multi-company ready)
-- **Runtime components:** API, Web App, Contracts, Application, Domain, Infrastructure, tests
+Planned module work is documented in [Docs/modules/architecture.md](Docs/modules/architecture.md).
 
----
+## Tech Stack
 
-## 🧰 Quick Setup
+- .NET 10
+- ASP.NET Core
+- Entity Framework Core
+- PostgreSQL
+- Bootstrap and jQuery in the WebApp
+- Docker Compose for local evaluation
+
+## Quickstart
 
 ### Requirements
 
 - .NET 10 SDK
-- PostgreSQL 16+ for local/manual runs
-- Docker and Docker Compose for containerized runs
-- Visual Studio, Rider, or VS Code
+- Docker and Docker Compose
+- PostgreSQL 16+ if running manually without Docker
 
-### Restore, build, and test
+### Build And Test
 
 ```bash
-git clone https://github.com/<your-username>/OpenCashFlow.git
+git clone https://github.com/<your-org-or-user>/OpenCashFlow.git
 cd OpenCashFlow
 
 dotnet restore OpenCashFlow.sln
@@ -93,42 +84,90 @@ dotnet build OpenCashFlow.sln --configuration Release --no-restore
 dotnet test OpenCashFlow.sln --configuration Release --no-build
 ```
 
-### Run with Docker Compose
+### Run With Docker Compose
 
 ```bash
 cp .env.example .env
 docker compose up --build
 ```
 
-Local URLs:
+Local endpoints:
 
-- Web app: `http://localhost:5200`
-- API: `http://localhost:5100`
+- WebApp: `http://localhost:5200`
+- API health: `http://localhost:5100/health`
 - PostgreSQL: `localhost:5432`
 
-Development compose file:
+The default Docker Compose configuration is for local evaluation. Change secrets, database credentials, TLS, backups,
+reverse proxy configuration, and operational settings before exposing any instance.
 
-```bash
-docker compose -f docker-compose.dev.yml up --build
-```
+### Run Manually
 
-Development URLs:
-
-- Web app: `http://localhost:5200`
-- API: `http://localhost:5100`
-
-### Self-hosted defaults
-
-Standard installations do not require Stripe, SaaS plans, active subscriptions, a separate Admin application, or a real
-SMTP provider to start the core application. Historical Billing/Stripe schema artifacts may still exist for migration
-compatibility, but they are not part of the core runtime.
-
-For manual local runs, configure `DEFAULT_CONN_STRING` or `ConnectionStrings:DefaultConnectionString` and then run the project you need:
+Configure `DEFAULT_CONN_STRING` or `ConnectionStrings:DefaultConnectionString`, then run:
 
 ```bash
 dotnet run --project src/OpenCashFlow.API/OpenCashFlow.API.csproj
 dotnet run --project src/OpenCashFlow.WebApp/OpenCashFlow.WebApp.csproj
 ```
 
-Detailed installation, migration, backup, and reverse proxy notes are in
-[Docs/installation.md](Docs/installation.md).
+Installation notes are in [Docs/installation.md](Docs/installation.md).
+
+## Architecture
+
+The active solution contains:
+
+- `src/OpenCashFlow.API`
+- `src/OpenCashFlow.Application`
+- `src/OpenCashFlow.Contracts`
+- `src/OpenCashFlow.Domain`
+- `src/OpenCashFlow.Infrastructure`
+- `src/OpenCashFlow.WebApp`
+- `tests/*`
+
+The current dependency shape is documented in
+[Docs/architecture/current-dependencies.md](Docs/architecture/current-dependencies.md).
+
+## Security
+
+OpenCashFlow is still an early preview. Security-sensitive areas such as authorization, tenant isolation, password reset,
+PIN/fast-login flows, dependency security, CSP, and deployment hardening are active stabilization areas.
+
+Before reporting a vulnerability, read [SECURITY.md](SECURITY.md). Do not open public issues containing secrets, tokens,
+passwords, private deployment details, or exploitable vulnerability details.
+
+## Contributing
+
+Contributions are welcome, especially around tests, documentation, security hardening, setup reliability, and core
+self-hosted workflows.
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. For smaller first contributions, prefer:
+
+- documentation corrections;
+- missing test coverage;
+- issue reproduction cases;
+- cleanup of legacy references;
+- small UI maintainability improvements.
+
+## Roadmap
+
+See [Docs/ROADMAP.md](Docs/ROADMAP.md). The roadmap is intentionally conservative and does not claim production
+readiness.
+
+## Release And Versioning
+
+There are no stable releases yet. Until the project reaches a first stable release, changes may be breaking and migration
+paths may be incomplete.
+
+The intended future policy is Semantic Versioning:
+
+- `MAJOR` for incompatible API/database/runtime changes;
+- `MINOR` for backwards-compatible features;
+- `PATCH` for fixes and security updates.
+
+Release notes will be tracked in [CHANGELOG.md](CHANGELOG.md).
+
+## License
+
+OpenCashFlow is licensed under the GNU Affero General Public License v3.0. See [LICENSE](LICENSE).
+
+If you run a modified version as a network service, the AGPL requires you to provide the corresponding source code to
+users of that service.

@@ -1,0 +1,75 @@
+name: Bug report
+description: Report a reproducible problem in OpenCashFlow.
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Do not include secrets, tokens, passwords, private URLs, or sensitive business data.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest reproducible case.
+      placeholder: |
+        1. Start with ...
+        2. Click ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: "commit SHA, branch, or tag"
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Setup
+        - Authentication
+        - Authorization
+        - Company
+        - Users/Roles
+        - Payments
+        - Cash/Ledger
+        - Dashboard
+        - Reports/Export
+        - Docker/Deployment
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, .NET SDK, Docker version, browser, database, and relevant configuration.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I have removed secrets, tokens, passwords, and private data from this report.
+          required: true

@@ -104,7 +104,7 @@ builder.Services
                     return Task.CompletedTask;
                 }
 
-                var token = context.Request.Cookies[global::Shared.Core.Configuration.AuthCookieName];
+                var token = context.Request.Cookies[OpenCashFlow.Contracts.Core.Configuration.AuthCookieName];
                 if (!string.IsNullOrEmpty(token)) context.Token = token;
                 return Task.CompletedTask;
             },
@@ -120,7 +120,7 @@ builder.Services
                 if (path.StartsWithSegments("/Login") || path.StartsWithSegments("/Account/LogIn") || path.StartsWithSegments("/Account/Login"))
                 {
                     // Invalid token on the login page: delete cookie and allow navigation
-                    context.Response.Cookies.Delete(global::Shared.Core.Configuration.AuthCookieName,
+                    context.Response.Cookies.Delete(OpenCashFlow.Contracts.Core.Configuration.AuthCookieName,
                         new CookieOptions { Domain = builder.Configuration["Account:CookieDomain"], Path = "/" });
                     context.NoResult();
                     return Task.CompletedTask;

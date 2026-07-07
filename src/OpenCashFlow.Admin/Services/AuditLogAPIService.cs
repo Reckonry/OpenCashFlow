@@ -1,5 +1,5 @@
-using global::Shared.DTOs.Admin;
-using global::Shared.Models;
+using OpenCashFlow.Contracts.DTOs.Admin;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 

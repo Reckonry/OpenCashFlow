@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Mvc;
-using global::Shared.DTOs.Employees;
+using OpenCashFlow.Contracts.DTOs.Employees;
 using OpenCashFlow.WebApp.Services;
 
 namespace OpenCashFlow.WebApp.Controllers
@@ -23,7 +23,7 @@ namespace OpenCashFlow.WebApp.Controllers
 
         private Guid? GetCurrentUserId()
         {
-            var token = HttpContext.Request.Cookies[global::Shared.Core.Configuration.AuthCookieName];
+            var token = HttpContext.Request.Cookies[OpenCashFlow.Contracts.Core.Configuration.AuthCookieName];
             if (string.IsNullOrEmpty(token)) return null;
             try
             {
@@ -109,7 +109,7 @@ namespace OpenCashFlow.WebApp.Controllers
             {
                 var newToken = tokenResult.Data.Token;
                 var expirationTime = TryGetJwtExpiration(newToken)
-                    ?? DateTimeOffset.UtcNow.AddMinutes(global::Shared.Core.Configuration.WebSessionDurationMinutes);
+                    ?? DateTimeOffset.UtcNow.AddMinutes(OpenCashFlow.Contracts.Core.Configuration.WebSessionDurationMinutes);
 
                 var authCookieOptions = new CookieOptions
                 {
@@ -120,7 +120,7 @@ namespace OpenCashFlow.WebApp.Controllers
                     Expires = expirationTime
                 };
 
-                HttpContext.Response.Cookies.Append(global::Shared.Core.Configuration.AuthCookieName, newToken, authCookieOptions);
+                HttpContext.Response.Cookies.Append(OpenCashFlow.Contracts.Core.Configuration.AuthCookieName, newToken, authCookieOptions);
 
                 var infoCookieOptions = new CookieOptions
                 {
@@ -131,7 +131,7 @@ namespace OpenCashFlow.WebApp.Controllers
                     Expires = expirationTime
                 };
 
-                HttpContext.Response.Cookies.Append(global::Shared.Core.Configuration.AuthCookieName + ".Info",
+                HttpContext.Response.Cookies.Append(OpenCashFlow.Contracts.Core.Configuration.AuthCookieName + ".Info",
                     expirationTime.ToUnixTimeSeconds().ToString(),
                     infoCookieOptions);
             }

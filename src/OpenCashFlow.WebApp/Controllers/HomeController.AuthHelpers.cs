@@ -4,7 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using global::Shared.Core;
+using OpenCashFlow.Contracts.Core;
 
 namespace OpenCashFlow.WebApp.Controllers
 {

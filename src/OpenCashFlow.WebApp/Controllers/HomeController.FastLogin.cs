@@ -1,5 +1,4 @@
-﻿using global::Shared.Core;
-using global::Shared.Models.Core;
+﻿using OpenCashFlow.Contracts.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Microsoft.AspNetCore.Identity;

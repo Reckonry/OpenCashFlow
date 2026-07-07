@@ -1,5 +1,5 @@
-@using Shared.Models.Cash
-@model IEnumerable<CashLedger>
+@using OpenCashFlow.Contracts.Cash
+@model IEnumerable<LedgerRowViewModel>
 @{
     string Sign(decimal d) => d >= 0 ? "+" : "-";
     var userNames = ViewData["UserNames"] as System.Collections.Generic.IDictionary<string, string>;

@@ -1,6 +1,6 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Headers;
-using global::Shared.Core;
+using OpenCashFlow.Contracts.Core;
 using Microsoft.AspNetCore.Http;
 
 namespace OpenCashFlow.Admin.Services.Handlers

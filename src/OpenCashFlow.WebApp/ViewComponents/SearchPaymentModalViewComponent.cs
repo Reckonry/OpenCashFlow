@@ -2,7 +2,7 @@
 using OpenCashFlow.WebApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using global::Shared.DTOs;
+using OpenCashFlow.Contracts.DTOs;
 
 namespace OpenCashFlow.WebApp.ViewComponents
 {

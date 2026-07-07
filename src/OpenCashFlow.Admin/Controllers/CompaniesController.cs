@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using OpenCashFlow.Admin.Models;
 using OpenCashFlow.Admin.Models.Billing;
 using OpenCashFlow.Admin.Models.Companies;
-using global::Shared.Models;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
 using OpenCashFlow.Admin.Services;
-using global::Shared.DTOs;
-using global::Shared.DTOs.Billing;
+using OpenCashFlow.Contracts.DTOs;
+using OpenCashFlow.Contracts.DTOs.Billing;
 using System.Collections.Generic;
 using System.Linq;
 

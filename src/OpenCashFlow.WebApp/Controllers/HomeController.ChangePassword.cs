@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
-using global::Shared.Models;
 
 namespace OpenCashFlow.WebApp.Controllers
 {
@@ -45,9 +44,9 @@ namespace OpenCashFlow.WebApp.Controllers
                 }
 
                 // Delete auth cookies to force re-login with new password
-                HttpContext.Response.Cookies.Delete(global::Shared.Core.Configuration.AuthCookieName,
+                HttpContext.Response.Cookies.Delete(OpenCashFlow.Contracts.Core.Configuration.AuthCookieName,
                     new CookieOptions { Domain = _configuration["Account:CookieDomain"], Path = "/" });
-                HttpContext.Response.Cookies.Delete(global::Shared.Core.Configuration.AuthCookieName + ".Info",
+                HttpContext.Response.Cookies.Delete(OpenCashFlow.Contracts.Core.Configuration.AuthCookieName + ".Info",
                     new CookieOptions { Domain = _configuration["Account:CookieDomain"], Path = "/" });
 
                 // Use Login view localizer for the message

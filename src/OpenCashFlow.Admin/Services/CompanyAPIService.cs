@@ -1,5 +1,5 @@
-﻿using global::Shared.DTOs;
-using global::Shared.Models;
+﻿using OpenCashFlow.Contracts.DTOs;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
 
 namespace OpenCashFlow.Admin.Services
 {

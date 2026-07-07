@@ -7,7 +7,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 COPY ["src/OpenCashFlow.WebApp/OpenCashFlow.WebApp.csproj", "src/OpenCashFlow.WebApp/"]
-COPY ["src/OpenCashFlow.Shared/OpenCashFlow.Shared.csproj", "src/OpenCashFlow.Shared/"]
+COPY ["src/OpenCashFlow.Contracts/OpenCashFlow.Contracts.csproj", "src/OpenCashFlow.Contracts/"]
 RUN dotnet restore "src/OpenCashFlow.WebApp/OpenCashFlow.WebApp.csproj"
 
 COPY . .

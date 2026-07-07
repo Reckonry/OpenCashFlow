@@ -1,7 +1,6 @@
 using OpenCashFlow.WebApp.Services;
 using Microsoft.AspNetCore.Mvc;
-using global::Shared.Models.DTOs;
-using global::Shared.Models;
+using OpenCashFlow.Contracts.DTOs.Payments;
 
 namespace OpenCashFlow.WebApp.Controllers
 {

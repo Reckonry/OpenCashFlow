@@ -1,8 +1,6 @@
 ﻿using OpenCashFlow.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
-using global::Shared.DTOs;
-using global::Shared.Models;
-using global::Shared.Models.Core;
+using OpenCashFlow.Contracts.DTOs;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;

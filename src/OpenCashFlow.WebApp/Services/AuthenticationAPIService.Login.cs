@@ -1,7 +1,4 @@
-﻿using global::Shared.Models;
-using global::Shared.Models.Core;
-
-public partial class AuthenticationAPIService
+﻿public partial class AuthenticationAPIService
 {
     public async Task<ApiResponse<AuthResult>> LoginAsync(string username, string password)
     {

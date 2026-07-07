@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OpenCashFlow.WebApp.Services;
 using System.Globalization;
-using global::Shared.DTOs;
+using OpenCashFlow.Contracts.DTOs;
 
 namespace OpenCashFlow.WebApp.Controllers
 {

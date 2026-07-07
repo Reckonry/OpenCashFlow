@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using OpenCashFlow.Admin.Models.Billing;
-using global::Shared.DTOs;
-using global::Shared.DTOs.Billing;
+using OpenCashFlow.Contracts.DTOs;
+using OpenCashFlow.Contracts.DTOs.Billing;
 
 namespace OpenCashFlow.Admin.Models.Companies
 {

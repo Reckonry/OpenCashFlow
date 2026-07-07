@@ -6,8 +6,8 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Caching.Memory;
-using global::Shared.DTOs.Billing;
-using global::Shared.Models;
+using OpenCashFlow.Contracts.DTOs.Billing;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
 
 namespace OpenCashFlow.Admin.Services
 {

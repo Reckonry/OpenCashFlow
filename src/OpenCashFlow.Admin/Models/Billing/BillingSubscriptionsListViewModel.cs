@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using global::Shared.DTOs.Billing;
-using global::Shared.Models;
+using OpenCashFlow.Contracts.DTOs.Billing;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
 
 namespace OpenCashFlow.Admin.Models.Billing
 {

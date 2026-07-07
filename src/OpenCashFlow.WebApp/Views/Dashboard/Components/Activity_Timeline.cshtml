@@ -1,5 +1,5 @@
 ﻿@{
-    var recent = ViewBag.RecentPayments as IEnumerable<Shared.DTOs.Payment_List_DTO>;
+    var recent = ViewBag.RecentPayments as IEnumerable<OpenCashFlow.Contracts.DTOs.Payment_List_DTO>;
 }
 
 <!-- Activity Timeline -->
@@ -11,7 +11,7 @@
 
         <div class="card-body" id="recent-payments-timeline" data-url="/internal/Dashboard/RecentPayments?count=5">
             <ul class="timeline card-timeline mb-0">
-                @if (recent is IEnumerable<Shared.DTOs.Payment_List_DTO> list && list.Any())
+                @if (recent is IEnumerable<OpenCashFlow.Contracts.DTOs.Payment_List_DTO> list && list.Any())
                 {
                     @await Html.PartialAsync("/Views/Dashboard/Components/Fragments/_RecentPaymentsTimeline.cshtml", list)
                 }

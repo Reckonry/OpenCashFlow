@@ -1,9 +1,8 @@
 ﻿using OpenCashFlow.WebApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using global::Shared.DTOs;
-using global::Shared.DTOs.Employees;
-using global::Shared.Models;
+using OpenCashFlow.Contracts.DTOs;
+using OpenCashFlow.Contracts.DTOs.Employees;
 
 namespace OpenCashFlow.WebApp.Controllers
 {

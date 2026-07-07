@@ -1,8 +1,6 @@
-﻿using global::Shared.Core;
-using global::Shared.Models.Core;
+﻿using OpenCashFlow.Contracts.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
-using global::Shared.Models;
 
 namespace OpenCashFlow.WebApp.Controllers
 {
@@ -31,7 +29,7 @@ namespace OpenCashFlow.WebApp.Controllers
 
         [Route("Login"), Route("Account/Login")]
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login([Bind] Core_Credentials credential)
+        public async Task<IActionResult> Login([Bind] LoginViewModel credential)
         {
             try
             {

@@ -1,4 +1,4 @@
-using global::Shared.DTOs;
+using OpenCashFlow.Contracts.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using OpenCashFlow.WebApp.Services;
 

@@ -1,8 +1,8 @@
-﻿using global::Shared.Core;
-using global::Shared.Models.Core;
+﻿using OpenCashFlow.Contracts.Core;
+using OpenCashFlow.Infrastructure.Persistence.Entities.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
-using global::Shared.Models;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 

@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using global::Shared.DTOs;
+using OpenCashFlow.Contracts.DTOs;
 
 namespace OpenCashFlow.WebApp.Services
 {

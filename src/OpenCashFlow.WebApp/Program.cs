@@ -7,9 +7,6 @@ using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Slack;
-using global::Shared.Options;
-using global::Shared.Services;
-using global::Shared.Services.Interfaces;
 using System.Text;
 
 #region Logging
@@ -106,7 +103,7 @@ builder.Services.AddAuthentication("Bearer")
             OnMessageReceived = context =>
             {
                 // Look for the token in the "authCookie" cookie
-                var token = context.Request.Cookies[global::Shared.Core.Configuration.AuthCookieName];
+                var token = context.Request.Cookies[OpenCashFlow.Contracts.Core.Configuration.AuthCookieName];
                 if (!string.IsNullOrEmpty(token))
                 {
                     context.Token = token; // Pass the token to the JWT middleware

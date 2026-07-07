@@ -1,4 +1,3 @@
-using global::Shared.Models;
 
 namespace OpenCashFlow.WebApp.Services
 {

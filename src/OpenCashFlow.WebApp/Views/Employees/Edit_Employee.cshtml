@@ -1,4 +1,4 @@
-﻿@using Shared.DTOs.Employees
+﻿@using OpenCashFlow.Contracts.DTOs.Employees
 @model Employee_Detail_DTO
 @{
     ViewData["Title"] = Localizer["EditEmployeeTitle"].Value;
@@ -217,7 +217,7 @@
                   var firstVisible = Model.Roles.FirstOrDefault(r => r.IsVisible);
                   if (firstVisible != null) preSelected = firstVisible.RoleID;
                 }
-                if (ViewBag.Roles is IEnumerable<Shared.DTOs.Identity.Role_List_DTO> roles)
+                if (ViewBag.Roles is IEnumerable<OpenCashFlow.Contracts.DTOs.Identity.Role_List_DTO> roles)
                 {
                   foreach (var role in roles)
                   {

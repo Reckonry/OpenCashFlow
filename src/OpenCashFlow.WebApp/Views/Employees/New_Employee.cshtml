@@ -1,4 +1,4 @@
-﻿@using Shared.DTOs.Employees
+﻿@using OpenCashFlow.Contracts.DTOs.Employees
 @model Employee_Create_DTO
 @{
 	ViewData["Title"] = Localizer["NewEmployeeTitle"].Value;
@@ -212,7 +212,7 @@
             <select class="form-select" asp-for="SelectedRoleID" id="SelectedRoleID">
               <option value="">@Localizer["Select a role"]</option>
               @{
-                if (ViewBag.Roles is IEnumerable<Shared.DTOs.Identity.Role_List_DTO> roles)
+                if (ViewBag.Roles is IEnumerable<OpenCashFlow.Contracts.DTOs.Identity.Role_List_DTO> roles)
                 {
                   foreach (var role in roles)
                   {

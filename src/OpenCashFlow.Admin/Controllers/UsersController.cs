@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using OpenCashFlow.Admin.Services;
-using global::Shared.DTOs.Admin;
+using OpenCashFlow.Contracts.DTOs.Admin;
 using System.Text.Json;
 
 namespace OpenCashFlow.Admin.Controllers
@@ -297,7 +297,7 @@ namespace OpenCashFlow.Admin.Controllers
         {
             // Load companies
             var companiesResponse = await _companyAPIService.GetCompaniesAsync();
-            ViewBag.Companies = companiesResponse.Data ?? new List<global::Shared.DTOs.Company_Detail_DTO>();
+            ViewBag.Companies = companiesResponse.Data ?? new List<OpenCashFlow.Contracts.DTOs.Company_Detail_DTO>();
 
             // Load roles
             var rolesResponse = await _userManagementService.GetRolesAsync(HttpContext.RequestAborted);

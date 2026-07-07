@@ -1,5 +1,4 @@
-﻿using global::Shared.DTOs;
-using global::Shared.Models;
+﻿using OpenCashFlow.Contracts.DTOs;
 
 namespace OpenCashFlow.WebApp.Services
 {

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using global::Shared.Models.Cash;
 using System.Net.Http.Json;
 using System.Linq;
 
@@ -30,7 +29,21 @@ namespace OpenCashFlow.WebApp.Controllers
                     var errorText = await response.Content.ReadAsStringAsync(ct);
                     return Json(new { success = false, message = errorText });
                 }
-                var items = await response.Content.ReadFromJsonAsync<List<CashLedger>>(cancellationToken: ct) ?? new List<CashLedger>();
+                var ledgerItems = await response.Content.ReadFromJsonAsync<List<CashLedger>>(cancellationToken: ct) ?? new List<CashLedger>();
+                var items = ledgerItems
+                    .Select(item => new LedgerRowViewModel
+                    {
+                        Id = item.Id,
+                        CompanyId = item.CompanyId,
+                        RefType = item.RefType,
+                        RefId = item.RefId,
+                        OriginalPaymentId = item.OriginalPaymentId,
+                        Delta = item.Delta,
+                        Reason = item.Reason,
+                        CreatedBy = item.CreatedBy,
+                        CreatedAtUtc = item.CreatedAtUtc
+                    })
+                    .ToList();
 
                 // Build a lookup UserID -> "FirstName LastName" to display friendly names
                 try
@@ -48,7 +61,7 @@ namespace OpenCashFlow.WebApp.Controllers
                         using var empResp = await client.GetAsync("/v1/Employees", ct);
                         if (empResp.IsSuccessStatusCode)
                         {
-                            var employees = await empResp.Content.ReadFromJsonAsync<List<global::Shared.DTOs.Employees.Employee_List_DTO>>(cancellationToken: ct) ?? new();
+                            var employees = await empResp.Content.ReadFromJsonAsync<List<OpenCashFlow.Contracts.DTOs.Employees.Employee_List_DTO>>(cancellationToken: ct) ?? new();
                             var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                             foreach (var emp in employees)
                             {

@@ -4,9 +4,8 @@ using OpenCashFlow.WebApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using global::Shared.DTOs;
-using global::Shared.Models;
-using static global::Shared.Enums.Permissions.Customers;
+using OpenCashFlow.Contracts.DTOs;
+using static OpenCashFlow.Contracts.Security.Permissions.Customers;
 using System.Net.Http.Json;
 
 namespace OpenCashFlow.WebApp.Controllers.Internal

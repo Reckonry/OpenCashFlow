@@ -1,15 +1,20 @@
 # Current Dependencies
 
-This document captures the current dependency shape before the Clean Architecture migration.
+This document captures the current dependency shape after dismantling `OpenCashFlow.Shared`.
 
 ## Solution Projects
 
-The active core solution currently contains:
+The active core solution contains:
 
 ```text
 src/OpenCashFlow.API/OpenCashFlow.API.csproj
-src/OpenCashFlow.Shared/OpenCashFlow.Shared.csproj
+src/OpenCashFlow.Application/OpenCashFlow.Application.csproj
+src/OpenCashFlow.Contracts/OpenCashFlow.Contracts.csproj
+src/OpenCashFlow.Domain/OpenCashFlow.Domain.csproj
+src/OpenCashFlow.Infrastructure/OpenCashFlow.Infrastructure.csproj
 src/OpenCashFlow.WebApp/OpenCashFlow.WebApp.csproj
+tests/OpenCashFlow.Application.Tests/OpenCashFlow.Application.Tests.csproj
+tests/OpenCashFlow.Domain.Tests/OpenCashFlow.Domain.Tests.csproj
 tests/OpenCashFlow.Test/OpenCashFlow.Test.csproj
 ```
 
@@ -19,116 +24,111 @@ tests/OpenCashFlow.Test/OpenCashFlow.Test.csproj
 
 ```text
 OpenCashFlow.API
-  -> OpenCashFlow.Shared
+  -> OpenCashFlow.Application
+  -> OpenCashFlow.Contracts
+  -> OpenCashFlow.Infrastructure
+
+OpenCashFlow.Application
+  -> OpenCashFlow.Domain
+
+OpenCashFlow.Infrastructure
+  -> OpenCashFlow.Application
+  -> OpenCashFlow.Contracts
+  -> OpenCashFlow.Domain
 
 OpenCashFlow.WebApp
-  -> OpenCashFlow.Shared
+  -> OpenCashFlow.Contracts
 
 OpenCashFlow.Test
   -> OpenCashFlow.API
-  -> OpenCashFlow.Shared
+  -> OpenCashFlow.Contracts
+  -> OpenCashFlow.Infrastructure
 
-OpenCashFlow.Shared
+OpenCashFlow.Contracts
+  -> no project references
+
+OpenCashFlow.Domain
   -> no project references
 ```
 
-## Current Responsibility Distribution
+## Responsibility Distribution
 
 ### OpenCashFlow.API
 
-Current API responsibilities:
-
 - HTTP controllers.
-- API middleware and startup composition.
-- Repository interfaces and EF repository implementations.
-- Application/business services.
-- Authentication, registration, reset password and token flows.
-- Setup flow orchestration.
-- Payment, cash, company, employee, role and audit orchestration.
-- AutoMapper registration.
+- Middleware and startup composition.
+- Boundary mapping between public DTOs and application/persistence results.
+- Dependency injection composition for Application and Infrastructure.
 
-Clean Architecture target:
+### OpenCashFlow.Application
 
-- Keep HTTP concerns only: controllers, middleware, API startup and request/response wiring.
-- Move use cases and service interfaces to `OpenCashFlow.Application`.
-- Move EF repository implementations and persistence concerns to `OpenCashFlow.Infrastructure`.
+- Use cases and orchestration.
+- Application ports.
+- Payment/cash/audit module contracts.
+- No EF Core, ASP.NET, AutoMapper, MailKit, MimeKit, Infrastructure, API or `OpenCashFlow.Shared` dependency.
+- Does not reference `OpenCashFlow.Contracts`; API maps public DTOs to Application commands/results.
+
+### OpenCashFlow.Domain
+
+- Pure domain primitives and rules.
+- No dependency on EF Core, ASP.NET, Infrastructure, Application, Contracts or Shared.
+
+### OpenCashFlow.Infrastructure
+
+- EF Core persistence.
+- `ApplicationDbContext`, design-time factory and migrations.
+- EF entities under `Persistence/Entities`.
+- Repository/readers/writers implementing Application ports.
+- Email, notifications, auth helpers, logging constants and unit of work.
+- Employee create/update/PIN and auth reset-token persistence implementations.
+- Auth registration/login/fast-login implementations for EF user reads/writes, password hashing, PIN verification, fast-login cookie signing and JWT issuing.
+- Auth audit persistence through `IAuthAuditWriter`.
+
+### OpenCashFlow.Contracts
+
+- Public API/WebApp DTOs.
+- Public response envelope.
+- Neutral public enums/constants.
+- No EF Core, AutoMapper, MailKit, MimeKit or runtime service implementations.
 
 ### OpenCashFlow.WebApp
 
-Current WebApp responsibilities:
+- MVC controllers, views and API client services.
+- Consumes `OpenCashFlow.Contracts`.
+- Uses local WebApp view models for Razor-only form/list/detail models.
+- Does not reference `OpenCashFlow.Infrastructure`.
 
-- MVC controllers and views.
-- Web UI services that call the API.
-- SignalR hub and UI-specific handlers.
-- Local UI models.
-- Static assets and localization resources.
+## Removed Project
 
-Clean Architecture target:
+`OpenCashFlow.Shared` has been removed from the solution and from all core project references. It no longer owns DTOs, EF entities, runtime services, mappings, options, helpers, enums or migrations.
 
-- Keep UI behavior, views, MVC controllers and API client services.
-- Continue consuming shared contracts/DTOs while `Shared` is reduced.
-- Avoid domain/business rules in WebApp controllers/services.
+## Auth Boundary
 
-### OpenCashFlow.Shared
+Registration, login, fast-login, fast-login cookie generation, account confirmation and resend confirmation now enter `OpenCashFlow.Application/Auth` use cases from the API boundary. Infrastructure implements the auth ports for EF reads/writes, password hashing, PIN verification, cookie signing, JWT issuing and optional notifications.
 
-Current `Shared` is overloaded. It contains:
+`AuthenticationService` remains an API adapter for public DTO/response shape and HTTP-bound audit context collection. It no longer depends on `IEmployeeRepository` or `ApplicationDbContext`; auth audit persistence is implemented by Infrastructure through `IAuthAuditWriter`.
 
-- EF Core `ApplicationDbContext` and design-time factory.
-- EF Core migrations and model snapshot.
-- Domain-like models for company, payments, cash, identity, terms and audit.
-- Legacy SaaS schema models: `Plan`, `Plan_Feature`, `Plan_Price`, `Company_Subscription`, `Company_Renewal`, `Stripe_Webhook_Event`.
-- DTOs and API response wrapper.
-- Enums and constants.
-- AutoMapper profile.
-- Email and Slack service implementations.
-- Options/configuration objects.
-- Security helpers such as password hashing, cookie signing and secret generation.
-- Module manifest/registry prototypes.
+## Fase 3J Non-Auth API Services
 
-Clean Architecture target:
+`OpenCashFlow.API` no longer uses `ApplicationDbContext` directly in non-auth services/controllers/repositories. Roles, cash, user management, audit logs and health checks now cross the Application boundary and are implemented by Infrastructure ports/readers/writers.
 
-- Reduce `Shared` to DTOs/contracts, neutral constants and cross-process contract types.
-- Move EF Core, migrations, repository implementations, email and persistence concerns to `Infrastructure`.
-- Move pure domain rules/types to `Domain`.
-- Move use-case contracts and application abstractions to `Application`.
+`OpenCashFlow.Infrastructure` now additionally owns:
 
-### OpenCashFlow.Test
+- `Roles/RoleReader`;
+- `Cash/CashReader` and `Cash/CashWriter`;
+- `UserManagement/UserManagementStore`;
+- `AuditLog/AuditLogStore`;
+- `Health/DatabaseHealthReader`.
 
-Current tests reference API and Shared directly and include:
+Next cleanup: remove residual EF entity types from public controller/service signatures where they still appear as compatibility types, replacing them with Contracts or Application records as appropriate.
 
-- API/integration-style tests.
-- Unit tests against current API services/repositories.
-- Database tests, some currently excluded from compile.
-- Test factories and fixtures.
+## Fase 3K API Boundary Cleanup
 
-Clean Architecture target:
+`OpenCashFlow.API` controllers, services and service interfaces no longer import `OpenCashFlow.Infrastructure.Persistence.Entities`. Payment daily report responses now use the neutral `OpenCashFlow.Contracts.DTOs.Payments.Payment_DailyPayments` contract.
 
-- Keep existing test project during migration.
-- Add focused layer tests later only when behavior has moved:
-  - `OpenCashFlow.Domain.Tests`
-  - `OpenCashFlow.Application.Tests`
-  - `OpenCashFlow.Infrastructure.Tests`
-  - `OpenCashFlow.API.Tests`
+Dependency direction remains:
 
-## Current Improper Couplings
-
-- `Shared` depends on EF Core, Npgsql, MailKit, MimeKit and AutoMapper, so every consumer of DTOs also receives infrastructure dependencies.
-- `API` contains both use cases and EF repositories.
-- `API` depends directly on `Shared.Data.ApplicationDbContext`.
-- `WebApp` consumes Shared domain/EF-shaped models in some views.
-- `Shared` still contains legacy SaaS/Stripe schema for database compatibility.
-- Migrations live in `Shared`, which blocks making `Shared` a contracts-only package.
-
-## Current Safe Boundary
-
-The safest first migration boundary is additive:
-
-```text
-Domain         new project, no dependencies
-Application    new project, depends on Domain
-Infrastructure new project, depends on Application, Domain and temporarily Shared
-API            additionally references Application and Infrastructure
-WebApp         remains on Shared contracts for now
-Shared         unchanged until extraction starts
-```
-
+- API -> Contracts/Application/Infrastructure composition;
+- Application -> Domain only;
+- WebApp -> Contracts only;
+- Infrastructure -> EF entities/persistence.

@@ -14,10 +14,10 @@ This is the implementation backlog for removing Billing/Stripe from the core wit
 
 ## Phase 2: Namespace Cleanup
 
-- [x] Remove Billing DTOs from `Shared.DTOs.Billing`.
+- [x] Remove Billing DTOs from the core contracts/runtime.
 - [x] Remove `StripeSettings`.
 - [x] Remove Stripe retry policies from Shared.
-- [ ] Move or remove `Plan`, `Company_Subscription`, `Company_Renewal` through a migration-backed schema decision.
+- [ ] Move legacy entities `Plan`, `Company_Subscription`, `Company_Renewal` out of core migrations through a migration-backed schema decision.
 - [ ] Move or remove `Stripe_Webhook_Event` through a migration-backed schema decision.
 
 ## Phase 3: API Extraction
@@ -50,10 +50,10 @@ This is the implementation backlog for removing Billing/Stripe from the core wit
 
 ## Known Legacy To Remove Or Move
 
-- `Shared.Models.Plan`.
-- `Shared.Models.Company_Subscription`.
-- `Shared.Models.Company_Renewal`.
+- `OpenCashFlow.Infrastructure.Persistence.Entities.Plan`.
+- `OpenCashFlow.Infrastructure.Persistence.Entities.Company_Subscription`.
+- `OpenCashFlow.Infrastructure.Persistence.Entities.Company_Renewal`.
 - Stripe fields on `Company`.
-- `Shared.Models.Stripe.Stripe_Webhook_Event`.
+- `OpenCashFlow.Infrastructure.Persistence.Entities.Stripe.Stripe_Webhook_Event`.
 - Legacy Billing/Stripe EF models and tables.
 - Stripe fields on `Company`.

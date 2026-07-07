@@ -21,15 +21,17 @@ OpenCashFlow.Infrastructure
 OpenCashFlow.API
   HTTP API, controllers, middleware and dependency injection composition.
   Depends on Application and Infrastructure.
-  May temporarily depend on Shared for DTO compatibility.
+  Consumes Contracts for public DTOs.
 
 OpenCashFlow.WebApp
   MVC web UI, views, UI controllers and API client services.
   Consumes API/contracts and must not contain domain rules.
 
+OpenCashFlow.Contracts
+  Public DTOs/contracts, neutral constants and response wrappers only.
+
 OpenCashFlow.Shared
-  DTOs/contracts, neutral constants and response wrappers only.
-  This project will shrink over time.
+  Removed from the core solution.
 ```
 
 ## Migration Principles
@@ -82,15 +84,16 @@ OpenCashFlow.Application
 OpenCashFlow.Infrastructure
   -> OpenCashFlow.Application
   -> OpenCashFlow.Domain
-  -> OpenCashFlow.Shared temporary bridge
+  -> OpenCashFlow.Contracts
 
 OpenCashFlow.API
   -> OpenCashFlow.Application
   -> OpenCashFlow.Infrastructure
-  -> OpenCashFlow.Shared temporary bridge
+  -> OpenCashFlow.Contracts
 
 OpenCashFlow.WebApp
-  -> OpenCashFlow.Shared temporary contracts
+  -> OpenCashFlow.Contracts
+  -> OpenCashFlow.Infrastructure temporary bridge for EF-shaped view models
 ```
 
 No logic moves in this phase.

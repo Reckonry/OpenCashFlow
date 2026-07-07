@@ -66,7 +66,7 @@
   }
   ```
   - [x] Set real keys via environment variables (`STRIPE__SecretKey`, etc.) also in `docker-compose*.yml`
-- [x] Create `OpenCashFlow.Shared/Options/StripeSettings.cs` for configuration binding
+- [x] Historical SaaS task: Stripe settings were removed from the self-hosted core runtime
   - [x] Properties: `SecretKey`, `PublishableKey`, `WebhookSecret`, `DashboardUrl` (optional)
 - [x] Register Stripe in `OpenCashFlow.API/Program.cs`
   - [x] `builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"))`

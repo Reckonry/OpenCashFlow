@@ -69,7 +69,7 @@ See the `LICENSE` file for full details.
 - **Database:** PostgreSQL
 - **Logging:** Serilog with Slack notifier and retry strategy
 - **Security:** JWT authentication + ACL (multi-company ready)
-- **Runtime components:** API, Web App, Shared domain library, tests
+- **Runtime components:** API, Web App, Contracts, Application, Domain, Infrastructure, tests
 
 ---
 

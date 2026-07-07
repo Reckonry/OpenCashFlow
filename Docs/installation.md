@@ -58,7 +58,9 @@ For production, prefer manual migrations:
 
 ```bash
 export DEFAULT_CONN_STRING='Host=...;Database=...;Username=...;Password=...'
-dotnet ef database update --project src/OpenCashFlow.Shared --startup-project src/OpenCashFlow.API
+dotnet ef database update \
+  --project src/OpenCashFlow.Infrastructure/OpenCashFlow.Infrastructure.csproj \
+  --startup-project src/OpenCashFlow.API/OpenCashFlow.API.csproj
 ```
 
 Then run the API with `AUTO_MIGRATE=false`.

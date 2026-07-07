@@ -136,26 +136,26 @@ jobs:
       - name: Run ZAP Baseline scan (APP)
         run: |
           docker run --rm \
-            --add-host host.docker.internal:host-gateway \
+            --network host \
             -v "${REPORTS_DIR}:/zap/wrk" \
             "${ZAP_IMAGE}" \
             zap-baseline.py \
               -I \
               -m 0 \
-              -t "http://host.docker.internal:7000" \
+              -t "${TARGET_APP}" \
               -r "zap-baseline-report-app.html" || true
 
       # Esegue la baseline scan (API)
       - name: Run ZAP Baseline scan (API)
         run: |
           docker run --rm \
-            --add-host host.docker.internal:host-gateway \
+            --network host \
             -v "${REPORTS_DIR}:/zap/wrk" \
             "${ZAP_IMAGE}" \
             zap-baseline.py \
               -I \
               -m 0 \
-              -t "http://host.docker.internal:9000" \
+              -t "${TARGET_API}" \
               -r "zap-baseline-report-api.html" || true
 
       # Quality Gate: fallisce se il report contiene Medium/High > delle soglie

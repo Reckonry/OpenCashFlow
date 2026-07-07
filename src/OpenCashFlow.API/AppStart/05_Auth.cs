@@ -49,7 +49,7 @@ public static class AuthAppStart
                 {
                     if (string.IsNullOrEmpty(context.Token))
                     {
-                        context.Token = context.Request.Cookies[global::Shared.Core.Configuration.AuthCookieName];
+                        context.Token = context.Request.Cookies[OpenCashFlow.Contracts.Core.Configuration.AuthCookieName];
                     }
                     return Task.CompletedTask;
                 },

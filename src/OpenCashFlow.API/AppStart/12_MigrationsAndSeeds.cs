@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using global::Shared.Data;
+using OpenCashFlow.Infrastructure.Persistence;
 
 namespace OpenCashFlow.Api.AppStart;
 
@@ -52,7 +52,7 @@ public static class MigrationsAndSeedsAppStart
                 {
                     foreach (var cid in missing)
                     {
-                        db.CashBalances.Add(new global::Shared.Models.Cash.CashBalance
+                        db.CashBalances.Add(new OpenCashFlow.Infrastructure.Persistence.Entities.Cash.CashBalance
                         {
                             CompanyId = cid,
                             Balance = 0m,

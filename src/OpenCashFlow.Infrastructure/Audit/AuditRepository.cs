@@ -1,8 +1,9 @@
 using System.Text.Json;
 using OpenCashFlow.Application.Abstractions;
-using global::Shared.Data;
-using global::Shared.Enums;
-using global::Shared.Models.Admin;
+using OpenCashFlow.Infrastructure.Persistence;
+using OpenCashFlow.Contracts.Audit;
+using OpenCashFlow.Contracts.Security;
+using OpenCashFlow.Infrastructure.Persistence.Entities.Admin;
 
 namespace OpenCashFlow.Infrastructure.Audit;
 

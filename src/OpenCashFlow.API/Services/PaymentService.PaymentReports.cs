@@ -1,6 +1,5 @@
 ﻿using OpenCashFlow.API.Services.Interfaces;
 using OpenCashFlow.Application.Payments.Reports;
-using global::Shared.Models;
 
 namespace OpenCashFlow.API.Services
 {

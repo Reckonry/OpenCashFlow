@@ -4,8 +4,8 @@ using Microsoft.Extensions.Logging;
 using OpenCashFlow.Application.Payments.Lookups;
 using OpenCashFlow.Application.Payments.Ports;
 using OpenCashFlow.Infrastructure.Helpers;
-using global::Shared.Data;
-using global::Shared.Models;
+using OpenCashFlow.Infrastructure.Persistence;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
 
 namespace OpenCashFlow.Infrastructure.Payments.Lookups;
 

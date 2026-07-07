@@ -1,4 +1,4 @@
-using global::Shared.DTOs.Identity;
+using OpenCashFlow.Contracts.DTOs.Identity;
 
 namespace OpenCashFlow.API.Services.Interfaces
 {

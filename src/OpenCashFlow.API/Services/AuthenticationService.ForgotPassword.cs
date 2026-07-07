@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.WebUtilities;
-using System.Text;
+﻿using OpenCashFlow.Application.Auth.ForgotPassword;
+using OpenCashFlow.Application.Auth.ResetPassword;
 using OpenCashFlow.API.Services.Interfaces;
 
 namespace OpenCashFlow.API.Services
@@ -13,40 +13,13 @@ namespace OpenCashFlow.API.Services
         /// <param name="cancellationToken">Cancellation token</param>
         public async Task ForgotPasswordAsync(string email, CancellationToken cancellationToken)
         {
-            // Look up the user in the database
-            var user = await _employeeRepository.GetUserAsync(email, cancellationToken);
-            if (user == null) return; // Do not expose info for security - same behavior whether the user exists or not
-
-            // Generate a unique reset token
-            var token = Guid.NewGuid().ToString("N");
-
-            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-
-            // Save the token in the database with configurable expiration
             var ttlMinutes = int.TryParse(Environment.GetEnvironmentVariable("PASSWORD_RESET_TOKEN_MINUTES"), out var m) ? m : 30;
-            await _employeeRepository.CreateResetTokenAsync(user.UserID, token, DateTime.UtcNow.AddMinutes(ttlMinutes), cancellationToken);
-            await WriteAuthenticationAuditAsync(global::Shared.Enums.AuditEventType.PasswordReset, "PasswordResetRequested", user.UserName, user.UserID, null, null, cancellationToken);
-
-            // Create the reset link for the frontend
             var appBaseUrl = _configuration["AppUrl"] ?? "https://app.opencashflow.local";
-            var resetLink = $"{appBaseUrl.TrimEnd('/')}/reset-password?token={encodedToken}";
+            var result = await _forgotPasswordUseCase.ExecuteAsync(new ForgotPasswordCommand(email, null, appBaseUrl, ttlMinutes), cancellationToken);
 
-            // Load the HTML template and replace placeholders
-            var emailContent = await _emailTemplateService.GetForgotPasswordTemplateAsync(user.UserFirstName, resetLink);
-
-            var emailMessage = new global::Shared.Models.EmailMessage("Reset Password - OpenCashFlow", emailContent)
+            if (result.TokenCreated && result.UserID.HasValue)
             {
-                FromName = "OpenCashFlow — Password Reset"
-            };
-
-            // Send the email using the configured sender
-            try
-            {
-                await _emailSender.SendEmailAsync(emailMessage, user.UserFirstName, user.Email);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Password reset token was created, but email delivery failed for {Email}", email);
+                await WriteAuthenticationAuditAsync(OpenCashFlow.Contracts.Audit.AuditEventType.PasswordReset, "PasswordResetRequested", result.UserName, result.UserID.Value, null, null, cancellationToken);
             }
         }
         /// <summary>
@@ -57,41 +30,12 @@ namespace OpenCashFlow.API.Services
         /// <param name="cancellationToken">Cancellation token</param>
         public async Task ForgotPasswordAsync(Guid UserID, CancellationToken cancellationToken)
         {
-            // Look up the user in the database by ID
-            var user = await _employeeRepository.GetUserByIdAsync(UserID, cancellationToken);
-            if (user == null) return; // Do not expose info for security
-
-            // Generate a unique reset token
-            var token = Guid.NewGuid().ToString("N");
-
-            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-
-            // Save the token in the database with configurable expiration
             var ttlMinutes = int.TryParse(Environment.GetEnvironmentVariable("PASSWORD_RESET_TOKEN_MINUTES"), out var m2) ? m2 : 30;
-            await _employeeRepository.CreateResetTokenAsync(UserID, token, DateTime.UtcNow.AddMinutes(ttlMinutes), cancellationToken);
-            await WriteAuthenticationAuditAsync(global::Shared.Enums.AuditEventType.PasswordReset, "PasswordResetRequested", user.UserName, user.UserID, null, null, cancellationToken);
-
-            // Create the reset link for the frontend
             var appBaseUrl = _configuration["AppUrl"] ?? "https://app.opencashflow.local";
-            var resetLink = $"{appBaseUrl.TrimEnd('/')}/reset-password?token={encodedToken}";
-
-            // Load the HTML template and replace placeholders
-            var emailContent = await _emailTemplateService.GetForgotPasswordTemplateAsync(user.UserFirstName, resetLink);
-
-            var emailMessage = new global::Shared.Models.EmailMessage("Reset Password - OpenCashFlow", emailContent)
+            var result = await _forgotPasswordUseCase.ExecuteAsync(new ForgotPasswordCommand(null, UserID, appBaseUrl, ttlMinutes), cancellationToken);
+            if (result.TokenCreated)
             {
-                FromName = "OpenCashFlow — Password Reset"
-            };
-
-            // Send the email using the configured sender
-            try
-            {
-                await _emailSender.SendEmailAsync(emailMessage, user.UserFirstName, user.Email);
-                _logger.LogInformation("Password reset email sent to UserID {UserID}", UserID);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Password reset token was created, but email delivery failed for UserID {UserID}", UserID);
+                await WriteAuthenticationAuditAsync(OpenCashFlow.Contracts.Audit.AuditEventType.PasswordReset, "PasswordResetRequested", result.UserName, UserID, null, null, cancellationToken);
             }
         }
 
@@ -104,13 +48,44 @@ namespace OpenCashFlow.API.Services
         /// <param name="cancellationToken">Cancellation token</param>
         public async Task ResetPasswordAsync(Guid UserID, string token, string newPassword, CancellationToken cancellationToken)
         {
-            // Verify the token is valid and not expired
-            var resetToken = await _employeeRepository.HasValidTokenAsync(UserID, token, cancellationToken);
-            if (resetToken == false) throw new Exception("Invalid or expired token");
+            var result = await _resetPasswordUseCase.ExecuteAsync(new ResetPasswordCommand(UserID, token, newPassword), cancellationToken);
+            if (!result.Success)
+            {
+                throw new Exception(result.Error ?? "Invalid or expired token");
+            }
 
-            // Update the user's password in the database
-            await _employeeRepository.UpdatePasswordAsync(UserID, newPassword, cancellationToken);
-            await WriteAuthenticationAuditAsync(global::Shared.Enums.AuditEventType.PasswordChanged, "PasswordResetCompleted", null, UserID, null, null, cancellationToken);
+            await WriteAuthenticationAuditAsync(OpenCashFlow.Contracts.Audit.AuditEventType.PasswordChanged, "PasswordResetCompleted", null, UserID, null, null, cancellationToken);
+        }
+
+        public Task<ValidateResetTokenResult> ValidateResetTokenAsync(string token, CancellationToken cancellationToken)
+        {
+            return _validateResetTokenUseCase.ExecuteAsync(new ValidateResetTokenCommand(token), cancellationToken);
+        }
+
+        public async Task<Guid?> GetUserIdFromResetTokenAsync(string token, CancellationToken cancellationToken)
+        {
+            var decodedToken = _passwordResetTokenGenerator.DecodeTokenOrPassthrough(token);
+            return await _passwordResetTokenStore.GetUserIdFromTokenAsync(decodedToken, cancellationToken);
+        }
+
+        public async Task ChangeRequiredPasswordAsync(Guid userId, string newPassword, CancellationToken cancellationToken)
+        {
+            var user = await _userCredentialReader.GetByIdAsync(userId, cancellationToken)
+                ?? throw new InvalidOperationException("Utente non trovato");
+
+            await _userPasswordWriter.UpdatePasswordHashAsync(userId, _employeeCredentialService.HashSecret(newPassword, user.PasswordSalt), cancellationToken);
+            await WriteAuthenticationAuditAsync(OpenCashFlow.Contracts.Audit.AuditEventType.PasswordChanged, "PasswordChanged", null, userId, null, null, cancellationToken);
+        }
+
+        public async Task RemovePasswordChangeRequirementAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            await _userPasswordWriter.RemovePasswordChangeRequirementAsync(userId, cancellationToken);
+        }
+
+        public async Task<bool> CanRefreshTokenAsync(string username, CancellationToken cancellationToken)
+        {
+            var user = await _userCredentialReader.GetByEmailOrUserNameAsync(username, cancellationToken);
+            return user is not null && user.IsApproved && !user.LockoutEnabled;
         }
     }
 }

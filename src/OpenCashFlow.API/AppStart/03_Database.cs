@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using global::Shared.Data;
+using OpenCashFlow.Infrastructure.Persistence;
 
 namespace OpenCashFlow.Api.AppStart;
 
@@ -16,7 +16,9 @@ public static class DatabaseAppStart
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options
-                .UseNpgsql(pgConnString)
+                .UseNpgsql(
+                    pgConnString,
+                    npgsql => npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
                 .ConfigureWarnings(w => w.Log(RelationalEventId.PendingModelChangesWarning))
         );
 

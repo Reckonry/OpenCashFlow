@@ -1,10 +1,8 @@
-using OpenCashFlow.API.Repositories;
-using OpenCashFlow.API.Repositories.Interfaces;
 using OpenCashFlow.API.Services;
 using OpenCashFlow.API.Services.Interfaces;
 using OpenCashFlow.Application;
 using OpenCashFlow.Infrastructure;
-using OpenCashFlow.Shared.Mappings;
+using OpenCashFlow.API.Mapping;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -14,9 +12,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
-using global::Shared.Data;
-using global::Shared.Services;
-using global::Shared.Services.Interfaces;
+using OpenCashFlow.Infrastructure.Persistence;
 using System.Reflection;
 using System.Security.Claims;
 using System.Text;
@@ -43,10 +39,6 @@ builder.Services.AddControllers();
 builder.Services.AddOpenCashFlowApplication();
 builder.Services.AddOpenCashFlowInfrastructure();
 #region Repositories
-builder.Services.AddScoped<IAuthenticationRepository, AuthenticationRepository>();
-builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
-builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
-builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 #endregion
 
 #region Services

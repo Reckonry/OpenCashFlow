@@ -8,7 +8,7 @@ WORKDIR /src
 
 # Copy csproj for restore with layer caching
 COPY ["src/OpenCashFlow.API/OpenCashFlow.API.csproj", "src/OpenCashFlow.API/"]
-COPY ["src/OpenCashFlow.Shared/OpenCashFlow.Shared.csproj", "src/OpenCashFlow.Shared/"]
+COPY ["src/OpenCashFlow.Contracts/OpenCashFlow.Contracts.csproj", "src/OpenCashFlow.Contracts/"]
 RUN dotnet restore "src/OpenCashFlow.API/OpenCashFlow.API.csproj"
 
 # Copy the remaining source

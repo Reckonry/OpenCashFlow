@@ -1,7 +1,7 @@
 ﻿using OpenCashFlow.Application.Payments.Lookups;
 using OpenCashFlow.Application.Payments.PaymentMethods;
 using OpenCashFlow.API.Services.Interfaces;
-using global::Shared.Models.DTOs;
+using OpenCashFlow.Contracts.DTOs.Payments;
 
 namespace OpenCashFlow.API.Services
 {

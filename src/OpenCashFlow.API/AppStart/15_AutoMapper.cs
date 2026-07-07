@@ -1,4 +1,4 @@
-using OpenCashFlow.Shared.Mappings;
+using OpenCashFlow.API.Mapping;
 using System.Reflection;
 
 namespace OpenCashFlow.Api.AppStart;

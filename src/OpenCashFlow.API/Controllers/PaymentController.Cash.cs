@@ -1,9 +1,10 @@
 using OpenCashFlow.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using global::Shared.Enums;
-using global::Shared.DTOs.Cash;
-using global::Shared.Models.Cash;
+using OpenCashFlow.Contracts.Audit;
+using OpenCashFlow.Contracts.Security;
+using OpenCashFlow.Contracts.Cash;
+using OpenCashFlow.Contracts.DTOs.Cash;
 using System.Text;
 using Asp.Versioning;
 

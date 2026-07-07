@@ -1,5 +1,5 @@
 using OpenCashFlow.Application.Payments.Lookups;
-using global::Shared.Models;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
 
 namespace OpenCashFlow.Infrastructure.Payments.Lookups;
 

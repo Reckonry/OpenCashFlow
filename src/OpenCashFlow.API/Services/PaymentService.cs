@@ -11,9 +11,8 @@ using OpenCashFlow.Application.Payments.PaymentMethods;
 using OpenCashFlow.Application.Payments.Queries;
 using OpenCashFlow.Application.Payments.Reports;
 using OpenCashFlow.Application.Payments.UpdatePayment;
-using global::Shared.DTOs;
-using global::Shared.Models;
-using global::Shared.Models.DTOs;
+using OpenCashFlow.Contracts.DTOs;
+using OpenCashFlow.Contracts.DTOs.Payments;
 
 namespace OpenCashFlow.API.Services
 {

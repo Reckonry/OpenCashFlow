@@ -1,8 +1,7 @@
 using OpenCashFlow.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using global::Shared.DTOs.Admin;
-using global::Shared.Models;
+using OpenCashFlow.Contracts.DTOs.Admin;
 using System;
 using System.Collections.Generic;
 using System.Threading;

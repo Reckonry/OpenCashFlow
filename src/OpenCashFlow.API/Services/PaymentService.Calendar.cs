@@ -1,4 +1,4 @@
-using global::Shared.DTOs;
+using OpenCashFlow.Contracts.DTOs;
 using OpenCashFlow.Application.Payments.Calendar;
 
 namespace OpenCashFlow.API.Services

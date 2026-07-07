@@ -1,6 +1,5 @@
-﻿using global::Shared.DTOs;
-using global::Shared.DTOs.Companies;
-using global::Shared.Models;
+﻿using OpenCashFlow.Contracts.DTOs;
+using OpenCashFlow.Contracts.DTOs.Companies;
 
 namespace OpenCashFlow.API.Services.Interfaces
 {
@@ -11,7 +10,7 @@ namespace OpenCashFlow.API.Services.Interfaces
         Task<IEnumerable<Company_Detail_DTO>?> GetAllCompaniesAsync(CancellationToken cancellationToken);
 
         #region invoices
-        Task<IEnumerable<Company_Invoice>?> GetCompanyInvoicesAsync(CancellationToken cancellationToken);
+        Task<IEnumerable<Company_Invoice_List_DTO>?> GetCompanyInvoicesAsync(CancellationToken cancellationToken);
         Task<Company_Invoices_Detail_DTO?> GetCompanyInvoiceByIdAsync(Guid InvoiceID, CancellationToken cancellationToken);
         #endregion
     }

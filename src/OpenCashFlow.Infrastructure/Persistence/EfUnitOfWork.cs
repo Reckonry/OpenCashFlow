@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore.Storage;
 using OpenCashFlow.Application.Abstractions;
-using global::Shared.Data;
+using OpenCashFlow.Infrastructure.Persistence;
 
 namespace OpenCashFlow.Infrastructure.Persistence;
 

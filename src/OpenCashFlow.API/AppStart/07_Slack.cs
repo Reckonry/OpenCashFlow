@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Options;
-using global::Shared.Options;
-using global::Shared.Services.Interfaces;
-using global::Shared.Services;
+using OpenCashFlow.Application.Abstractions;
+using OpenCashFlow.Infrastructure.Notifications;
 
 namespace OpenCashFlow.Api.AppStart;
 

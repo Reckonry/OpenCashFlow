@@ -1,6 +1,5 @@
-﻿using global::Shared.DTOs;
-using global::Shared.Models;
-using global::Shared.Models.Core;
+﻿using OpenCashFlow.Contracts.DTOs;
+using OpenCashFlow.Application.Auth.ResetPassword;
 
 namespace OpenCashFlow.API.Services.Interfaces
 {
@@ -12,6 +11,11 @@ namespace OpenCashFlow.API.Services.Interfaces
         Task ForgotPasswordAsync(string email, CancellationToken cancellationToken);
         Task ForgotPasswordAsync(Guid UserID, CancellationToken cancellationToken);
         Task ResetPasswordAsync(Guid UserID, string token, string newPassword, CancellationToken cancellationToken);
+        Task<ValidateResetTokenResult> ValidateResetTokenAsync(string token, CancellationToken cancellationToken);
+        Task<Guid?> GetUserIdFromResetTokenAsync(string token, CancellationToken cancellationToken);
+        Task ChangeRequiredPasswordAsync(Guid userId, string newPassword, CancellationToken cancellationToken);
+        Task RemovePasswordChangeRequirementAsync(Guid userId, CancellationToken cancellationToken);
+        Task<bool> CanRefreshTokenAsync(string username, CancellationToken cancellationToken);
         Task<Core_RegistrationResult> RegistrationAsync(Register_DTO registration, CancellationToken cancellationToken);
         Task<bool> ConfirmAccountAsync(Guid TenantID, Guid UserID, CancellationToken cancellationToken);
         Task<bool> ResendConfirmationAsync(string usernameOrEmail, CancellationToken cancellationToken);

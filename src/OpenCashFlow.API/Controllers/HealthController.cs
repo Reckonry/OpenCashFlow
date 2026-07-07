@@ -1,18 +1,17 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using global::Shared.Data;
+using OpenCashFlow.Application.Health.Ports;
 
 namespace OpenCashFlow.API.Controllers
 {
     [ApiController]
     [AllowAnonymous]
-    public class HealthController(ApplicationDbContext db) : ControllerBase
+    public class HealthController(IDatabaseHealthReader databaseHealthReader) : ControllerBase
     {
         [HttpGet("/health")]
         public async Task<IActionResult> Get(CancellationToken cancellationToken)
         {
-            var databaseOk = await db.Database.CanConnectAsync(cancellationToken);
+            var databaseOk = await databaseHealthReader.CanConnectAsync(cancellationToken);
             var status = databaseOk ? "healthy" : "degraded";
 
             return databaseOk

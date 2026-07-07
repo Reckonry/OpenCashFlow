@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OpenCashFlow.Application.Payments.Lookups;
 using OpenCashFlow.Application.Payments.Ports;
-using global::Shared.Data;
+using OpenCashFlow.Infrastructure.Persistence;
 
 namespace OpenCashFlow.Infrastructure.Payments.Lookups;
 

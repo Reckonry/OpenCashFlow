@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using global::Shared.Models;
-using global::Shared.Models.Core;
 
 namespace OpenCashFlow.API.Controllers
 {

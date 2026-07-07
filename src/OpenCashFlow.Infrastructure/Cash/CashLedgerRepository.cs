@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using global::Shared.Data;
-using global::Shared.Models.Cash;
+using OpenCashFlow.Infrastructure.Persistence;
+using OpenCashFlow.Infrastructure.Persistence.Entities.Cash;
 
 namespace OpenCashFlow.Infrastructure.Cash;
 

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using global::Shared.DTOs;
-using global::Shared.Models.Core;
+using OpenCashFlow.Contracts.DTOs;
 
 namespace OpenCashFlow.API.Controllers
 {

@@ -1,4 +1,4 @@
-using global::Shared.DTOs.Billing;
+using OpenCashFlow.Contracts.DTOs.Billing;
 using System;
 using System.Collections.Generic;
 

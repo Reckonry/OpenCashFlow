@@ -1,4 +1,4 @@
-using global::Shared.Models.Cash;
+using OpenCashFlow.Contracts.Cash;
 
 namespace OpenCashFlow.API.Services.Interfaces
 {
@@ -17,4 +17,3 @@ namespace OpenCashFlow.API.Services.Interfaces
         Task<IReadOnlyList<CashLedger>> GetLedgerAsync(Guid companyId, DateTimeOffset? from, DateTimeOffset? to, int skip, int take, CancellationToken ct);
     }
 }
-

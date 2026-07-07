@@ -1,0 +1,422 @@
+﻿@using OpenCashFlow.Contracts.DTOs.Employees
+@model Employee_Detail_DTO
+@{
+    ViewData["Title"] = Localizer["EditEmployeeTitle"].Value;
+}
+
+@section VendorStyles {
+    <link rel="stylesheet" href="~/vendor/libs/quill/typography.css">
+    <link rel="stylesheet" href="~/vendor/libs/quill/katex.css">
+    <link rel="stylesheet" href="~/vendor/libs/quill/editor.css">
+    <link rel="stylesheet" href="~/vendor/libs/select2/select2.css">
+    <link rel="stylesheet" href="~/vendor/libs/dropzone/dropzone.css">
+    <link rel="stylesheet" href="~/vendor/libs/flatpickr/flatpickr.css">
+}
+
+@section VendorScripts {
+    <script src="~/vendor/libs/quill/katex.js"></script>
+    <script src="~/vendor/libs/quill/quill.js"></script>
+    <script src="~/vendor/libs/select2/select2.js"></script>
+    <script src="~/vendor/libs/dropzone/dropzone.js"></script>
+    <script src="~/vendor/libs/jquery-repeater/jquery-repeater.js"></script>
+    <script src="~/vendor/libs/flatpickr/flatpickr.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
+}
+
+@section PageScripts {
+    <script src="~/js/app-ecommerce-product-add.js"></script>
+
+    <script>
+        $(document).on('submit', '#createEmployeeForm', function (e) {
+            // 1. Reset errors
+            $('.text-danger').text('');
+            $('.is-invalid').removeClass('is-invalid');
+
+            let isValid = true;
+
+            // Required fields
+            const requiredFields = [
+                { id: '#UserName', name: 'UserName', message: '@Localizer["Insert a username"]' },
+                { id: '#UserFirstName', name: 'UserFirstName', message: '@Localizer["Insert a first name"]' },
+                { id: '#UserLastName', name: 'UserLastName', message: '@Localizer["Insert a last name"]' },
+                { id: '#Email', name: 'Email', message: '@Localizer["Insert a valid e-mail"]' },
+            ];
+
+            requiredFields.forEach(f => {
+                const value = $(f.id).val()?.trim();
+                if (!value || value === '00000000-0000-0000-0000-000000000000') {
+                    isValid = false;
+                    $(f.id).addClass('is-invalid');
+                    $(`span[data-valmsg-for='${f.name}']`).text(f.message);
+                }
+            });
+
+            // const emailVal = $('#Email').val()?.trim();
+            // const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            // if (emailVal && !emailRegex.test(emailVal)) {
+            // 	isValid = false;
+            // 	$('#Email').addClass('is-invalid');
+            // 	$("span[data-valmsg-for='Email']").text('@Localizer["The email you wrote is invalid"]');
+            // }
+
+        var ddlGender = $('#Gender');
+        ddlGender.on("change", function () {
+            if ($('#Gender option:selected').val() != '@Model.Gender') {
+                $('#span_Gender').text($('#Gender option:selected').text()); $('#span_Gender_prev').addClass("valueChanged");
+            } else {
+                $('#span_Gender').text(""); $('#span_Gender_prev').removeClass("valueChanged");
+            }
+        });
+        var ddlTimeZoneID = $('#Timezone');
+        ddlTimeZoneID.on("change", function () {
+            if ($('#Timezone option:selected').val() != '@Model.Timezone') {
+                $('#span_Timezone').text($('#Timezone option:selected').text()); $('#span_Timezone_prev').addClass("valueChanged");
+            } else {
+                $('#span_Timezone').text(""); $('#span_Timezone_prev').removeClass("valueChanged");
+            }
+        });
+        var ddlLanguage = $('#Language');
+        ddlLanguage.on("change", function () {
+            if ($('#Language option:selected').val() != '@Model.Language') {
+                $('#span_Language').text($('#Language option:selected').text()); $('#span_Language_prev').addClass("valueChanged");
+            } else {
+                $('#span_Language').text(""); $('#span_Language_prev').removeClass("valueChanged");
+            }
+        });
+        var ddlCountry = $('#Country');
+        ddlCountry.on("change", function () {
+            if ($('#Country option:selected').val() != '@Model.Country') {
+                $('#span_Country').text($('#Country option:selected').text()); $('#span_Country_prev').addClass("valueChanged");
+            } else {
+                $('#span_Country').text(""); $('#span_Country_prev').removeClass("valueChanged");
+            }
+        });
+
+
+
+
+            // If not valid, block submit
+            if (!isValid) {
+                e.preventDefault(); // <-- block only if there are errors
+                return false;
+            }
+
+            // Show loader (only if valid)
+            $('#SubmitButton').addClass('d-none');
+            $('#Loading').removeClass('d-none');
+        });
+    </script>
+
+    <script>
+        // new Cleave(".date-dob", {
+        // 	date: true, delimiter: "/",
+        // 	datePattern: ["d", "m", "Y"]
+        // });
+
+        // new Cleave('.input-mobile', {
+        // 	phone: true, phoneRegionCode: 'it', blocks: [3, 3, 3, 2]
+        // });
+
+        // new Cleave(".numeral-price", {
+        // 	numeral: true,
+        // 	numeralThousandsGroupStyle: 'thousand',
+        // 	numeralDecimalMark: ',',
+        // 	delimiter: '.'
+        // });
+
+        function resendPin(userId) {
+            if (!confirm('Are you sure you want to generate and send a new PIN to this employee?')) {
+                return;
+            }
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/Employees/Edit/ResendPin/' + userId;
+            // Add CSRF token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = '__RequestVerificationToken';
+            tokenInput.value = token;
+            form.appendChild(tokenInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // Initialize date picker
+        document.addEventListener('DOMContentLoaded', function() {
+            const datePickerElement = document.querySelector('.date-picker');
+            if (datePickerElement) {
+                flatpickr(datePickerElement, {
+                    dateFormat: "d/m/Y",
+                    maxDate: "today", // Cannot select future dates
+                    minDate: "01/01/1900", // Reasonable minimum date
+                    locale: "it", // Italian locale
+                    allowInput: true, // Allow manual typing
+                    clickOpens: true, // Open on click
+                    defaultDate: datePickerElement.value || null,
+                    yearDropdown: true, // Year dropdown for faster navigation
+                    monthSelectorType: "dropdown", // Month dropdown
+                    prevArrow: '<i class="ri-arrow-left-s-line"></i>',
+                    nextArrow: '<i class="ri-arrow-right-s-line"></i>',
+                    // Year configuration - show dropdown from 1900 to today
+                    onChange: function(selectedDates, dateStr, instance) {
+                        // Trigger change event for validation
+                        datePickerElement.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
+        });
+
+    </script>
+}
+
+
+@Html.Raw(ViewBag.ResponseMessage)
+
+<div class="page-header d-print-none mb-4">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2 class="page-title">@Localizer["Edit Employee"]</h2>
+      <div class="text-secondary mt-1">@Localizer["Edit employee details and information"]</div>
+    </div>
+    <div class="col-auto ms-auto d-print-none">
+      <div class="btn-list">
+        <a href="~/Employees" class="btn btn-outline-secondary">
+          <i class="ri-arrow-go-back-fill"></i>
+          <span class="d-none d-sm-inline ms-1">@Localizer["Discard"]</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<form method="post" id="createEmployeeForm">
+  @Html.AntiForgeryToken()
+
+  <div class="row row-cards">
+
+    @* Left column *@
+    <div class="col-12 col-lg-8">
+
+      @* User basic *@
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">@Localizer["User basic"]</h3>
+        </div>
+        <div class="card-body">
+
+          <div class="mb-3">
+            <label class="form-label" for="SelectedRoleID">@Localizer["Role"]</label>
+            <select class="form-select" name="SelectedRoleID" id="SelectedRoleID">
+              <option value="">@Localizer["Select a role"]</option>
+              @{
+                // Preselect first visible assigned role if present
+                Guid preSelected = Guid.Empty;
+                if (Model.Roles != null)
+                {
+                  var firstVisible = Model.Roles.FirstOrDefault(r => r.IsVisible);
+                  if (firstVisible != null) preSelected = firstVisible.RoleID;
+                }
+                if (ViewBag.Roles is IEnumerable<OpenCashFlow.Contracts.DTOs.Identity.Role_List_DTO> roles)
+                {
+                  foreach (var role in roles)
+                  {
+                    var id = role.ID;
+                    var name = role.Name;
+                    <option value="@id" selected="@(preSelected == id ? "selected" : null)">@Localizer["role_" + name]</option>
+                  }
+                }
+              }
+            </select>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="UserName">@Localizer["Username"]</label>
+              <input type="text" asp-for="UserName" readonly class="form-control form-lowercase" placeholder="@Localizer["Username"]" autocomplete="off" />
+              <small><span asp-validation-for="UserName" class="text-danger"></span></small>
+            </div>
+            <div class="col-md-6">
+              @* spacer *@
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="UserFirstName">@Localizer["Name"]</label>
+              <input type="text" asp-for="UserFirstName" class="form-control form-lowercase" placeholder="@Localizer["Name"]" autocomplete="off" />
+              <small><span asp-validation-for="UserFirstName" class="text-danger"></span></small>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="UserLastName">@Localizer["Surname"]</label>
+              <input type="text" asp-for="UserLastName" class="form-control form-lowercase" placeholder="@Localizer["Surname"]" autocomplete="off" />
+              <small><span asp-validation-for="UserLastName" class="text-danger"></span></small>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      @* Security info *@
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">@Localizer["Security Info"]</h3>
+        </div>
+        <div class="card-body">
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="PhoneNumber">@Localizer["Phone number"]</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ri-phone-line"></i></span>
+                <input type="text" class="form-control" asp-for="PhoneNumber" placeholder="@Localizer["Phone number"]">
+              </div>
+              <small><span asp-validation-for="PhoneNumber" class="text-danger"></span></small>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="Email">@Localizer["E-mail"]</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ri-mail-open-line"></i></span>
+                <input type="text" class="form-control" asp-for="Email" placeholder="@Localizer["E-mail"]">
+                <button type="button" class="btn btn-outline-secondary" onclick="resendPin('@Model.UserID')" title="Resend PIN to the email address">
+                  <i class="ri-mail-send-line"></i>
+                </button>
+              </div>
+              <small><span asp-validation-for="Email" class="text-danger"></span></small>
+              <div class="text-secondary small mt-1">
+                <i class="ri-information-line me-1"></i>
+                A new PIN will be generated and sent when the email is updated
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    @* Right column *@
+    <div class="col-12 col-lg-4">
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="card-title">@Localizer["Other Info"]</h3>
+        </div>
+        <div class="card-body">
+
+          <div class="mb-3">
+            <label class="form-label" for="Gender">@Localizer["Gender"]</label>
+            <select class="form-select" asp-for="Gender">
+              <option value="">@Localizer["Select gender"]</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="Timezone">@Localizer["Timezone"]</label>
+            <select class="form-select" asp-for="Timezone">
+              <option value="">@Localizer["Select a timezone"]</option>
+              @{
+                if (ViewBag.Timezones != null)
+                {
+                  foreach (var item in ViewBag.Timezones)
+                  {
+                    <option value="@item.Id">@item.Display</option>
+                  }
+                }
+              }
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="Language">@Localizer["Language"]</label>
+            <select class="form-select" asp-for="Language">
+              <option value="">@Localizer["SelectALanguage"]</option>
+              @{
+                if (ViewBag.Languages != null)
+                {
+                  foreach (var item in ViewBag.Languages)
+                  {
+                    <option value="@item.Code">@item.Name</option>
+                  }
+                }
+              }
+            </select>
+            <small><span asp-validation-for="Language" class="text-danger"></span></small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="Country">@Localizer["Country"]</label>
+            <select class="form-select" asp-for="Country">
+              <option value="">@Localizer["SelectACountry"]</option>
+              @{
+                if (ViewBag.Countries != null)
+                {
+                  foreach (var item in ViewBag.Countries)
+                  {
+                    <option value="@item.Code">@item.Name</option>
+                  }
+                }
+              }
+            </select>
+            <small><span asp-validation-for="Country" class="text-danger"></span></small>
+          </div>
+
+          <div class="border-top pt-3 mt-4">
+            <div class="text-secondary fw-semibold mb-2">@Localizer["Employee Info"]</div>
+
+            <div class="mb-3">
+              <label class="form-label" for="DoB">@Localizer["Date Of Birth"]</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ri-calendar-line"></i></span>
+                <input type="text" asp-for="DoB" class="form-control date-picker" placeholder="@Localizer["Date Of Birth"]" readonly />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="CoB">@Localizer["Country of Birth"]</label>
+              <select class="form-select" asp-for="CoB">
+                <option value="">@Localizer["SelectACountry"]</option>
+                @{
+                  if (ViewBag.Countries != null)
+                  {
+                    foreach (var item in ViewBag.Countries)
+                    {
+                      <option value="@item.Code">@item.Name</option>
+                    }
+                  }
+                }
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="SoB">@Localizer["State of Birth"]</label>
+              <input type="text" asp-for="SoB" class="form-control form-capitalize" placeholder="@Localizer["State of Birth"]" />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="PoB">@Localizer["City of Birth"]</label>
+              <input type="text" asp-for="PoB" class="form-control form-capitalize" placeholder="@Localizer["City of Birth"]" />
+            </div>
+          </div>
+
+          <div class="d-grid gap-2 mt-4">
+            <button id="SubmitButton" type="submit" class="btn btn-success">
+              <i class="ri-save-line me-2"></i>@Localizer["Edit"]
+            </button>
+            <button class="btn btn-success d-none" id="Loading" type="button" disabled>
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>@Localizer["Loading"]
+            </button>
+          </div>
+
+          <div class="d-grid gap-2 pt-3">
+            <a href="~/Employees" class="btn btn-outline-secondary">
+              <i class="ri-arrow-go-back-fill me-2"></i>@Localizer["Discard"]
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</form>

@@ -1,0 +1,106 @@
+@model IEnumerable<OpenCashFlow.Contracts.DTOs.Payment_List_DTO>
+@using System.Globalization
+@{
+    var culture = new CultureInfo("it-IT");
+    bool any = Model != null && Model.Any();
+}
+@if (!any)
+{
+    <li class="timeline-item timeline-item-transparent">
+        <span class="timeline-point timeline-point-secondary"></span>
+        <div class="timeline-event">
+            <div class="timeline-header mb-1">
+                <h6 class="mb-0">@Localizer["NoRecentPayments"]</h6>
+                <small class="text-muted">@Localizer["DashPlaceholder"]</small>
+            </div>
+            <p class="mb-0">@Localizer["RecentPaymentsPlaceholder"]</p>
+        </div>
+    </li>
+}
+else
+{
+    foreach (var p in Model!)
+    {
+        var amountText = p.Amount.ToString("C", culture);
+        var dateUtc = p.DateIns.Kind switch
+        {
+            DateTimeKind.Utc => p.DateIns,
+            DateTimeKind.Unspecified => DateTime.SpecifyKind(p.DateIns, DateTimeKind.Utc),
+            _ => p.DateIns.ToUniversalTime()
+        };
+        var dateIso = dateUtc.ToString("o", CultureInfo.InvariantCulture);
+        var isIncome = string.Equals(p.EntryType, "Income", StringComparison.OrdinalIgnoreCase);
+        var pointClass = isIncome ? "timeline-point-success" : "timeline-point-warning";
+        <li class="timeline-item timeline-item-transparent">
+            <span class="timeline-point @pointClass"></span>
+            <div class="timeline-event">
+                <div class="timeline-header mb-1">
+                    <h6 class="mb-0">@amountText</h6>
+                    <small class="text-muted js-payment-date" data-payment-utc="@dateIso"></small>
+                </div>
+                <p class="mb-1">
+                    @(!string.IsNullOrWhiteSpace(p.Description) ? p.Description : (isIncome ? Localizer["Income"] :
+                                Localizer["Outcome"]))
+                </p>
+                <div class="d-flex flex-wrap align-items-center gap-2 small text-muted">
+                    <span title='@Localizer["Employee"]'>
+                        <i class="ri-user-line me-1"></i>@p.EmployeeFullName
+                    </span>
+                    <span title='@Localizer["Method"]'>
+                        <i class="ri-wallet-3-line ms-3 me-1"></i>@SharedLocalizer[@p.PaymentMethodName]
+                    </span>
+                    <span title='@Localizer["Document"]'>
+                        <i class="ri-file-list-3-line ms-3 me-1"></i>@SharedLocalizer[@p.DocumentTypeName]
+                    </span>
+                </div>
+            </div>
+        </li>
+    }
+    <script>
+        // Applica immediatamente le date friendly per questo batch di items
+        (function() {
+            function parseAsUtc(input) {
+                if (!input) return new Date();
+                const str = String(input);
+                if (str.includes('Z') && str.includes('.')) {
+                    const parts = str.split('.');
+                    if (parts.length === 2) {
+                        const datePart = parts[0];
+                        const msPart = parts[1].replace('Z', '');
+                        const truncatedMs = msPart.substring(0, 3);
+                        return new Date(`${datePart}.${truncatedMs}Z`);
+                    }
+                }
+                if (/^\d{4}-\d{2}-\d{2}T/.test(str) && !(/[Z+\-]\d{2}:?\d{2}$/.test(str))) {
+                    return new Date(str + "Z");
+                }
+                return new Date(str);
+            }
+
+            function friendlyDateTime(dateString) {
+                const date = parseAsUtc(dateString);
+                if (isNaN(date)) return "";
+                return date.toLocaleString("it-IT", {
+                    day: "numeric",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+            }
+
+            // Find the timeline container closest to this script
+            const script = document.currentScript;
+            const timeline = script.closest('ul.timeline') || script.parentElement;
+            if (!timeline) return;
+
+            const nodes = timeline.querySelectorAll('.js-payment-date[data-payment-utc]');
+            nodes.forEach(function(node) {
+                const raw = node.getAttribute('data-payment-utc');
+                if (!raw) return;
+                const text = friendlyDateTime(raw).trim();
+                if (!text) return;
+                node.textContent = text;
+            });
+        })();
+    </script>
+}

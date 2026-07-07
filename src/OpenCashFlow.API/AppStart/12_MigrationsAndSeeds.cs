@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using global::Shared.Data;
+using OpenCashFlow.Infrastructure.Persistence;
 
 namespace OpenCashFlow.Api.AppStart;
 
@@ -15,15 +15,33 @@ public static class MigrationsAndSeedsAppStart
         {
             if (db.Database.IsRelational())
             {
-                var pending = db.Database.GetPendingMigrations();
-                if (pending.Any())
-                    db.Database.Migrate();
+                var autoMigrate = string.Equals(
+                    app.Configuration["AUTO_MIGRATE"],
+                    "true",
+                    StringComparison.OrdinalIgnoreCase);
 
-                if (db.Database.GetPendingMigrations().Any())
+                var pending = db.Database.GetPendingMigrations().ToList();
+                if (autoMigrate)
                 {
-                    Log.Information("Applying {Count} pending migrations...", db.Database.GetPendingMigrations().Count());
-                    db.Database.Migrate();
-                    Log.Information("Database migrations applied successfully.");
+                    if (pending.Count > 0)
+                    {
+                        Log.Information("Applying {Count} pending migrations...", pending.Count);
+                        db.Database.Migrate();
+                        Log.Information("Database migrations applied successfully.");
+                    }
+                }
+                else
+                {
+                    Log.Information("AUTO_MIGRATE is not enabled. Skipping startup database migrations.");
+                    if (pending.Count > 0)
+                    {
+                        return app;
+                    }
+                }
+
+                if (!await db.Database.CanConnectAsync())
+                {
+                    return app;
                 }
 
                 var companies = await db.Company_DS.AsNoTracking().Select(c => c.TenantID).ToListAsync();
@@ -34,7 +52,7 @@ public static class MigrationsAndSeedsAppStart
                 {
                     foreach (var cid in missing)
                     {
-                        db.CashBalances.Add(new global::Shared.Models.Cash.CashBalance
+                        db.CashBalances.Add(new OpenCashFlow.Infrastructure.Persistence.Entities.Cash.CashBalance
                         {
                             CompanyId = cid,
                             Balance = 0m,

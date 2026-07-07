@@ -1,4 +1,4 @@
-using global::Shared.DTOs.Billing;
+using OpenCashFlow.Contracts.DTOs.Billing;
 
 namespace OpenCashFlow.Admin.Models.Billing
 {

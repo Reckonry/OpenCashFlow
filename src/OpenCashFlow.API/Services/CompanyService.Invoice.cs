@@ -1,25 +1,23 @@
-﻿using AutoMapper;
-using OpenCashFlow.API.Repositories.Interfaces;
-using OpenCashFlow.API.Services.Interfaces;
-using global::Shared.DTOs;
-using global::Shared.DTOs.Companies;
-using global::Shared.Models;
+﻿using OpenCashFlow.Application.Companies.Invoices;
+using OpenCashFlow.Contracts.DTOs.Companies;
 
 namespace OpenCashFlow.API.Services
 {
     public partial class CompanyService
     {
-        public async Task<IEnumerable<Company_Invoice>?> GetCompanyInvoicesAsync(CancellationToken cancellationToken)
+        private readonly IGetCompanyInvoicesUseCase _getCompanyInvoicesUseCase;
+        private readonly IGetCompanyInvoiceDetailUseCase _getCompanyInvoiceDetailUseCase;
+
+        public async Task<IEnumerable<Company_Invoice_List_DTO>?> GetCompanyInvoicesAsync(CancellationToken cancellationToken)
         {
-            var invoices = await _companyRepository.GetCompanyInvoicesAsync(_authenticationService.GetTenantID(), cancellationToken);
-            return invoices;
+            var invoices = await _getCompanyInvoicesUseCase.ExecuteAsync(_authenticationService.GetTenantID(), cancellationToken);
+            return invoices.Select(MapInvoiceList).ToList();
         }
 
         public async Task<Company_Invoices_Detail_DTO?> GetCompanyInvoiceByIdAsync(Guid InvoiceID, CancellationToken cancellationToken)
         {
-            var invoice = await _companyRepository.GetCompanyInvoiceByIdAsync(InvoiceID, _authenticationService.GetTenantID(), cancellationToken);
-
-            return _mapper.Map<Company_Invoices_Detail_DTO>(invoice);
+            var invoice = await _getCompanyInvoiceDetailUseCase.ExecuteAsync(InvoiceID, _authenticationService.GetTenantID(), cancellationToken);
+            return invoice is null ? null : MapInvoiceDetail(invoice);
         }
     }
 }

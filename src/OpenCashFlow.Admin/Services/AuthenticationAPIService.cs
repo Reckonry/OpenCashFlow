@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using global::Shared.DTOs;
-using global::Shared.Models;
-using global::Shared.Models.Core;
+using OpenCashFlow.Contracts.DTOs;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
+using OpenCashFlow.Infrastructure.Persistence.Entities.Core;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;

@@ -1,0 +1,116 @@
+﻿@{
+    var recent = ViewBag.RecentPayments as IEnumerable<OpenCashFlow.Contracts.DTOs.Payment_List_DTO>;
+}
+
+<!-- Activity Timeline -->
+<div class="col-12 col-xxl-8">
+    <div class="card h-100">
+        <div class="card-header">
+            <h3 class="card-title">@Localizer["ActivityTimeline"]</h3>
+        </div>
+
+        <div class="card-body" id="recent-payments-timeline" data-url="/internal/Dashboard/RecentPayments?count=5">
+            <ul class="timeline card-timeline mb-0">
+                @if (recent is IEnumerable<OpenCashFlow.Contracts.DTOs.Payment_List_DTO> list && list.Any())
+                {
+                    @await Html.PartialAsync("/Views/Dashboard/Components/Fragments/_RecentPaymentsTimeline.cshtml", list)
+                }
+                else
+                {
+                    <li class="timeline-item timeline-item-transparent">
+                        <span class="timeline-point timeline-point-secondary"></span>
+                        <div class="timeline-event">
+                            <div class="timeline-header mb-1">
+                                <h4 class="timeline-title mb-0">@Localizer["LoadingRecentPayment"]</h4>
+                                <span class="text-secondary small">@Localizer["PleaseWait"]</span>
+                            </div>
+                            <div class="text-secondary">@Localizer["RecentPaymentsPlaceholder"]</div>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- Activity Timeline -->
+<script>
+  (function() {
+    function parseAsUtc(input) {
+      if (!input) return new Date();
+
+      const str = String(input);
+
+      // Handle .NET high-precision timestamps by removing excess milliseconds
+      if (str.includes('Z') && str.includes('.')) {
+        // Extract parts: "2025-09-24T07:08:40.8969250Z" -> "2025-09-24T07:08:40.896Z"
+        const parts = str.split('.');
+        if (parts.length === 2) {
+          const datePart = parts[0]; // "2025-09-24T07:08:40"
+          const msPart = parts[1].replace('Z', ''); // "8969250"
+          const truncatedMs = msPart.substring(0, 3); // "896"
+          const result = `${datePart}.${truncatedMs}Z`;
+          return new Date(result);
+        }
+      }
+
+      // Handle strings without timezone - treat as UTC
+      if (/^\d{4}-\d{2}-\d{2}T/.test(str) && !(/[Z+\-]\d{2}:?\d{2}$/.test(str))) {
+        return new Date(str + "Z");
+      }
+
+      return new Date(str);
+    }
+
+    function friendlyDateTime(dateString) {
+      const date = parseAsUtc(dateString);
+      if (isNaN(date)) return "";
+      return date.toLocaleString("it-IT", {
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function applyFriendlyDates(root) {
+      try {
+        const scope = root && root.querySelectorAll ? root : document;
+        const nodes = scope.querySelectorAll('.js-payment-date[data-payment-utc]');
+        nodes.forEach(function (node) {
+          const raw = node.getAttribute('data-payment-utc');
+          if (!raw) return;
+          const text = friendlyDateTime(raw).trim();
+          if (!text) return;
+          node.textContent = text;
+        });
+      } catch (e) {
+        console && console.debug && console.debug('applyFriendlyDates error', e);
+      }
+    }
+
+    const container = document.getElementById('recent-payments-timeline');
+    if (!container) return;
+    const url = container.getAttribute('data-url');
+    const refresh = async () => {
+      try {
+        const res = await fetch(url, { credentials: 'same-origin' });
+        if (!res.ok) return;
+        const html = await res.text();
+        // Replace the inner <ul> contents with new <li> items
+        const ul = container.querySelector('ul.timeline');
+        if (ul) {
+          ul.innerHTML = html;
+          applyFriendlyDates(ul);
+        }
+      } catch (e) { /* noop */ }
+    };
+
+    // Apply to initial content
+    applyFriendlyDates(container);
+
+    // Immediate refresh to get latest data (no visible delay)
+    refresh();
+    // Periodic refresh every 60s
+    setInterval(refresh, 60000);
+  })();
+</script>

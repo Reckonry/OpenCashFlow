@@ -1,4 +1,5 @@
-using global::Shared.DTOs;
+using OpenCashFlow.Contracts.DTOs;
+using OpenCashFlow.Application.Payments.Calendar;
 
 namespace OpenCashFlow.API.Services
 {
@@ -15,7 +16,27 @@ namespace OpenCashFlow.API.Services
             CancellationToken cancellationToken)
         {
             var companyId = _authenticationService.GetTenantID();
-            return await _paymentRepository.GetPaymentCalendarEventsAsync(companyId, filters, cancellationToken);
+            filters ??= new Payment_Filter_DTO();
+            var events = await _getPaymentCalendarUseCase.ExecuteAsync(
+                new GetPaymentCalendarQuery(ToPaymentListQuery(filters, companyId)),
+                cancellationToken);
+
+            return events.Select(e => new Payment_CalendarEvent_DTO
+            {
+                Id = e.Id,
+                Title = e.Title,
+                Start = e.Start,
+                AllDay = e.AllDay,
+                Url = e.Url,
+                ExtendedProps = new PaymentEventExtendedProps
+                {
+                    Calendar = e.Calendar,
+                    PaymentCount = e.PaymentCount,
+                    TotalAmount = e.TotalAmount,
+                    Date = e.Date,
+                    EntryType = e.EntryType
+                }
+            }).ToList();
         }
     }
 }

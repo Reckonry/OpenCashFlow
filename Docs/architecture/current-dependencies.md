@@ -1,0 +1,134 @@
+# Current Dependencies
+
+This document captures the current dependency shape after dismantling `OpenCashFlow.Shared`.
+
+## Solution Projects
+
+The active core solution contains:
+
+```text
+src/OpenCashFlow.API/OpenCashFlow.API.csproj
+src/OpenCashFlow.Application/OpenCashFlow.Application.csproj
+src/OpenCashFlow.Contracts/OpenCashFlow.Contracts.csproj
+src/OpenCashFlow.Domain/OpenCashFlow.Domain.csproj
+src/OpenCashFlow.Infrastructure/OpenCashFlow.Infrastructure.csproj
+src/OpenCashFlow.WebApp/OpenCashFlow.WebApp.csproj
+tests/OpenCashFlow.Application.Tests/OpenCashFlow.Application.Tests.csproj
+tests/OpenCashFlow.Domain.Tests/OpenCashFlow.Domain.Tests.csproj
+tests/OpenCashFlow.Test/OpenCashFlow.Test.csproj
+```
+
+`src/OpenCashFlow.Admin` still exists physically as legacy code, but it is not part of the core solution/runtime.
+
+## Project References
+
+```text
+OpenCashFlow.API
+  -> OpenCashFlow.Application
+  -> OpenCashFlow.Contracts
+  -> OpenCashFlow.Infrastructure
+
+OpenCashFlow.Application
+  -> OpenCashFlow.Domain
+
+OpenCashFlow.Infrastructure
+  -> OpenCashFlow.Application
+  -> OpenCashFlow.Contracts
+  -> OpenCashFlow.Domain
+
+OpenCashFlow.WebApp
+  -> OpenCashFlow.Contracts
+
+OpenCashFlow.Test
+  -> OpenCashFlow.API
+  -> OpenCashFlow.Contracts
+  -> OpenCashFlow.Infrastructure
+
+OpenCashFlow.Contracts
+  -> no project references
+
+OpenCashFlow.Domain
+  -> no project references
+```
+
+## Responsibility Distribution
+
+### OpenCashFlow.API
+
+- HTTP controllers.
+- Middleware and startup composition.
+- Boundary mapping between public DTOs and application/persistence results.
+- Dependency injection composition for Application and Infrastructure.
+
+### OpenCashFlow.Application
+
+- Use cases and orchestration.
+- Application ports.
+- Payment/cash/audit module contracts.
+- No EF Core, ASP.NET, AutoMapper, MailKit, MimeKit, Infrastructure, API or `OpenCashFlow.Shared` dependency.
+- Does not reference `OpenCashFlow.Contracts`; API maps public DTOs to Application commands/results.
+
+### OpenCashFlow.Domain
+
+- Pure domain primitives and rules.
+- No dependency on EF Core, ASP.NET, Infrastructure, Application, Contracts or Shared.
+
+### OpenCashFlow.Infrastructure
+
+- EF Core persistence.
+- `ApplicationDbContext`, design-time factory and migrations.
+- EF entities under `Persistence/Entities`.
+- Repository/readers/writers implementing Application ports.
+- Email, notifications, auth helpers, logging constants and unit of work.
+- Employee create/update/PIN and auth reset-token persistence implementations.
+- Auth registration/login/fast-login implementations for EF user reads/writes, password hashing, PIN verification, fast-login cookie signing and JWT issuing.
+- Auth audit persistence through `IAuthAuditWriter`.
+
+### OpenCashFlow.Contracts
+
+- Public API/WebApp DTOs.
+- Public response envelope.
+- Neutral public enums/constants.
+- No EF Core, AutoMapper, MailKit, MimeKit or runtime service implementations.
+
+### OpenCashFlow.WebApp
+
+- MVC controllers, views and API client services.
+- Consumes `OpenCashFlow.Contracts`.
+- Uses local WebApp view models for Razor-only form/list/detail models.
+- Does not reference `OpenCashFlow.Infrastructure`.
+
+## Removed Project
+
+`OpenCashFlow.Shared` has been removed from the solution and from all core project references. It no longer owns DTOs, EF entities, runtime services, mappings, options, helpers, enums or migrations.
+
+## Auth Boundary
+
+Registration, login, fast-login, fast-login cookie generation, account confirmation and resend confirmation now enter `OpenCashFlow.Application/Auth` use cases from the API boundary. Infrastructure implements the auth ports for EF reads/writes, password hashing, PIN verification, cookie signing, JWT issuing and optional notifications.
+
+`AuthenticationService` remains an API adapter for public DTO/response shape and HTTP-bound audit context collection. It no longer depends on `IEmployeeRepository` or `ApplicationDbContext`; auth audit persistence is implemented by Infrastructure through `IAuthAuditWriter`.
+
+## Fase 3J Non-Auth API Services
+
+`OpenCashFlow.API` no longer uses `ApplicationDbContext` directly in non-auth services/controllers/repositories. Roles, cash, user management, audit logs and health checks now cross the Application boundary and are implemented by Infrastructure ports/readers/writers.
+
+`OpenCashFlow.Infrastructure` now additionally owns:
+
+- `Roles/RoleReader`;
+- `Cash/CashReader` and `Cash/CashWriter`;
+- `UserManagement/UserManagementStore`;
+- `AuditLog/AuditLogStore`;
+- `Health/DatabaseHealthReader`.
+
+Next cleanup: remove residual EF entity types from public controller/service signatures where they still appear as compatibility types, replacing them with Contracts or Application records as appropriate.
+
+## Fase 3K API Boundary Cleanup
+
+`OpenCashFlow.API` controllers, services and service interfaces no longer import `OpenCashFlow.Infrastructure.Persistence.Entities`. Payment daily report responses now use the neutral `OpenCashFlow.Contracts.DTOs.Payments.Payment_DailyPayments` contract.
+
+Dependency direction remains:
+
+- API -> Contracts/Application/Infrastructure composition;
+- Application -> Domain only;
+- WebApp -> Contracts only;
+- Infrastructure -> EF entities/persistence.

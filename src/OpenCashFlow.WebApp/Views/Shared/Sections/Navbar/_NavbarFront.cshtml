@@ -1,0 +1,51 @@
+@{
+    TempData.Keep();
+    string? currentPage = ViewContext.HttpContext.Request.Path;
+}
+
+<header role="banner">
+    <nav class="navbar navbar-expand-lg navbar-transparent py-3">
+        <div class="container">
+            <a asp-controller="FrontPages" asp-action="LandingPage" class="navbar-brand navbar-brand-autodark">
+                <span class="navbar-brand-image">
+                    @await Html.PartialAsync("../_Partials/_Macros")
+                </span>
+                <span class="fw-semibold ms-2">@TempData.Peek("appName")</span>
+            </a>
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbar-front"
+                aria-controls="navbar-front"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbar-front">
+                <nav aria-label="Primary">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class='nav-link@(currentPage?.StartsWith("/FrontPages/LandingPage") == true || currentPage == "/" ? " active" : "")' asp-controller="FrontPages" asp-action="LandingPage" asp-fragment="landingHero">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="FrontPages" asp-action="LandingPage" asp-fragment="landingFeatures">Features</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="FrontPages" asp-action="LandingPage" asp-fragment="landingTeam">Team</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="FrontPages" asp-action="LandingPage" asp-fragment="landingFAQ">FAQ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="FrontPages" asp-action="LandingPage" asp-fragment="landingContact">Contact us</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="FrontPages" asp-action="LandingPage" asp-fragment="landingDocs">Docs</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </nav>
+</header>

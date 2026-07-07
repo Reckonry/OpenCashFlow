@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Add new Employee" xml:space="preserve">
+    <value>Aggiungi nuovo dipendente</value>
+  </data>
+  <data name="City of Birth" xml:space="preserve">
+    <value>Città di nascita</value>
+  </data>
+  <data name="Date Of Birth" xml:space="preserve">
+    <value>Data di nascita</value>
+  </data>
+  <data name="Discard" xml:space="preserve">
+    <value>Annulla</value>
+  </data>
+  <data name="E-mail" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Modifica</value>
+  </data>
+  <data name="Employee Info" xml:space="preserve">
+    <value>Informazioni dipendente</value>
+  </data>
+  <data name="Insert a first name" xml:space="preserve">
+    <value>Inserisci il nome</value>
+  </data>
+  <data name="Insert a last name" xml:space="preserve">
+    <value>Inserisci il cognome</value>
+  </data>
+  <data name="Insert a username" xml:space="preserve">
+    <value>Inserisci il nome utente</value>
+  </data>
+  <data name="Insert a valid e-mail" xml:space="preserve">
+    <value>Inserisci una email valida</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Caricamento</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="New Employee" xml:space="preserve">
+    <value>Nuovo dipendente</value>
+  </data>
+  <data name="Other Info" xml:space="preserve">
+    <value>Altre informazioni</value>
+  </data>
+  <data name="Phone number" xml:space="preserve">
+    <value>Numero di telefono</value>
+  </data>
+  <data name="Security Info" xml:space="preserve">
+    <value>Informazioni di sicurezza</value>
+  </data>
+  <data name="Select a role" xml:space="preserve">
+    <value>Seleziona un ruolo</value>
+  </data>
+  <data name="State of Birth" xml:space="preserve">
+    <value>Stato di nascita</value>
+  </data>
+  <data name="Surname" xml:space="preserve">
+    <value>Cognome</value>
+  </data>
+  <data name="The email you wrote is invalid" xml:space="preserve">
+    <value>L'email inserita non è valida</value>
+  </data>
+  <data name="User basic" xml:space="preserve">
+    <value>Utente base</value>
+  </data>
+  <data name="Username" xml:space="preserve">
+    <value>Nome utente</value>
+  </data>
+  <data name="EditEmployeeTitle" xml:space="preserve">
+    <value>Modifica dipendente</value>
+  </data>
+  <data name="SelectALanguage" xml:space="preserve">
+    <value>Seleziona una lingua</value>
+  </data>
+  <data name="SelectACountry" xml:space="preserve">
+    <value>Seleziona un paese</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Lingua</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>Nazione</value>
+  </data>
+  <data name="Edit Employee" xml:space="preserve">
+    <value>Modifica dipendente</value>
+  </data>
+  <data name="Edit employee details and information" xml:space="preserve">
+    <value>Modifica i dettagli e le informazioni del dipendente</value>
+  </data>
+  <data name="Gender" xml:space="preserve">
+    <value>Genere</value>
+  </data>
+  <data name="Timezone" xml:space="preserve">
+    <value>Fuso orario</value>
+  </data>
+  <data name="Select a timezone" xml:space="preserve">
+    <value>Seleziona un fuso orario</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Ruolo</value>
+  </data>
+  <data name="Role:" xml:space="preserve">
+    <value>Ruolo:</value>
+  </data>
+  <data name="Select a single role." xml:space="preserve">
+    <value>Seleziona un singolo ruolo.</value>
+  </data>
+  <data name="Repeat Password" xml:space="preserve">
+    <value>Ripeti password</value>
+  </data>
+  <data name="Subtitle" xml:space="preserve">
+    <value>Inserisci i dati del nuovo dipendente</value>
+  </data>
+  <data name="role_Administrator" xml:space="preserve">
+    <value>Amministratore</value>
+  </data>
+  <data name="role_Employee" xml:space="preserve">
+    <value>Dipendente</value>
+  </data>
+  <data name="role_CompanyAdmin" xml:space="preserve">
+    <value>Amministratore azienda</value>
+  </data>
+  <data name="Select gender" xml:space="preserve">
+    <value>Seleziona genere</value>
+  </data>
+  <data name="Country of Birth" xml:space="preserve">
+    <value>Paese di nascita</value>
+  </data>
+</root>

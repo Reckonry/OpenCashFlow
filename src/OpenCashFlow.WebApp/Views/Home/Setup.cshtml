@@ -1,0 +1,103 @@
+@model OpenCashFlow.Contracts.DTOs.SetupRequest_DTO
+@{
+  Layout = "_BlankLayout";
+  ViewData["Title"] = "Setup OpenCashFlow";
+}
+
+@section PageStyles {
+  <link rel="stylesheet" href="~/vendor/css/pages/page-auth.css">
+}
+
+<div class="page page-center">
+  <div class="container container-tight py-4">
+    <div class="text-center mb-4">
+      <a href="/" class="navbar-brand navbar-brand-autodark">
+        <span class="app-brand-logo demo">@await Html.PartialAsync("../_Partials/_Macros")</span>
+        <span class="app-brand-text demo text-heading fw-semibold ms-2">OpenCashFlow</span>
+      </a>
+    </div>
+
+    <form asp-action="Setup" method="post" class="card card-md" autocomplete="off">
+      @Html.AntiForgeryToken()
+      <div class="card-body">
+        <h1 class="h2 text-center mb-2">First setup</h1>
+        <p class="text-center text-secondary mb-4">Create the first company and instance administrator.</p>
+
+        @if (!string.IsNullOrWhiteSpace(ViewBag.ErrorMessage as string))
+        {
+          <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+          <label class="form-label" asp-for="CompanyName">Company name</label>
+          <input class="form-control" asp-for="CompanyName" autofocus />
+          <span class="text-danger" asp-validation-for="CompanyName"></span>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label" asp-for="AdminFirstName">Admin first name</label>
+            <input class="form-control" asp-for="AdminFirstName" />
+            <span class="text-danger" asp-validation-for="AdminFirstName"></span>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" asp-for="AdminLastName">Admin last name</label>
+            <input class="form-control" asp-for="AdminLastName" />
+            <span class="text-danger" asp-validation-for="AdminLastName"></span>
+          </div>
+        </div>
+
+        <div class="mb-3 mt-3">
+          <label class="form-label" asp-for="AdminEmail">Admin email</label>
+          <input class="form-control" asp-for="AdminEmail" type="email" />
+          <span class="text-danger" asp-validation-for="AdminEmail"></span>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label" asp-for="AdminPassword">Password</label>
+            <input class="form-control" asp-for="AdminPassword" type="password" />
+            <span class="text-danger" asp-validation-for="AdminPassword"></span>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" asp-for="ConfirmPassword">Confirm password</label>
+            <input class="form-control" asp-for="ConfirmPassword" type="password" />
+            <span class="text-danger" asp-validation-for="ConfirmPassword"></span>
+          </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+          <div class="col-md-3">
+            <label class="form-label" asp-for="Language">Language</label>
+            <select class="form-select" asp-for="Language">
+              <option value="it">Italiano</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" asp-for="Currency">Currency</label>
+            <select class="form-select" asp-for="Currency">
+              <option value="EUR">EUR</option>
+              <option value="USD">USD</option>
+              <option value="GBP">GBP</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" asp-for="Country">Country</label>
+            <input class="form-control text-uppercase" asp-for="Country" maxlength="2" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" asp-for="Timezone">Timezone</label>
+            <input class="form-control" asp-for="Timezone" />
+          </div>
+        </div>
+
+        <div class="form-footer">
+          <button type="submit" class="btn btn-primary w-100">Create instance</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

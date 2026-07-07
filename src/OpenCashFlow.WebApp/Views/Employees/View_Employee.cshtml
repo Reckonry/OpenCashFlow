@@ -1,0 +1,117 @@
+﻿@using System.Security.Claims;
+@using OpenCashFlow.Contracts.DTOs.Employees
+@model Employee_Detail_DTO
+
+@{
+    ViewData["Title"] = Localizer["EmployeeDetailsTitle"].Value;
+}
+@section VendorStyles {
+    <link rel="stylesheet" href="~/vendor/libs/apex-charts/apex-charts.css" />
+}
+
+@section VendorScripts {
+}
+
+@section PageStyles {
+    <link rel="stylesheet" href="~/vendor/css/pages/page-profile.dist.css" />
+}
+
+@section PageScripts {
+    <script src="~/js/pages-profile.dist.js"></script>
+
+}
+
+
+@await Html.PartialAsync("Components/_ViewHeader", Model, ViewData)
+
+@Html.Raw(ViewBag.ResponseMessage)
+
+@* Page header (Tabler style) *@
+<div class="page-header d-print-none mb-4">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2 class="page-title">@Localizer["Employee"]</h2>
+      <div class="text-secondary mt-1">@Localizer["EmployeeDetailsTitle"]</div>
+    </div>
+    <div class="col-auto ms-auto d-print-none">
+      <div class="btn-list">
+        <a href="~/Employees" class="btn btn-outline-secondary">
+          <i class="ri-arrow-go-back-fill"></i>
+          <span class="d-none d-sm-inline ms-1">@Localizer["Back"]</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row row-cards">
+
+  @* Left column *@
+  <div class="col-12 col-md-5 col-xl-4">
+    <div class="card">
+      <div class="card-body">
+        @await Html.PartialAsync("Components/_EmployeeDetails", Model, ViewData)
+      </div>
+    </div>
+
+    @* Enable/Disable account actions are currently disabled (kept as comment for future) *@
+    @{
+        // if (Model?.User?.IsApproved ?? false)
+        // {
+        //     if (User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Administrator) ||
+        //     User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Employer) ||
+        //     User.FindFirst(nameof(Core_Const.EMPL.EMPL_LOCK))?.Value == true.ToString())
+        //     {
+        //         <div class="d-grid gap-2 mx-auto pt-3">
+        //             <button class="btn btn-warning" type="button">
+        //                 <i class="ti ti-accessible-off me-2"></i> @Localizer["Disable account"]
+        //             </button>
+        //         </div>
+        //     }
+        // }
+        // else
+        // {
+        //     if (User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Administrator) ||
+        //     User.FindFirst(ClaimTypes.Role)?.Value == nameof(Core_Roles.Employer) ||
+        //     User.FindFirst(nameof(Core_Const.EMPL.EMPL_UNLO))?.Value == true.ToString())
+        //     {
+        //         <div class="d-grid gap-2 mx-auto pt-3">
+        //             <button class="btn btn-success" type="button">
+        //                 <i class="ti ti-accessible me-2"></i> @Localizer["Enable Account"]
+        //             </button>
+        //         </div>
+        //     }
+        // }
+    }
+  </div>
+
+  @* Right column *@
+  <div class="col-12 col-md-7 col-xl-8">
+
+    @* Projects/employee info section is currently disabled (kept as comment for future) *@
+    @* (legacy Vuexy markup preserved below) *@
+
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">@Localizer["Password Reset"]</h3>
+      </div>
+      <div class="card-body">
+        <p class="text-secondary mb-3">@Localizer["PasswordResetSubTitle"]</p>
+        <p class="mb-3">
+          @Localizer["PasswordResetDescription"]
+          <a href="javascript:void(0);">Learn more.</a>
+        </p>
+
+        <form asp-controller="Authentication" asp-action="SendPasswordReset" method="post" class="d-inline">
+          @Html.AntiForgeryToken()
+          <input type="hidden" name="userId" value="@Model.UserID" />
+          <button type="submit" class="btn btn-primary">
+            @Localizer["Send password reset E-Mail"]
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+</div>

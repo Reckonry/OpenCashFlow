@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using global::Shared.Models;
-using global::Shared.Models.Core;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace OpenCashFlow.API.Controllers
 {
     public partial class AuthenticationController : ControllerBase
     {
         [HttpPost("login")]
+        [EnableRateLimiting("auth-limiter")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
         {
             if (request == null)
@@ -29,6 +29,7 @@ namespace OpenCashFlow.API.Controllers
 
         // FAST LOGIN (solo PIN)
         [HttpPost("fastlogin")]
+        [EnableRateLimiting("auth-limiter")]
         public async Task<IActionResult> FastLogin([FromBody] FastLoginRequest request, CancellationToken cancellationToken)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Pin)) return BadRequest("Invalid fast login request.");

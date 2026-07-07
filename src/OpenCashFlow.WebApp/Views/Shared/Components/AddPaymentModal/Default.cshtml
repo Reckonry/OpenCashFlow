@@ -1,0 +1,448 @@
+﻿@using OpenCashFlow.Contracts.DTOs.Payments
+@model Payment_Create_DTO
+
+
+<!-- Add Payment Modal (Tabler aligned) -->
+<div class="modal modal-blur fade" id="createPaymentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">@Localizer["AddTransaction"]</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="text-secondary mb-4">@Localizer["AddTransactionInfo"]</p>
+
+        <form asp-action="SearchPayments" asp-controller="Payment" method="post" id="createPaymentForm">
+          @Html.AntiForgeryToken()
+
+          <!-- Hidden field for RequestId (idempotency) -->
+          <input type="hidden" id="RequestId" name="RequestId" value="" />
+
+          <div class="row g-3">
+
+            <!-- Amount -->
+            <div class="col-12 col-md-4">
+              <label class="form-label" asp-for="Amount">@SharedLocalizer["Amount"]</label>
+              <input asp-for="Amount" type="text" inputmode="decimal" pattern="[0-9]+([,][0-9]{0,2})?" class="form-control" placeholder="0,00" autocomplete="off" />
+              <span asp-validation-for="Amount" class="text-danger small"></span>
+            </div>
+
+            <!-- EntryType Switch -->
+            <div class="col-12 col-md-8">
+              <label class="form-label">@SharedLocalizer["Type"]</label>
+              <div class="btn-group w-100" role="group" aria-label="Entry Type">
+                <input type="radio" class="btn-check" asp-for="EntryType" id="entry" value="@nameof(EntryTypeEnum.Income)" autocomplete="off">
+                <label class="btn btn-outline-success" for="entry">@SharedLocalizer["Income"]</label>
+
+                <input type="radio" class="btn-check" asp-for="EntryType" id="exit" value="@nameof(EntryTypeEnum.Outcome)" autocomplete="off">
+                <label class="btn btn-outline-danger" for="exit">@SharedLocalizer["Outcome"]</label>
+              </div>
+              <span asp-validation-for="EntryType" class="text-danger small"></span>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="col-12 col-md-6">
+              <label class="form-label" asp-for="PaymentMethodID">@Localizer["PaymentMethod"]</label>
+              <select asp-for="PaymentMethodID" class="form-select">
+                <option value="">@Localizer["SelectPaymentMethod"]</option>
+                @{
+                  if (ViewBag.PaymentMethodList != null)
+                  {
+                    foreach (Payment_Method_List_DTO item in ViewBag.PaymentMethodList)
+                    {
+                      <option value="@item.PaymentMethodID.ToString()">@SharedLocalizer[item.PaymentMethodName]</option>
+                    }
+                  }
+                }
+              </select>
+              <span asp-validation-for="PaymentMethodID" class="text-danger small"></span>
+            </div>
+
+            <!-- Document Type -->
+            <div class="col-12 col-md-6">
+              <label class="form-label" asp-for="DocumentTypeID">@Localizer["DocumentType"]</label>
+              <select asp-for="DocumentTypeID" class="form-select">
+                <option value="">@Localizer["SelectDocumentTypeAlt"]</option>
+                @{
+                  if (ViewBag.DocumentTypeList != null)
+                  {
+                    foreach (Payment_DocumentType_List_DTO item in ViewBag.DocumentTypeList)
+                    {
+                      <option value="@item.DocumentTypeID.ToString()">@SharedLocalizer[item.DocumentTypeName]</option>
+                    }
+                  }
+                }
+              </select>
+              <span asp-validation-for="DocumentTypeID" class="text-danger small"></span>
+            </div>
+
+            <!-- Description -->
+            <div class="col-12">
+              <label class="form-label" asp-for="Description">@Localizer["Description"]</label>
+              <textarea asp-for="Description" class="form-control" placeholder="@Localizer["Description"]" rows="4"></textarea>
+              <span asp-validation-for="Description" class="text-danger small"></span>
+            </div>
+
+          </div>
+
+          <div class="modal-footer mt-4">
+            <button id="SubmitButton" type="submit" class="btn btn-primary">
+              @Localizer["Add"]
+            </button>
+
+            <button class="btn btn-primary d-none" id="Loading" type="button" disabled>
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>@Localizer["Loading"]
+            </button>
+
+            <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+              @Localizer["Discard"]
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+	$(document).ready(function () {
+		// Avoid double binding when the modal is reloaded multiple times
+		if (window.__AddPaymentModalBound) {
+			return; // script already initialized for this instance
+		}
+		window.__AddPaymentModalBound = true;
+
+		// ===============================
+		// IDEMPOTENCY: Generate RequestId
+		// ===============================
+		function generateRequestId() {
+			// Use crypto.randomUUID() for modern browsers
+			if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+				return crypto.randomUUID();
+			}
+			// Fallback for older browsers
+			return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+				const r = Math.random() * 16 | 0;
+				const v = c === 'x' ? r : (r & 0x3 | 0x8);
+				return v.toString(16);
+			});
+		}
+
+		// Generate RequestId when modal opens
+		const modalEl = document.getElementById('createPaymentModal');
+		if (modalEl) {
+			modalEl.addEventListener('show.bs.modal', function() {
+				// Generate new RequestId only when opening the modal
+				const newRequestId = generateRequestId();
+				$('#RequestId').val(newRequestId);
+				// console.log('Payment modal opened - RequestId:', newRequestId);
+			});
+		}
+
+		$(document).off('submit.addPayment', '#createPaymentForm')
+			.on('submit.addPayment', '#createPaymentForm', function (e) {
+				e.preventDefault();
+
+				// 1) Clear previous errors
+				$('.text-danger').text('');
+				$('.is-invalid').removeClass('is-invalid');
+
+				// 2) Client-side validation
+				let isValid = true;
+
+				// AMOUNT > 0
+				const rawAmount = ($('#Amount').val() || '').replace(',', '.');
+				const amountVal = parseFloat(rawAmount);
+				if (isNaN(amountVal) || amountVal <= 0) {
+					isValid = false;
+					$('#Amount').addClass('is-invalid');
+					$("span[data-valmsg-for='Amount']").text('@Localizer["AddAmount"]');
+				}
+
+				// ENTRY TYPE: radio bound to the model (name="EntryType")
+				const entryTypeVal = $('input[name="EntryType"]:checked').val();
+				if (!entryTypeVal) {
+					isValid = false;
+					// highlight the toggle labels
+					$("span[data-valmsg-for='EntryType']").text('@Localizer["SelectTransactionType"]');
+				}
+
+				// PAYMENT METHOD required
+				const paymentMethodVal = $('#PaymentMethodID').val();
+				if (!paymentMethodVal) {
+					isValid = false;
+					$('#PaymentMethodID').addClass('is-invalid');
+					$("span[data-valmsg-for='PaymentMethodID']").text('@Localizer["SelectPaymentType"]');
+				}
+
+				// DOCUMENT TYPE required
+				const documentTypeVal = $('#DocumentTypeID').val();
+				if (!documentTypeVal) {
+					isValid = false;
+					$('#DocumentTypeID').addClass('is-invalid');
+					$("span[data-valmsg-for='DocumentTypeID']").text('@Localizer["SelectDocumentType"]');
+				}
+
+				// DESCRIPTION non vuota
+				const descVal = ($('#Description').val() || '').trim();
+				if (!descVal) {
+					isValid = false;
+					$('#Description').addClass('is-invalid');
+					$("span[data-valmsg-for='Description']").text('@Localizer["DescriptionEmptyError"]');
+				}
+
+				if (!isValid) return false;
+
+				// 2bis) protezione doppio invio
+				const $btn = $('#SubmitButton');
+				if ($btn.data('sending')) return false;
+				$btn.data('sending', true).prop('disabled', true).addClass('disabled');
+
+				// 3) UI: loader
+				$('#SubmitButton').addClass('d-none');
+				$('#Loading').removeClass('d-none');
+
+				// 4) POST AJAX (invia anche il token anti-forgery serializzato dal form)
+				// IMPORTANT: RequestId is included in serialize() and remains the same for retries
+				// This ensures idempotency - duplicate submissions will be detected by the backend
+				$.ajax({
+					url: '/internal/Payment/CreatePayment',
+					method: 'POST',
+					data: $(this).serialize(), // includes RequestId hidden field
+					success: function (resp) {
+						if (resp && resp.success) {
+							const modalEl = document.getElementById('createPaymentModal');
+							const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+							// On close, fully reset the form for the next open
+							const onHidden = function () {
+								resetForm();
+								modalEl.removeEventListener('hidden.bs.modal', onHidden);
+							};
+							modalEl.addEventListener('hidden.bs.modal', onHidden);
+							modalInstance.hide();
+							try {
+								// Refresh the list for the currently selected day
+								if (typeof getDisplayedDayIso === 'function' && typeof loadDay === 'function') {
+									const iso = ($('#paymentsList').attr('data-day')) || getDisplayedDayIso();
+									if (iso) { loadDay(iso); }
+								}
+							} catch (_) { /* noop */ }
+						} else {
+							revertUI();
+							// Optional: show server message
+							// toastr.error(resp?.message || '@Localizer["SaveError"]');
+						}
+					},
+					error: function () {
+						// On error, keep the same RequestId for retry (idempotency)
+						// The user can retry with the same form data and RequestId
+						revertUI();
+						// toastr.error('@Localizer["CommunicationError"]');
+					},
+					complete: function () {
+						$('#SubmitButton').data('sending', false).prop('disabled', false).removeClass('disabled');
+					}
+				});
+
+				function revertUI() {
+					$('#SubmitButton').removeClass('d-none');
+					$('#Loading').addClass('d-none');
+				}
+
+				// Fully reset the form (fields, errors, UI) for next use
+				function resetForm() {
+					const $form = $('#createPaymentForm');
+					if ($form.length === 0) return;
+
+					// Reset base fields
+					$form[0].reset();
+					// NOTE: RequestId will be regenerated when modal opens again (show.bs.modal event)
+					// Clear errors/validation
+					$form.find('.is-invalid').removeClass('is-invalid');
+					$form.find('.text-danger').text('');
+					// Specific selectors (ensure empty placeholders)
+					$form.find('#PaymentMethodID').val('');
+					$form.find('#DocumentTypeID').val('');
+					// Set default EntryType = Income (if present)
+					$form.find("input[name='EntryType'][value='Income']").prop('checked', true).trigger('change');
+					// UI buttons
+					$form.find('#SubmitButton').removeClass('d-none');
+					$form.find('#Loading').addClass('d-none');
+					// Focus the next input
+					$form.find('#Amount').trigger('focus');
+				}
+
+				return false;
+			});
+
+		// UX: clear errors when the user edits fields
+		$(document).off('input.addPayment change.addPayment', '#Amount,#PaymentMethodID,#DocumentTypeID,#Description,input[name="EntryType"]')
+			.on('input.addPayment change.addPayment', '#Amount,#PaymentMethodID,#DocumentTypeID,#Description,input[name="EntryType"]', function () {
+				const name = this.name || $(this).attr('name');
+				$(this).removeClass('is-invalid');
+				if (name) { $("span[data-valmsg-for='" + name + "']").text(''); }
+				// EntryType case (radio): clear the dedicated span
+				if (this.name === 'EntryType') {
+					$("span[data-valmsg-for='EntryType']").text('');
+				}
+			});
+
+		// ===============================
+		// Real-time checks on Amount (keystroke by keystroke)
+		// Allow only digits and comma, convert "." to ",", and limit to 2 decimals
+		// ===============================
+		const $amount = $('#Amount');
+		$amount.off('keydown.addPayment input.addPayment paste.addPayment');
+
+		function sanitizeAmount(raw) {
+			if (typeof raw !== 'string') raw = String(raw || '');
+			// 1) Convert dot to comma
+			let v = raw.replace(/\./g, ',');
+			// 2) Keep only digits and one comma
+			v = v.replace(/[^0-9,]/g, '');
+			const parts = v.split(',');
+			if (parts.length > 2) {
+				v = parts[0] + ',' + parts.slice(1).join('').replace(/,/g, '');
+			}
+			// 3) Max 2 decimals
+			const p = v.split(',');
+			if (p.length === 2) {
+				p[1] = p[1].slice(0, 2);
+				v = p[0] + ',' + p[1];
+			}
+			// 4) Remove leading zeros (but allow "0" and "0,xx")
+			v = v.replace(/^0+(?=\d)/, '');
+			return v;
+		}
+
+		function insertAtCaret(el, text) {
+			const start = el.selectionStart || 0;
+			const end = el.selectionEnd || 0;
+			const before = el.value.slice(0, start);
+			const after = el.value.slice(end);
+			el.value = before + text + after;
+			const pos = start + text.length;
+			el.setSelectionRange(pos, pos);
+			$(el).trigger('input');
+		}
+
+		// Intercept keydown to block invalid characters and handle "." -> ","
+		$amount.on('keydown.addPayment', function (e) {
+			const allowedNavigation = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Tab'];
+			const isDigit = /\d/.test(e.key);
+			const el = this;
+
+			// Convert "." to "," in real time
+			if (e.key === '.') {
+				e.preventDefault();
+				// Insert a comma if not already present
+				if (el.value.indexOf(',') === -1) {
+					insertAtCaret(el, ',');
+				}
+				return;
+			}
+
+			// Always allow navigation keys
+			if (allowedNavigation.includes(e.key)) return;
+
+			// Allow comma only if not already present
+			if (e.key === ',') {
+				if (el.value.indexOf(',') !== -1) {
+					e.preventDefault();
+				}
+				return; // allowed (if unique)
+			}
+
+			// Allow digits but limit decimals to 2 if caret is after the comma
+			if (isDigit) {
+				const caret = el.selectionStart || 0;
+				const commaIdx = el.value.indexOf(',');
+				if (commaIdx !== -1 && caret > commaIdx) {
+					const dec = el.value.slice(commaIdx + 1);
+					const selLen = (el.selectionEnd || caret) - caret; // allow overwrite if there is a selection
+					if (dec.length >= 2 && selLen === 0) {
+						e.preventDefault();
+						return;
+					}
+				}
+				return; // digit allowed
+			}
+
+			// Block everything else
+			e.preventDefault();
+		});
+
+		// Normalize input (pasting, drag&drop, IME input) and keep the rules
+		$amount.on('input.addPayment', function () {
+			const caret = this.selectionStart || 0;
+			const beforeLen = this.value.length;
+			const sanitized = sanitizeAmount(this.value);
+			if (sanitized !== this.value) {
+				this.value = sanitized;
+				// try to keep caret position naturally
+				const diff = this.value.length - beforeLen;
+				const newPos = Math.max(0, caret + diff);
+				this.setSelectionRange(newPos, newPos);
+			}
+		});
+
+		// Handle paste to apply rules immediately
+		$amount.on('paste.addPayment', function (e) {
+			e.preventDefault();
+			const text = (e.originalEvent || e).clipboardData.getData('text');
+			const clean = sanitizeAmount(text);
+			insertAtCaret(this, clean);
+		});
+
+		// Reuse modalEl already declared above (line 147)
+		if (modalEl) {
+			modalEl.addEventListener('hidden.bs.modal', function handleHidden() {
+				$(document).off('.addPayment');
+				$('#Amount').off('.addPayment');
+				window.__AddPaymentModalBound = false;
+				modalEl.removeEventListener('hidden.bs.modal', handleHidden);
+			});
+		}
+		// ===============================
+		// Consistency rules EntryType ↔ PaymentMethodID
+		// - If PaymentMethodID = 1 => EntryType must be Income
+		// - If you select Outcome => PaymentMethodID must become 2
+		// ===============================
+		function enforceRulesOnMethod_Add() {
+			const pm = $('#PaymentMethodID').val();
+			if (pm === '00000000-0000-0000-0000-000000000001') {
+				// force Income
+				$("input[name='EntryType'][value='Income']").prop('checked', true).trigger('change');
+				$("input[name='EntryType'][value='Outcome']").prop('checked', false);
+				// clear any errors
+				$("span[data-valmsg-for='EntryType']").text('');
+			}
+		}
+		function enforceRulesOnEntry_Add() {
+			const entry = $("input[name='EntryType']:checked").val();
+			if (entry === 'Outcome') {
+				// force payment method = 2
+				$('#PaymentMethodID').val('00000000-0000-0000-0000-000000000002').trigger('change');
+				$("#PaymentMethodID").removeClass('is-invalid');
+				$("span[data-valmsg-for='PaymentMethodID']").text('');
+			}
+		}
+		// Bind with addPayment namespace
+		$(document).off('change.addPayment', '#PaymentMethodID')
+			.on('change.addPayment', '#PaymentMethodID', function () {
+				enforceRulesOnMethod_Add();
+			});
+		$(document).off('change.addPayment', "input[name='EntryType']")
+			.on('change.addPayment', "input[name='EntryType']", function () {
+				enforceRulesOnEntry_Add();
+			});
+		// Enforce initial state (e.g., preloaded values)
+		enforceRulesOnMethod_Add();
+		enforceRulesOnEntry_Add();
+	});
+</script>

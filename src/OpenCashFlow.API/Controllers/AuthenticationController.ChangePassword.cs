@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using global::Shared.Models;
 
 namespace OpenCashFlow.API.Controllers
 {
@@ -14,10 +13,9 @@ namespace OpenCashFlow.API.Controllers
                 return BadRequest(new ApiResponse<object>(false, "Invalid request"));
 
             var userId = _authenticationService.GetUserID();
-            await _employeeRepository.UpdatePasswordAsync(userId, request.NewPassword, cancellationToken);
+            await _authenticationService.ChangeRequiredPasswordAsync(userId, request.NewPassword, cancellationToken);
 
             return Ok(new ApiResponse<object>(true, "Password updated"));
         }
     }
 }
-

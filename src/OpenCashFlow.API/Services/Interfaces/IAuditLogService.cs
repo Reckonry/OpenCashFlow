@@ -1,5 +1,6 @@
-using global::Shared.DTOs.Admin;
-using global::Shared.Enums;
+using OpenCashFlow.Contracts.DTOs.Admin;
+using OpenCashFlow.Contracts.Audit;
+using OpenCashFlow.Contracts.Security;
 using System;
 using System.Collections.Generic;
 using System.Threading;

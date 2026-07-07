@@ -1,8 +1,7 @@
 using OpenCashFlow.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using global::Shared.DTOs.Admin;
-using global::Shared.Models;
+using OpenCashFlow.Contracts.DTOs.Admin;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -12,7 +11,7 @@ using Asp.Versioning;
 namespace OpenCashFlow.API.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "CompanyAdmin")]
     [Route("v{version:apiVersion}/Admin/Users")]
     [ApiVersion("1.0")]
     public class UsersController : ControllerBase

@@ -19,6 +19,12 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables(); // support variables from systemd or shell
+
+var jwtSecret = builder.Configuration["JwtSettings:SecretKey"];
+if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.Length < 32)
+{
+    throw new InvalidOperationException("JwtSettings:SecretKey must be configured with at least 32 characters.");
+}
     
 // Add services to the container.
 builder.Services.AddLocalization(opt => opt.ResourcesPath = "Resources");
@@ -55,8 +61,10 @@ builder.Services.Configure<RequestLocalizationOptions>(opt =>
 // Authorization policies
 builder.Services
     .AddAuthorizationBuilder()
-    .AddPolicy("GIManagers", policy =>
-        policy.RequireClaim(ClaimTypes.Role, "GIManagers"));
+    .AddPolicy("InstanceAdmin", policy =>
+        policy.RequireClaim(ClaimTypes.Role, "InstanceAdmin"))
+    .AddPolicy("CompanyAdmin", policy =>
+        policy.RequireClaim(ClaimTypes.Role, "CompanyAdmin"));
 
 // Bearer JWT Authentication (reads token from cookie)
 builder.Services
@@ -68,7 +76,7 @@ builder.Services
 
         var audiences = builder.Configuration.GetSection("JwtSettings:Audience").Get<string[]?>();
         var issuers = builder.Configuration.GetSection("JwtSettings:Issuer").Get<string[]?>();
-        var keyBytes = Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]!);
+        var keyBytes = Encoding.UTF8.GetBytes(jwtSecret);
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -96,7 +104,7 @@ builder.Services
                     return Task.CompletedTask;
                 }
 
-                var token = context.Request.Cookies[global::Shared.Core.Configuration.AuthCookieName];
+                var token = context.Request.Cookies[OpenCashFlow.Contracts.Core.Configuration.AuthCookieName];
                 if (!string.IsNullOrEmpty(token)) context.Token = token;
                 return Task.CompletedTask;
             },
@@ -112,7 +120,7 @@ builder.Services
                 if (path.StartsWithSegments("/Login") || path.StartsWithSegments("/Account/LogIn") || path.StartsWithSegments("/Account/Login"))
                 {
                     // Invalid token on the login page: delete cookie and allow navigation
-                    context.Response.Cookies.Delete(global::Shared.Core.Configuration.AuthCookieName,
+                    context.Response.Cookies.Delete(OpenCashFlow.Contracts.Core.Configuration.AuthCookieName,
                         new CookieOptions { Domain = builder.Configuration["Account:CookieDomain"], Path = "/" });
                     context.NoResult();
                     return Task.CompletedTask;

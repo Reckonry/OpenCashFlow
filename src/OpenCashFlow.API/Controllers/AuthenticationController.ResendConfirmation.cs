@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace OpenCashFlow.API.Controllers
 {
@@ -11,6 +12,7 @@ namespace OpenCashFlow.API.Controllers
         }
 
         [HttpPost("resend-confirmation")]
+        [EnableRateLimiting("auth-limiter")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         public async Task<IActionResult> ResendConfirmation([FromBody] ResendConfirmationRequest request, CancellationToken cancellationToken)
         {

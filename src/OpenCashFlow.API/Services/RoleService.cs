@@ -1,26 +1,26 @@
-using AutoMapper;
-using OpenCashFlow.API.Repositories.Interfaces;
 using OpenCashFlow.API.Services.Interfaces;
-using global::Shared.DTOs.Identity;
+using OpenCashFlow.Application.Roles.GetRoles;
+using OpenCashFlow.Contracts.DTOs.Identity;
 
 namespace OpenCashFlow.API.Services
 {
     public class RoleService : IRoleService
     {
-        private readonly IRoleRepository _roleRepository;
-        private readonly IMapper _mapper;
+        private readonly IGetRolesUseCase _getRolesUseCase;
 
-        public RoleService(IRoleRepository roleRepository, IMapper mapper)
+        public RoleService(IGetRolesUseCase getRolesUseCase)
         {
-            _roleRepository = roleRepository;
-            _mapper = mapper;
+            _getRolesUseCase = getRolesUseCase;
         }
 
         public async Task<IEnumerable<Role_List_DTO>> GetVisibleRolesAsync(CancellationToken cancellationToken)
         {
-            var roles = await _roleRepository.GetVisibleRolesAsync(cancellationToken);
-            return _mapper.Map<IEnumerable<Role_List_DTO>>(roles);
+            var roles = await _getRolesUseCase.ExecuteAsync(cancellationToken);
+            return roles.Select(role => new Role_List_DTO
+            {
+                ID = role.ID,
+                Name = role.Name
+            });
         }
     }
 }
-

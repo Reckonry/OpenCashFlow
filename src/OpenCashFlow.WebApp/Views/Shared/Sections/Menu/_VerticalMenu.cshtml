@@ -1,0 +1,82 @@
+@using System.Security.Claims
+@{
+    TempData.Keep();
+    string currentPage = Convert.ToString(ViewContext.RouteData.Values["controller"])?.ToLower() ?? "";
+    string currentAction = Convert.ToString(ViewContext.RouteData.Values["action"])?.ToLower() ?? "";
+}
+
+<aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
+    <div class="container-fluid">
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#sidebar-menu"
+            aria-controls="sidebar-menu"
+            aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="navbar-brand navbar-brand-autodark">
+            <a href="/" class="d-flex align-items-center gap-2" aria-label="@TempData.Peek("appName")">
+                <span class="navbar-brand-image">@await Html.PartialAsync("../_Partials/_Macros")</span>
+                <span class="fw-semibold">@TempData.Peek("appName")</span>
+            </a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="sidebar-menu">
+            <ul class="navbar-nav pt-lg-3">
+                <li class="nav-item">
+                    <a class='nav-link@(currentPage.EndsWith("/") || currentPage.StartsWith("dashboard") ? " active" : "")' href="/">
+                        <span class="nav-link-title">@Localizer["Dashboards"]</span>
+                    </a>
+                </li>
+
+                <li class="nav-item mt-3">
+                    <div class="nav-link text-uppercase text-muted">@Localizer["AppsPages"]</div>
+                </li>
+                <li class="nav-item">
+                    <a class='nav-link@(currentPage.StartsWith("payments") && !currentAction.StartsWith("calendar") ? " active" : "")' href="~/Payments">
+                        <span class="nav-link-title">Incassi</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class='nav-link@((currentPage.StartsWith("payments") && currentAction.StartsWith("calendar")) ? " active" : "")' href="~/Payments/Calendar">
+                        <span class="nav-link-title">Calendario Incassi</span>
+                    </a>
+                </li>
+                @if (User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "CompanyAdmin"))
+                {
+                    <li class="nav-item">
+                        <a class='nav-link@((currentPage.StartsWith("company") && !currentAction.StartsWith("settings")) ? " active" : "")' href="~/Company">
+                            <span class="nav-link-title">Azienda</span>
+                        </a>
+                    </li>
+                }
+                @if (User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "CompanyAdmin"))
+                {
+                    <li class="nav-item">
+                        <a class='nav-link@(currentPage.StartsWith("employees") ? " active" : "")' href="~/Employees">
+                            <span class="nav-link-title">Dipendenti</span>
+                        </a>
+                    </li>
+                }
+
+                <li class="nav-item mt-3">
+                    <div class="nav-link text-uppercase text-muted">Misc</div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href='@TempData.Peek("support")' target="_blank">
+                        <span class="nav-link-title">Support</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href='@TempData.Peek("documentation")' target="_blank">
+                        <span class="nav-link-title">Documentation</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</aside>

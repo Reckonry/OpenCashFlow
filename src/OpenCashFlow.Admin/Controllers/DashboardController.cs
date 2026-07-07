@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace OpenCashFlow.Admin.Controllers
 {
-    [Authorize(Policy = "GIManagers")]
+    [Authorize(Policy = "InstanceAdmin")]
     public class DashboardController : Controller
     {
         public IActionResult Index()

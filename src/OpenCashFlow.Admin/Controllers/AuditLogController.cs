@@ -2,13 +2,14 @@ using OpenCashFlow.Admin.Models.AuditLog;
 using OpenCashFlow.Admin.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using global::Shared.DTOs.Admin;
-using global::Shared.Enums;
+using OpenCashFlow.Contracts.DTOs.Admin;
+using OpenCashFlow.Contracts.Audit;
+using OpenCashFlow.Contracts.Security;
 using System.Text.Json;
 
 namespace OpenCashFlow.Admin.Controllers;
 
-[Authorize(Policy = "GIManagers")]
+[Authorize(Policy = "InstanceAdmin")]
 public class AuditLogController : Controller
 {
     private readonly AuditLogAPIService _auditLogService;

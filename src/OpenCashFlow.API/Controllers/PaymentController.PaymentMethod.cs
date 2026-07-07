@@ -1,10 +1,9 @@
 ﻿using OpenCashFlow.API.Services.Interfaces;
-using global::Shared.DTOs;
+using OpenCashFlow.Contracts.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using global::Shared.Models;
-using global::Shared.Models.DTOs;
+using OpenCashFlow.Contracts.DTOs.Payments;
 
 namespace OpenCashFlow.API.Controllers
 {

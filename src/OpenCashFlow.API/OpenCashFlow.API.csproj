@@ -10,12 +10,11 @@
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.1" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.1" />
-    <PackageReference Include="AutoMapper" Version="14.0.0" />
+    <PackageReference Include="AutoMapper" Version="16.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
     <PackageReference Include="Polly" Version="7.2.3" />
-    <PackageReference Include="Stripe.net" Version="49.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
       <PrivateAssets>all</PrivateAssets>
@@ -29,6 +28,8 @@
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.5" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenCashFlow.Shared\OpenCashFlow.Shared.csproj" />
+    <ProjectReference Include="..\OpenCashFlow.Contracts\OpenCashFlow.Contracts.csproj" />
+    <ProjectReference Include="..\OpenCashFlow.Application\OpenCashFlow.Application.csproj" />
+    <ProjectReference Include="..\OpenCashFlow.Infrastructure\OpenCashFlow.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

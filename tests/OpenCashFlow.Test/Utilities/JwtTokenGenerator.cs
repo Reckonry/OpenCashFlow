@@ -3,8 +3,8 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using global::Shared.Core;
-using global::Shared.Data;
+using OpenCashFlow.Contracts.Core;
+using OpenCashFlow.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

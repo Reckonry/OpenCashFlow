@@ -1,355 +1,438 @@
-﻿using AutoMapper;
-using OpenCashFlow.API.Repositories.Interfaces;
-using OpenCashFlow.API.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using global::Shared.Data;
-using global::Shared.DTOs;
-using global::Shared.Models;
-using global::Shared.Models.DTOs;
+﻿using OpenCashFlow.API.Services.Interfaces;
+using OpenCashFlow.Application.Abstractions;
+using OpenCashFlow.Application.Payments.Calendar;
+using OpenCashFlow.Application.Payments.CreatePayment;
+using OpenCashFlow.Application.Payments.DeletePayment;
+using OpenCashFlow.Application.Payments.DocumentTypes;
+using OpenCashFlow.Application.Payments.GetPaymentDetail;
+using OpenCashFlow.Application.Payments.GetPayments;
+using OpenCashFlow.Application.Payments.Lookups;
+using OpenCashFlow.Application.Payments.PaymentMethods;
+using OpenCashFlow.Application.Payments.Queries;
+using OpenCashFlow.Application.Payments.Reports;
+using OpenCashFlow.Application.Payments.UpdatePayment;
+using OpenCashFlow.Contracts.DTOs;
+using OpenCashFlow.Contracts.DTOs.Payments;
 
 namespace OpenCashFlow.API.Services
 {
     public partial class PaymentService : IPaymentService
     {
-        private readonly IPaymentRepository _paymentRepository;
         private readonly IAuthenticationService _authenticationService;
-        private readonly IMapper _mapper;
-        private readonly ICashService _cashService;
+        private readonly ICreatePaymentOrchestrator _createPaymentOrchestrator;
+        private readonly IUpdatePaymentOrchestrator _updatePaymentOrchestrator;
+        private readonly IDeletePaymentOrchestrator _deletePaymentOrchestrator;
+        private readonly IGetPaymentsUseCase _getPaymentsUseCase;
+        private readonly IGetPaymentDetailUseCase _getPaymentDetailUseCase;
+        private readonly IGetPaymentReportsUseCase _getPaymentReportsUseCase;
+        private readonly IGetPaymentCalendarUseCase _getPaymentCalendarUseCase;
+        private readonly IGetPaymentMethodsUseCase _getPaymentMethodsUseCase;
+        private readonly IGetPaymentMethodDetailUseCase _getPaymentMethodDetailUseCase;
+        private readonly ICreatePaymentMethodUseCase _createPaymentMethodUseCase;
+        private readonly IUpdatePaymentMethodUseCase _updatePaymentMethodUseCase;
+        private readonly IDeletePaymentMethodUseCase _deletePaymentMethodUseCase;
+        private readonly IGetDocumentTypesUseCase _getDocumentTypesUseCase;
+        private readonly IGetDocumentTypeDetailUseCase _getDocumentTypeDetailUseCase;
+        private readonly ICreateDocumentTypeUseCase _createDocumentTypeUseCase;
+        private readonly IUpdateDocumentTypeUseCase _updateDocumentTypeUseCase;
+        private readonly IDeleteDocumentTypeUseCase _deleteDocumentTypeUseCase;
         private readonly ILogger<PaymentService> _logger;
-        private readonly ApplicationDbContext _context;
 
-        private static readonly Guid SystemCashPaymentMethodId = Guid.Parse("00000000-0000-0000-0000-000000000002");
-        private static readonly string[] CashMethodAliases = new[] { "Cash", "Contanti" };
-
-        public PaymentService(IPaymentRepository PaymentRepository, IAuthenticationService authenticationService, IMapper mapper, ICashService cashService, ILogger<PaymentService> logger, ApplicationDbContext context)
+        public PaymentService(
+            IAuthenticationService authenticationService,
+            ICreatePaymentOrchestrator createPaymentOrchestrator,
+            IUpdatePaymentOrchestrator updatePaymentOrchestrator,
+            IDeletePaymentOrchestrator deletePaymentOrchestrator,
+            IGetPaymentsUseCase getPaymentsUseCase,
+            IGetPaymentDetailUseCase getPaymentDetailUseCase,
+            IGetPaymentReportsUseCase getPaymentReportsUseCase,
+            IGetPaymentCalendarUseCase getPaymentCalendarUseCase,
+            IGetPaymentMethodsUseCase getPaymentMethodsUseCase,
+            IGetPaymentMethodDetailUseCase getPaymentMethodDetailUseCase,
+            ICreatePaymentMethodUseCase createPaymentMethodUseCase,
+            IUpdatePaymentMethodUseCase updatePaymentMethodUseCase,
+            IDeletePaymentMethodUseCase deletePaymentMethodUseCase,
+            IGetDocumentTypesUseCase getDocumentTypesUseCase,
+            IGetDocumentTypeDetailUseCase getDocumentTypeDetailUseCase,
+            ICreateDocumentTypeUseCase createDocumentTypeUseCase,
+            IUpdateDocumentTypeUseCase updateDocumentTypeUseCase,
+            IDeleteDocumentTypeUseCase deleteDocumentTypeUseCase,
+            ILogger<PaymentService> logger)
         {
-            _paymentRepository = PaymentRepository;
             _authenticationService = authenticationService;
-            _mapper = mapper;
-            _cashService = cashService;
+            _createPaymentOrchestrator = createPaymentOrchestrator;
+            _updatePaymentOrchestrator = updatePaymentOrchestrator;
+            _deletePaymentOrchestrator = deletePaymentOrchestrator;
+            _getPaymentsUseCase = getPaymentsUseCase;
+            _getPaymentDetailUseCase = getPaymentDetailUseCase;
+            _getPaymentReportsUseCase = getPaymentReportsUseCase;
+            _getPaymentCalendarUseCase = getPaymentCalendarUseCase;
+            _getPaymentMethodsUseCase = getPaymentMethodsUseCase;
+            _getPaymentMethodDetailUseCase = getPaymentMethodDetailUseCase;
+            _createPaymentMethodUseCase = createPaymentMethodUseCase;
+            _updatePaymentMethodUseCase = updatePaymentMethodUseCase;
+            _deletePaymentMethodUseCase = deletePaymentMethodUseCase;
+            _getDocumentTypesUseCase = getDocumentTypesUseCase;
+            _getDocumentTypeDetailUseCase = getDocumentTypeDetailUseCase;
+            _createDocumentTypeUseCase = createDocumentTypeUseCase;
+            _updateDocumentTypeUseCase = updateDocumentTypeUseCase;
+            _deleteDocumentTypeUseCase = deleteDocumentTypeUseCase;
             _logger = logger;
-            _context = context;
         }
 
         public async Task<IEnumerable<Payment_List_DTO>?> GetAllPaymentsAsync(Payment_Filter_DTO filters, CancellationToken cancellationToken)
         {
-            return _mapper.Map<IEnumerable<Payment_List_DTO>>(
-                await _paymentRepository.GetAllPaymentsAsync(_authenticationService.GetTenantID(), filters, cancellationToken));
+            filters ??= new Payment_Filter_DTO();
+            var query = ToPaymentListQuery(filters, _authenticationService.GetTenantID());
+            var payments = await _getPaymentsUseCase.ExecuteAsync(new GetPaymentsQuery(query), cancellationToken);
+            return payments.Select(ToListDto).ToList();
         }
 
         public async Task<Payment_Detail_DTO?> GetPaymentByIdAsync(Guid PaymentID, CancellationToken cancellationToken)
         {
-            return _mapper.Map<Payment_Detail_DTO>(await _paymentRepository.GetPaymentByIdAsync(PaymentID, _authenticationService.GetTenantID(), cancellationToken));
+            var payment = await _getPaymentDetailUseCase.ExecuteAsync(
+                new GetPaymentDetailQuery(PaymentID, _authenticationService.GetTenantID()),
+                cancellationToken);
+
+            return payment == null ? null : ToDetailDto(payment);
         }
 
         public async Task<Payment_Create_DTO?> AddPaymentAsync(Payment_Create_DTO payment, CancellationToken cancellationToken)
         {
             if (payment == null) return null;
-            payment.TenantID = _authenticationService.GetTenantID();
-            payment.UserID = _authenticationService.GetUserID();
 
-            // ✅ IDEMPOTENCY CHECK: Check if payment with this RequestId already exists
-            var existingPayment = await _paymentRepository.GetPaymentByRequestIdAsync(payment.RequestId, payment.TenantID, cancellationToken);
-            if (existingPayment != null)
-            {
-                _logger.LogInformation("Payment with RequestId {RequestId} already exists (PaymentID: {PaymentID}). Returning existing payment.",
-                    payment.RequestId, existingPayment.PaymentID);
-                return _mapper.Map<Payment_Create_DTO>(existingPayment);
-            }
+            var command = new CreatePaymentCommand(
+                payment.PaymentID,
+                _authenticationService.GetTenantID(),
+                _authenticationService.GetUserID(),
+                payment.RequestId,
+                Convert.ToDecimal(payment.Amount),
+                payment.EntryType,
+                payment.PaymentMethodID,
+                payment.DocumentTypeID,
+                payment.DateIns,
+                payment.Description);
 
-            // ✅ ATOMIC TRANSACTION: Create payment + ledger in single transaction
-            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-
-            try
-            {
-                // 1. Insert payment
-                var createdPayment = await _paymentRepository.AddPaymentAsync(_mapper.Map<Payment>(payment), cancellationToken);
-                if (createdPayment == null)
-                {
-                    await transaction.RollbackAsync(cancellationToken);
-                    return null;
-                }
-
-                _logger.LogInformation("Payment created with PaymentID {PaymentID} and RequestId {RequestId}",
-                    createdPayment.PaymentID, payment.RequestId);
-
-                // 2. Update daily payment
-                await UpdateDailyPaymentAsync(payment.TenantID, payment.DateIns, payment.Amount, payment.EntryType, cancellationToken);
-
-                // 3. Apply to cash balance if cash-like method (within same transaction)
-                if (payment.PaymentMethodID.HasValue)
-                {
-                    var method = await _paymentRepository.GetPaymentMethodByIdAsync(payment.PaymentMethodID.Value, payment.TenantID, cancellationToken);
-                    if (IsCashMethod(payment.PaymentMethodID, method))
-                    {
-                        var userIdStr = payment.UserID.ToString();
-                        var isOutcome = string.Equals(payment.EntryType, nameof(EntryTypeEnum.Outcome), StringComparison.OrdinalIgnoreCase);
-                        var delta = Convert.ToDecimal(payment.Amount) * (isOutcome ? -1 : 1);
-
-                        // CashService will detect the existing transaction and use it
-                        await _cashService.ApplyPaymentAsync(payment.TenantID, createdPayment.PaymentID, delta, userIdStr, cancellationToken);
-
-                        _logger.LogInformation("Cash ledger updated for PaymentID {PaymentID} with delta {Delta}",
-                            createdPayment.PaymentID, delta);
-                    }
-                }
-
-                // 4. Commit all changes
-                await transaction.CommitAsync(cancellationToken);
-
-                _logger.LogInformation("Payment transaction committed successfully for PaymentID {PaymentID}", createdPayment.PaymentID);
-
-                return _mapper.Map<Payment_Create_DTO>(createdPayment);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating payment with RequestId {RequestId}. Rolling back transaction.", payment.RequestId);
-                await transaction.RollbackAsync(cancellationToken);
-                throw;
-            }
+            var result = await _createPaymentOrchestrator.ExecuteAsync(command, cancellationToken);
+            return result == null ? null : ToCreateDto(result.Payment);
         }
 
         public async Task<Payment_Update_DTO?> UpdatePaymentAsync(Payment_Detail_DTO payment, CancellationToken cancellationToken)
         {
             if (payment == null) return null;
 
-            // Get payment for reading original values (with navigation properties)
-            var paymentRead = await _paymentRepository.GetPaymentByIdAsync(payment.PaymentID, _authenticationService.GetTenantID(), cancellationToken);
-            if (paymentRead == null) return null;
+            var command = new UpdatePaymentCommand(
+                payment.PaymentID,
+                _authenticationService.GetTenantID(),
+                _authenticationService.GetUserID(),
+                Convert.ToDecimal(payment.Amount),
+                payment.EntryType,
+                payment.PaymentMethodID,
+                payment.DocumentTypeID,
+                payment.DateIns,
+                payment.Description);
 
-            // Store original values before update
-            var originalAmount = paymentRead.Amount;
-            var originalEntryType = paymentRead.EntryType;
-            var originalDate = paymentRead.DateIns;
-            var originalPaymentMethodID = paymentRead.PaymentMethodID;
-            var originalPaymentMethod = paymentRead.PaymentMethod;
-
-            // ✅ ATOMIC TRANSACTION: Update payment + daily payment + cash ledger in single transaction
-            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-
-            try
-            {
-                // Get payment for update (WITH tracking, NO navigation properties)
-                var paymentTBE = await _paymentRepository.GetPaymentByIdForUpdateAsync(payment.PaymentID, _authenticationService.GetTenantID(), cancellationToken);
-                if (paymentTBE == null)
-                {
-                    await transaction.RollbackAsync(cancellationToken);
-                    return null;
-                }
-
-                // 1. Update payment - modify tracked entity directly
-                paymentTBE.Amount = payment.Amount;
-                paymentTBE.PaymentMethodID = (Guid)payment.PaymentMethodID;
-                paymentTBE.DocumentTypeID = (Guid)payment.DocumentTypeID;
-                paymentTBE.Description = payment.Description;
-                paymentTBE.EntryType = payment.EntryType;
-                paymentTBE.DateEdit = DateTime.UtcNow;
-                paymentTBE.EditedBy = _authenticationService.GetUserID();
-
-                // Save changes (EF will track and update only modified fields)
-                var updatePayment = await _paymentRepository.UpdatePaymentAsync(paymentTBE, cancellationToken);
-
-                if (updatePayment == null)
-                {
-                    await transaction.RollbackAsync(cancellationToken);
-                    return null;
-                }
-
-                _logger.LogInformation("Payment {PaymentID} updated", payment.PaymentID);
-
-                // 2. Update daily payments
-                await DeleteDailyPaymentAsync(paymentTBE.TenantID, originalAmount, originalDate, originalEntryType, cancellationToken);
-                await UpdateDailyPaymentAsync(paymentTBE.TenantID, paymentTBE.DateIns, paymentTBE.Amount, paymentTBE.EntryType, cancellationToken);
-
-                // 3. Handle cash balance updates (within same transaction)
-                var wasOriginalCash = IsCashMethod(originalPaymentMethodID, originalPaymentMethod);
-                var isNewCash = false;
-                Payment_Method_LookUps? newMethod = null;
-
-                if (payment.PaymentMethodID.HasValue)
-                {
-                    newMethod = await _paymentRepository.GetPaymentMethodByIdAsync(payment.PaymentMethodID.Value, paymentTBE.TenantID, cancellationToken);
-                    isNewCash = IsCashMethod(payment.PaymentMethodID, newMethod);
-                }
-
-                var userIdStr = _authenticationService.GetUserID().ToString();
-
-                // Check if this payment currently has a non-zero net balance in cash ledger
-                // Use OriginalPaymentId to find all related entries
-                var netBalance = await _context.CashLedgers
-                    .Where(x => x.CompanyId == paymentTBE.TenantID &&
-                               (x.RefId == payment.PaymentID || x.OriginalPaymentId == payment.PaymentID))
-                    .SumAsync(x => (decimal?)x.Delta, cancellationToken) ?? 0m;
-
-                var hasActiveCashEntry = netBalance != 0m;
-
-                // If was cash but no longer cash, void the original
-                if (wasOriginalCash && !isNewCash)
-                {
-                    await _cashService.VoidAsync(paymentTBE.TenantID, payment.PaymentID, Convert.ToDecimal(originalAmount), userIdStr, cancellationToken);
-                    _logger.LogInformation("Cash voided for payment {PaymentID} (changed from cash to non-cash)", payment.PaymentID);
-                }
-                // If wasn't cash but now is cash, apply new amount
-                else if (!wasOriginalCash && isNewCash)
-                {
-                    var isOutcome = string.Equals(paymentTBE.EntryType, nameof(EntryTypeEnum.Outcome), StringComparison.OrdinalIgnoreCase);
-                    var delta = Convert.ToDecimal(paymentTBE.Amount) * (isOutcome ? -1 : 1);
-
-                    // Check if there's a voided entry (payment was cash before)
-                    if (hasActiveCashEntry)
-                    {
-                        // Should not happen but handle it
-                        await _cashService.ApplyPaymentAsync(paymentTBE.TenantID, payment.PaymentID, delta, userIdStr, cancellationToken);
-                        _logger.LogInformation("Cash applied for payment {PaymentID} (changed from non-cash to cash)", payment.PaymentID);
-                    }
-                    else
-                    {
-                        // Check if this payment was cash before (has Void entries)
-                        // Use OriginalPaymentId to check if payment was voided before
-                        var wasVoided = await _context.CashLedgers
-                            .AnyAsync(x => x.CompanyId == paymentTBE.TenantID &&
-                                         x.RefType == "Void" &&
-                                         (x.RefId == payment.PaymentID || x.OriginalPaymentId == payment.PaymentID),
-                                    cancellationToken);
-
-                        if (wasVoided)
-                        {
-                            // Use ReapplyPaymentAsync to avoid idempotency block
-                            await _cashService.ReapplyPaymentAsync(paymentTBE.TenantID, payment.PaymentID, delta, userIdStr, cancellationToken);
-                            _logger.LogInformation("Cash re-applied for payment {PaymentID} (was voided, now cash again with delta {Delta})",
-                                payment.PaymentID, delta);
-                        }
-                        else
-                        {
-                            // First time as cash
-                            await _cashService.ApplyPaymentAsync(paymentTBE.TenantID, payment.PaymentID, delta, userIdStr, cancellationToken);
-                            _logger.LogInformation("Cash applied for payment {PaymentID} (changed from non-cash to cash)", payment.PaymentID);
-                        }
-                    }
-                }
-                // If both are cash, check if we need to update or create new entry
-                else if (wasOriginalCash && isNewCash)
-                {
-                    // Calculate original delta
-                    var wasOutcome = string.Equals(originalEntryType, nameof(EntryTypeEnum.Outcome), StringComparison.OrdinalIgnoreCase);
-                    var originalDelta = Convert.ToDecimal(originalAmount) * (wasOutcome ? -1 : 1);
-
-                    // Calculate new delta
-                    var isOutcome = string.Equals(paymentTBE.EntryType, nameof(EntryTypeEnum.Outcome), StringComparison.OrdinalIgnoreCase);
-                    var newDelta = Convert.ToDecimal(paymentTBE.Amount) * (isOutcome ? -1 : 1);
-
-                    // If there's an active entry, update it; otherwise create a new one
-                    if (hasActiveCashEntry)
-                    {
-                        await _cashService.UpdatePaymentAsync(paymentTBE.TenantID, payment.PaymentID, originalDelta, newDelta, userIdStr, cancellationToken);
-                        _logger.LogInformation("Cash updated for payment {PaymentID} (delta changed from {OldDelta} to {NewDelta})",
-                            payment.PaymentID, originalDelta, newDelta);
-                    }
-                    else
-                    {
-                        // No active entry (was voided before), use ReapplyPaymentAsync
-                        await _cashService.ReapplyPaymentAsync(paymentTBE.TenantID, payment.PaymentID, newDelta, userIdStr, cancellationToken);
-                        _logger.LogInformation("Cash re-applied for payment {PaymentID} (was voided, now cash again with delta {Delta})",
-                            payment.PaymentID, newDelta);
-                    }
-                }
-
-                // 4. Commit all changes
-                await transaction.CommitAsync(cancellationToken);
-                _logger.LogInformation("Payment update transaction committed successfully for PaymentID {PaymentID}", payment.PaymentID);
-
-                return _mapper.Map<Payment_Update_DTO>(updatePayment);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating payment {PaymentID}. Rolling back transaction.", payment.PaymentID);
-                await transaction.RollbackAsync(cancellationToken);
-                throw;
-            }
+            var result = await _updatePaymentOrchestrator.ExecuteAsync(command, cancellationToken);
+            return result == null ? null : ToUpdateDto(result.Payment);
         }
 
         public async Task<bool> DeletePaymentAsync(Guid PaymentID, CancellationToken cancellationToken)
         {
-            var payment = await _paymentRepository.GetPaymentByIdAsync(PaymentID, _authenticationService.GetTenantID(), cancellationToken);
-            if (payment == null) return false;
+            var command = new DeletePaymentCommand(
+                PaymentID,
+                _authenticationService.GetTenantID(),
+                _authenticationService.GetUserID());
 
-            // ✅ ATOMIC TRANSACTION: Delete payment + daily payment + cash ledger in single transaction
-            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-
-            try
-            {
-                // 1. Delete payment
-                var deletedPayment = await _paymentRepository.DeletePaymentAsync(PaymentID, _authenticationService.GetTenantID(), cancellationToken);
-                if (!deletedPayment)
-                {
-                    await transaction.RollbackAsync(cancellationToken);
-                    return false;
-                }
-
-                _logger.LogInformation("Payment {PaymentID} deleted", PaymentID);
-
-                // 2. Delete daily payment
-                await DeleteDailyPaymentAsync(payment.TenantID, payment.Amount, payment.DateIns, payment.EntryType, cancellationToken);
-
-                // 3. For cash-like payments, treat delete as a void (reverse original amount)
-                if (IsCashMethod(payment.PaymentMethodID, payment.PaymentMethod))
-                {
-                    var userIdStr = _authenticationService.GetUserID().ToString();
-                    await _cashService.VoidAsync(payment.TenantID, payment.PaymentID, Convert.ToDecimal(payment.Amount), userIdStr, cancellationToken);
-                    _logger.LogInformation("Cash voided for deleted payment {PaymentID}", PaymentID);
-                }
-
-                // 4. Commit all changes
-                await transaction.CommitAsync(cancellationToken);
-                _logger.LogInformation("Payment delete transaction committed successfully for PaymentID {PaymentID}", PaymentID);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting payment {PaymentID}. Rolling back transaction.", PaymentID);
-                await transaction.RollbackAsync(cancellationToken);
-                throw;
-            }
+            var result = await _deletePaymentOrchestrator.ExecuteAsync(command, cancellationToken);
+            return result.Deleted;
         }
 
-        private static bool IsCashMethod(Guid? paymentMethodId, Payment_Method_LookUps? method)
+        private static Payment_Create_DTO ToCreateDto(PaymentSnapshot payment)
         {
-            if (!paymentMethodId.HasValue)
+            return new Payment_Create_DTO
             {
-                return false;
-            }
+                PaymentID = payment.PaymentId,
+                TenantID = payment.TenantId,
+                RequestId = payment.RequestId,
+                Amount = Convert.ToDouble(payment.Amount),
+                EntryType = payment.EntryType,
+                PaymentMethodID = payment.PaymentMethodId,
+                DocumentTypeID = payment.DocumentTypeId,
+                Description = payment.Description,
+                UserID = payment.UserId,
+                DateIns = payment.DateIns
+            };
+        }
 
-            if (paymentMethodId.Value == SystemCashPaymentMethodId)
+        private static Payment_Update_DTO ToUpdateDto(PaymentSnapshot payment)
+        {
+            return new Payment_Update_DTO
             {
-                return true;
-            }
+                PaymentID = payment.PaymentId,
+                TenantID = payment.TenantId,
+                Amount = Convert.ToDouble(payment.Amount),
+                EntryType = payment.EntryType,
+                PaymentMethodID = payment.PaymentMethodId,
+                DocumentTypeID = payment.DocumentTypeId,
+                Description = payment.Description,
+                UserID = payment.UserId,
+                DateIns = payment.DateIns
+            };
+        }
 
-            if (method == null)
+        private static PaymentListQuery ToPaymentListQuery(Payment_Filter_DTO filters, Guid tenantId)
+        {
+            return new PaymentListQuery(
+                tenantId,
+                filters.PaymentID,
+                filters.EntryType,
+                filters.PaymentMethodID,
+                filters.DocumentTypeID,
+                filters.UserID,
+                filters.FromDate,
+                filters.ToDate,
+                filters.MinAmount,
+                filters.MaxAmount,
+                filters.Description,
+                filters.IsDeleted,
+                filters.SortBy,
+                filters.Desc,
+                filters.Page,
+                filters.PageSize);
+        }
+
+        private static Payment_List_DTO ToListDto(PaymentListItem payment)
+        {
+            return new Payment_List_DTO
             {
-                return false;
-            }
+                PaymentID = payment.PaymentId,
+                TenantID = payment.TenantId,
+                Amount = payment.Amount,
+                EntryType = payment.EntryType,
+                PaymentMethodID = payment.PaymentMethodId,
+                PaymentMethodName = payment.PaymentMethodName,
+                DocumentTypeID = payment.DocumentTypeId,
+                DocumentTypeName = payment.DocumentTypeName,
+                Description = payment.Description,
+                UserID = payment.UserId,
+                EmployeeFullName = payment.EmployeeFullName,
+                IsDeleted = payment.IsDeleted,
+                IsDeletedBy = payment.IsDeletedBy,
+                IsDeletedWhy = payment.IsDeletedWhy,
+                DateDeleted = payment.DateDeleted,
+                CreatedBy = payment.CreatedBy,
+                DateIns = payment.DateIns,
+                EditedBy = payment.EditedBy,
+                DateEdit = payment.DateEdit
+            };
+        }
 
-            if (method.PaymentMethodID == SystemCashPaymentMethodId)
+        private static Payment_Detail_DTO ToDetailDto(PaymentDetailResult payment)
+        {
+            return new Payment_Detail_DTO
             {
-                return true;
-            }
+                PaymentID = payment.PaymentId,
+                TenantID = payment.TenantId,
+                Amount = payment.Amount,
+                EntryType = payment.EntryType,
+                PaymentMethodID = payment.PaymentMethodId,
+                PaymentMethodName = payment.PaymentMethodName,
+                DocumentTypeID = payment.DocumentTypeId,
+                DocumentTypeName = payment.DocumentTypeName,
+                Description = payment.Description,
+                UserID = payment.UserId,
+                EmployeeFullName = payment.EmployeeFullName,
+                IsDeleted = payment.IsDeleted,
+                IsDeletedBy = payment.IsDeletedBy,
+                IsDeletedWhy = payment.IsDeletedWhy,
+                DateDeleted = payment.DateDeleted,
+                CreatedBy = payment.CreatedBy,
+                DateIns = payment.DateIns,
+                EditedBy = payment.EditedBy,
+                DateEdit = payment.DateEdit
+            };
+        }
 
-            var name = method.PaymentMethodName?.Trim();
-            if (string.IsNullOrWhiteSpace(name))
+        private static Payment_DailyPayments ToDailyPaymentModel(DailyPaymentResult payment)
+        {
+            return new Payment_DailyPayments
             {
-                return false;
-            }
+                DailyPaymentsID = payment.DailyPaymentsId,
+                TenantID = payment.TenantId,
+                CashDate = payment.CashDate,
+                Total = payment.Total,
+                DateIns = payment.DateIns
+            };
+        }
 
-            foreach (var alias in CashMethodAliases)
+        private static Payment_Method_List_DTO ToPaymentMethodListDto(PaymentMethodListItem method)
+        {
+            return new Payment_Method_List_DTO
             {
-                if (string.Equals(name, alias, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
+                PaymentMethodID = method.PaymentMethodId,
+                TenantID = method.TenantId,
+                PaymentMethodName = method.Name,
+                PaymentMethodDescription = method.Description,
+                PaymentMethodIcon = method.Icon,
+                Visible = method.Visible,
+                DisplayOrder = method.DisplayOrder,
+                IsDeleted = method.IsDeleted,
+                IsDeletedBy = method.IsDeletedBy,
+                IsDeletedWhy = method.IsDeletedWhy,
+                DateDeleted = method.DateDeleted,
+                CreatedBy = method.CreatedBy,
+                DateIns = method.DateIns,
+                EditedBy = method.EditedBy,
+                DateEdit = method.DateEdit
+            };
+        }
 
-            return false;
+        private static Payment_Method_Detail_DTO ToPaymentMethodDetailDto(PaymentMethodResult method)
+        {
+            return new Payment_Method_Detail_DTO
+            {
+                PaymentMethodID = method.PaymentMethodId,
+                TenantID = method.TenantId,
+                PaymentMethodName = method.Name,
+                PaymentMethodDescription = method.Description,
+                PaymentMethodIcon = method.Icon,
+                Visible = method.Visible,
+                DisplayOrder = method.DisplayOrder,
+                IsDeleted = method.IsDeleted,
+                IsDeletedBy = method.IsDeletedBy,
+                IsDeletedWhy = method.IsDeletedWhy,
+                DateDeleted = method.DateDeleted,
+                CreatedBy = method.CreatedBy,
+                DateIns = method.DateIns,
+                EditedBy = method.EditedBy,
+                DateEdit = method.DateEdit
+            };
+        }
+
+        private static Payment_Method_Create_DTO ToPaymentMethodCreateDto(PaymentMethodResult method)
+        {
+            return new Payment_Method_Create_DTO
+            {
+                PaymentMethodID = method.PaymentMethodId,
+                TenantID = method.TenantId,
+                PaymentMethodName = method.Name,
+                PaymentMethodDescription = method.Description,
+                PaymentMethodIcon = method.Icon,
+                Visible = method.Visible,
+                DisplayOrder = method.DisplayOrder,
+                CreatedBy = method.CreatedBy,
+                DateIns = method.DateIns
+            };
+        }
+
+        private static Payment_Method_Update_DTO ToPaymentMethodUpdateDto(PaymentMethodResult method)
+        {
+            return new Payment_Method_Update_DTO
+            {
+                PaymentMethodID = method.PaymentMethodId,
+                TenantID = method.TenantId,
+                PaymentMethodName = method.Name,
+                PaymentMethodDescription = method.Description,
+                PaymentMethodIcon = method.Icon,
+                Visible = method.Visible,
+                DisplayOrder = method.DisplayOrder,
+                IsDeleted = method.IsDeleted,
+                IsDeletedBy = method.IsDeletedBy,
+                IsDeletedWhy = method.IsDeletedWhy,
+                DateDeleted = method.DateDeleted,
+                CreatedBy = method.CreatedBy,
+                DateIns = method.DateIns,
+                EditedBy = method.EditedBy,
+                DateEdit = method.DateEdit
+            };
+        }
+
+        private static Payment_DocumentType_List_DTO ToDocumentTypeListDto(DocumentTypeListItem documentType)
+        {
+            return new Payment_DocumentType_List_DTO
+            {
+                DocumentTypeID = documentType.DocumentTypeId,
+                TenantID = documentType.TenantId,
+                DocumentTypeName = documentType.Name,
+                DocumentTypeDescription = documentType.Description,
+                DocumentTypeIcon = documentType.Icon,
+                Visible = documentType.Visible,
+                DisplayOrder = documentType.DisplayOrder,
+                IsDeleted = documentType.IsDeleted,
+                IsDeletedBy = documentType.IsDeletedBy,
+                IsDeletedWhy = documentType.IsDeletedWhy,
+                DateDeleted = documentType.DateDeleted,
+                CreatedBy = documentType.CreatedBy,
+                DateIns = documentType.DateIns,
+                EditedBy = documentType.EditedBy,
+                DateEdit = documentType.DateEdit
+            };
+        }
+
+        private static Payment_DocumentType_Detail_DTO ToDocumentTypeDetailDto(DocumentTypeResult documentType)
+        {
+            return new Payment_DocumentType_Detail_DTO
+            {
+                DocumentTypeID = documentType.DocumentTypeId,
+                TenantID = documentType.TenantId,
+                DocumentTypeName = documentType.Name,
+                DocumentTypeDescription = documentType.Description,
+                DocumentTypeIcon = documentType.Icon,
+                Visible = documentType.Visible,
+                DisplayOrder = documentType.DisplayOrder,
+                IsDeleted = documentType.IsDeleted,
+                IsDeletedBy = documentType.IsDeletedBy,
+                IsDeletedWhy = documentType.IsDeletedWhy,
+                DateDeleted = documentType.DateDeleted,
+                CreatedBy = documentType.CreatedBy,
+                DateIns = documentType.DateIns,
+                EditedBy = documentType.EditedBy,
+                DateEdit = documentType.DateEdit
+            };
+        }
+
+        private static Payment_DocumentType_Create_DTO ToDocumentTypeCreateDto(DocumentTypeResult documentType)
+        {
+            return new Payment_DocumentType_Create_DTO
+            {
+                DocumentTypeID = documentType.DocumentTypeId,
+                TenantID = documentType.TenantId,
+                DocumentTypeName = documentType.Name,
+                DocumentTypeDescription = documentType.Description,
+                DocumentTypeIcon = documentType.Icon,
+                Visible = documentType.Visible,
+                DisplayOrder = documentType.DisplayOrder,
+                IsDeleted = documentType.IsDeleted,
+                IsDeletedBy = documentType.IsDeletedBy,
+                IsDeletedWhy = documentType.IsDeletedWhy,
+                DateDeleted = documentType.DateDeleted,
+                CreatedBy = documentType.CreatedBy,
+                DateIns = documentType.DateIns,
+                EditedBy = documentType.EditedBy,
+                DateEdit = documentType.DateEdit
+            };
+        }
+
+        private static Payment_DocumentType_Update_DTO ToDocumentTypeUpdateDto(DocumentTypeResult documentType)
+        {
+            return new Payment_DocumentType_Update_DTO
+            {
+                DocumentTypeID = documentType.DocumentTypeId,
+                TenantID = documentType.TenantId,
+                DocumentTypeName = documentType.Name,
+                DocumentTypeDescription = documentType.Description,
+                DocumentTypeIcon = documentType.Icon,
+                Visible = documentType.Visible,
+                DisplayOrder = documentType.DisplayOrder,
+                IsDeleted = documentType.IsDeleted,
+                IsDeletedBy = documentType.IsDeletedBy,
+                IsDeletedWhy = documentType.IsDeletedWhy,
+                DateDeleted = documentType.DateDeleted,
+                CreatedBy = documentType.CreatedBy,
+                DateIns = documentType.DateIns,
+                EditedBy = documentType.EditedBy,
+                DateEdit = documentType.DateEdit
+            };
         }
     }
 }

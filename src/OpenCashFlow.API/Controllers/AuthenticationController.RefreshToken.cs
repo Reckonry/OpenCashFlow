@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using global::Shared.Models;
-using global::Shared.Models.Core;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -35,16 +33,7 @@ namespace OpenCashFlow.API.Controllers
                     return Unauthorized(new ApiResponse<object>(false, "Invalid token claims"));
                 }
 
-                // Verify user still exists and is approved (lightweight check)
-                var user = await _employeeRepository.GetUserAsync(usernameClaim, CancellationToken.None);
-
-                if (user == null)
-                {
-                    _logger.LogWarning("User {Username} not found in database", usernameClaim);
-                    return Unauthorized(new ApiResponse<object>(false, "User not found, not approved, or locked out"));
-                }
-
-                if (!user.IsApproved || user.LockoutEnabled)
+                if (!await _authenticationService.CanRefreshTokenAsync(usernameClaim, CancellationToken.None))
                 {
                     _logger.LogWarning("User {Username} is not approved or is locked out", usernameClaim);
                     return Unauthorized(new ApiResponse<object>(false, "User not found, not approved, or locked out"));
@@ -66,7 +55,7 @@ namespace OpenCashFlow.API.Controllers
                     Audience = audience,
                     IssuedAt = DateTime.UtcNow,
                     NotBefore = DateTime.UtcNow,
-                    Expires = DateTime.UtcNow.AddMinutes(global::Shared.Core.Configuration.WebSessionDurationMinutes),
+                    Expires = DateTime.UtcNow.AddMinutes(OpenCashFlow.Contracts.Core.Configuration.WebSessionDurationMinutes),
                     SigningCredentials = new SigningCredentials(
                         new SymmetricSecurityKey(key),
                         SecurityAlgorithms.HmacSha256Signature)
@@ -76,7 +65,7 @@ namespace OpenCashFlow.API.Controllers
                 var newToken = tokenHandler.WriteToken(token);
 
                 // Update the auth cookie with new token and extended expiration
-                var expirationTime = DateTimeOffset.UtcNow.AddMinutes(global::Shared.Core.Configuration.WebSessionDurationMinutes);
+                var expirationTime = DateTimeOffset.UtcNow.AddMinutes(OpenCashFlow.Contracts.Core.Configuration.WebSessionDurationMinutes);
 
                 var cookieOptions = new CookieOptions
                 {
@@ -87,7 +76,7 @@ namespace OpenCashFlow.API.Controllers
                     Expires = expirationTime
                 };
 
-                Response.Cookies.Append(global::Shared.Core.Configuration.AuthCookieName, newToken, cookieOptions);
+                Response.Cookies.Append(OpenCashFlow.Contracts.Core.Configuration.AuthCookieName, newToken, cookieOptions);
 
                 // Update info cookie for JavaScript (contains only expiration timestamp)
                 var infoCookieOptions = new CookieOptions
@@ -99,7 +88,7 @@ namespace OpenCashFlow.API.Controllers
                     Expires = expirationTime
                 };
 
-                Response.Cookies.Append(global::Shared.Core.Configuration.AuthCookieName + ".Info",
+                Response.Cookies.Append(OpenCashFlow.Contracts.Core.Configuration.AuthCookieName + ".Info",
                     expirationTime.ToUnixTimeSeconds().ToString(),
                     infoCookieOptions);
 
@@ -150,7 +139,7 @@ namespace OpenCashFlow.API.Controllers
                 }
 
                 // Update the auth cookie with new token
-                var expirationTime = DateTimeOffset.UtcNow.AddMinutes(global::Shared.Core.Configuration.WebSessionDurationMinutes);
+                var expirationTime = DateTimeOffset.UtcNow.AddMinutes(OpenCashFlow.Contracts.Core.Configuration.WebSessionDurationMinutes);
 
                 var cookieOptions = new CookieOptions
                 {
@@ -161,7 +150,7 @@ namespace OpenCashFlow.API.Controllers
                     Expires = expirationTime
                 };
 
-                Response.Cookies.Append(global::Shared.Core.Configuration.AuthCookieName, result.Token!, cookieOptions);
+                Response.Cookies.Append(OpenCashFlow.Contracts.Core.Configuration.AuthCookieName, result.Token!, cookieOptions);
 
                 // Update info cookie for JavaScript
                 var infoCookieOptions = new CookieOptions
@@ -173,7 +162,7 @@ namespace OpenCashFlow.API.Controllers
                     Expires = expirationTime
                 };
 
-                Response.Cookies.Append(global::Shared.Core.Configuration.AuthCookieName + ".Info",
+                Response.Cookies.Append(OpenCashFlow.Contracts.Core.Configuration.AuthCookieName + ".Info",
                     expirationTime.ToUnixTimeSeconds().ToString(),
                     infoCookieOptions);
 

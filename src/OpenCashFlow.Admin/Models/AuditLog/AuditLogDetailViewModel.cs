@@ -1,4 +1,4 @@
-using global::Shared.DTOs.Admin;
+using OpenCashFlow.Contracts.DTOs.Admin;
 
 namespace OpenCashFlow.Admin.Models.AuditLog;
 

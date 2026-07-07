@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using global::Shared.Models;
 
 namespace OpenCashFlow.API.Controllers
 {
@@ -13,7 +12,7 @@ namespace OpenCashFlow.API.Controllers
             var userId = _authenticationService.GetUserID();
 
             // Simply remove the password change requirement flag without changing the password
-            await _employeeRepository.RemovePasswordChangeRequirementAsync(userId, cancellationToken);
+            await _authenticationService.RemovePasswordChangeRequirementAsync(userId, cancellationToken);
 
             return Ok(new ApiResponse<object>(true, "Password requirement removed"));
         }

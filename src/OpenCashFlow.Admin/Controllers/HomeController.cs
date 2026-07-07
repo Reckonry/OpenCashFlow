@@ -1,7 +1,7 @@
 using OpenCashFlow.Admin.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
-using global::Shared.Core;
+using OpenCashFlow.Contracts.Core;
 using System.Diagnostics;
 using System.Globalization;
 

@@ -1,0 +1,245 @@
+﻿@using OpenCashFlow.Contracts.Auth
+@model FastLoginViewModel
+@{
+    Layout = "_BlankLayout";
+    ViewData["Title"] = "Login";
+}
+
+@section VendorStyles {
+    <link rel="stylesheet" href="~/vendor/libs/&#64;form-validation/form-validation.css" />
+}
+
+@section VendorScripts {
+    <script src="~/vendor/libs/cleavejs/cleave.js"></script>
+    <script src="~/vendor/libs/&#64;form-validation/popular.js"></script>
+    <script src="~/vendor/libs/&#64;form-validation/bootstrap5.js"></script>
+    <script src="~/vendor/libs/&#64;form-validation/auto-focus.js"></script>
+}
+
+@section PageStyles {
+    <link rel="stylesheet" href="~/vendor/css/pages/page-auth.css">
+}
+
+@section PageScripts {
+
+    <script>
+        (function () {
+          'use strict';
+
+          document.addEventListener('DOMContentLoaded', function () {
+            var form = document.getElementById('twoStepsForm');
+            if (!form) return;
+
+            // Avoid native HTML5 alerts
+            form.setAttribute('novalidate', 'novalidate');
+
+            var inputs = Array.prototype.slice.call(form.querySelectorAll('.auth-input'));
+            var hiddenPin = form.querySelector('input[name="Pin"]');
+            // asp-validation-for => data-valmsg-for in the rendered DOM
+            var pinError = form.querySelector('[data-valmsg-for="Pin"]') || form.querySelector('span[asp-validation-for="Pin"]');
+
+            var btnSignIn = document.getElementById('btnSignIn');
+            var loadingBtn = document.getElementById('Loading');
+
+            // ===== Helpers UI =====
+            function setError(msg) {
+              if (!pinError) return;
+              pinError.classList.add('text-danger');
+              pinError.textContent = msg || '';
+            }
+            function clearError() {
+              if (!pinError) return;
+              pinError.textContent = '';
+            }
+            function startLoading() {
+              if (btnSignIn) btnSignIn.classList.add('d-none');
+              if (loadingBtn) {
+                loadingBtn.classList.remove('d-none');
+                loadingBtn.disabled = true;
+                // Localized label
+                loadingBtn.lastChild && (loadingBtn.lastChild.nodeType === 3)
+                  ? (loadingBtn.lastChild.nodeValue = '@Localizer["Loading"]')
+                  : (loadingBtn.textContent = '@Localizer["Loading"]');
+              }
+            }
+            function stopLoading() {
+              if (loadingBtn) loadingBtn.classList.add('d-none');
+              if (btnSignIn) btnSignIn.classList.remove('d-none');
+            }
+
+            function getPIN() {
+              return inputs.map(function (i) { return (i.value || '').trim(); }).join('');
+            }
+            function firstEmptyIndex() {
+              for (var i = 0; i < inputs.length; i++) if (!inputs[i].value) return i;
+              return -1;
+            }
+
+            // ===== Cleave mask (numeric) =====
+            var numeralMaskEls = form.querySelectorAll('.numeral-mask');
+            if (numeralMaskEls && numeralMaskEls.length && window.Cleave) {
+              numeralMaskEls.forEach(function (el) {
+                new Cleave(el, { numeral: true, numeralDecimalMark: '', delimiter: '' });
+              });
+            }
+
+            // ===== UX: auto-advance, backspace, arrow keys, paste =====
+            inputs.forEach(function (input, idx) {
+              input.setAttribute('inputmode', 'numeric'); // mobile keypad
+              input.setAttribute('maxlength', '1');
+
+              input.addEventListener('input', function (e) {
+                // Keep only the first digit if the user pastes multiple characters
+                this.value = this.value.replace(/\D/g, '').slice(0, 1);
+                clearError();
+                if (this.value && idx < inputs.length - 1) {
+                  inputs[idx + 1].focus();
+                  inputs[idx + 1].select();
+                }
+              });
+
+              input.addEventListener('keydown', function (e) {
+                var key = e.key || e.keyCode;
+                // Backspace on empty field => go to previous
+                if ((key === 'Backspace' || key === 8) && !this.value && idx > 0) {
+                  inputs[idx - 1].focus();
+                  inputs[idx - 1].value = '';
+                  e.preventDefault();
+                }
+                // Arrow keys
+                if (key === 'ArrowLeft' && idx > 0) {
+                  inputs[idx - 1].focus(); e.preventDefault();
+                }
+                if (key === 'ArrowRight' && idx < inputs.length - 1) {
+                  inputs[idx + 1].focus(); e.preventDefault();
+                }
+              });
+            });
+
+            // Paste: allow pasting up to 5 digits into any box
+            inputs.forEach(function (input) {
+              input.addEventListener('paste', function (e) {
+                var data = (e.clipboardData || window.clipboardData).getData('text');
+                if (!data) return;
+                var digits = data.replace(/\D/g, '').slice(0, inputs.length).split('');
+                if (!digits.length) return;
+                e.preventDefault();
+                inputs.forEach(function (i) { i.value = ''; });
+                for (var i = 0; i < digits.length; i++) {
+                  inputs[i].value = digits[i];
+                }
+                var emptyIdx = firstEmptyIndex();
+                if (emptyIdx === -1) {
+                  inputs[inputs.length - 1].focus();
+                } else {
+                  inputs[emptyIdx].focus();
+                }
+              });
+            });
+
+            // ===== Submit =====
+            form.addEventListener('submit', function (e) {
+              e.preventDefault();
+              clearError();
+
+              var pin = getPIN();
+
+              if (pin.length < inputs.length) {
+                setError('@Localizer["EnterAllFiveDigits"]');
+                var idxEmpty = firstEmptyIndex();
+                if (idxEmpty >= 0) {
+                  inputs[idxEmpty].focus();
+                  inputs[idxEmpty].select && inputs[idxEmpty].select();
+                }
+                stopLoading();
+                return;
+              }
+
+              if (hiddenPin) hiddenPin.value = pin;
+
+              // UI loading + courtesy timeout
+              startLoading();
+              var TIMEOUT_MS = 10000;
+              var timeoutId = setTimeout(function () {
+                stopLoading();
+                setError('@Localizer["ServerNotResponding"]');
+              }, TIMEOUT_MS);
+
+              // Native submit: if navigation starts, clear the timeout
+              window.addEventListener('beforeunload', function () {
+                clearTimeout(timeoutId);
+              }, { once: true });
+
+              // Now let the native submit proceed
+              form.submit();
+            });
+          });
+        })();
+    </script>
+}
+
+<div class="page page-center">
+    <div class="container container-tight py-4">
+
+        <div class="text-center mb-4">
+            <a href="/" class="navbar-brand navbar-brand-autodark">
+                @await Html.PartialAsync("../_Partials/_Macros")
+                <span class="ms-2 fw-semibold">@TempData.Peek("appName")</span>
+            </a>
+        </div>
+
+        <div class="card card-md">
+            <div class="card-body">
+
+                <h2 class="h2 text-center mb-2">@Localizer["QuickLogin"]</h2>
+                <p class="text-secondary text-center mb-4">@Localizer["TypeYour5DigitSecurityCode"]</p>
+
+                @if (ViewBag.ErrorMessage != null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="ri-error-warning-line fs-3 text-danger"></i>
+                            </div>
+                            <div>
+                                @ViewBag.ErrorMessage
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <form id="twoStepsForm" action="~/Account/FastLogin" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between gap-2">
+                            <input type="tel" class="form-control auth-input numeral-mask text-center" maxlength="1" autofocus autocomplete="off">
+                            <input type="tel" class="form-control auth-input numeral-mask text-center" maxlength="1" autocomplete="off">
+                            <input type="tel" class="form-control auth-input numeral-mask text-center" maxlength="1" autocomplete="off">
+                            <input type="tel" class="form-control auth-input numeral-mask text-center" maxlength="1" autocomplete="off">
+                            <input type="tel" class="form-control auth-input numeral-mask text-center" maxlength="1" autocomplete="off">
+                        </div>
+                        <input type="hidden" name="Pin" id="Pin" />
+                        <span asp-validation-for="Pin" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-footer">
+                        <button class="btn btn-primary w-100 mb-3" id="btnSignIn" type="submit">
+                            @Localizer["Login"]
+                        </button>
+                        <button class="btn btn-success w-100 mb-3 d-none" id="Loading" type="button" disabled>
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            @Localizer["Loading"]
+                        </button>
+                    </div>
+
+                    <div class="text-center text-secondary">
+                        <a href="/Account/LogIn?ForceLogin">@Localizer["LoginWithUsernameAndPassword"]</a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>

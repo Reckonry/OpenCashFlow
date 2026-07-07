@@ -1,0 +1,11 @@
+global using OpenCashFlow.Contracts.Core;
+global using OpenCashFlow.Contracts.Audit;
+global using OpenCashFlow.Contracts.Auth;
+global using OpenCashFlow.Contracts.DTOs;
+global using OpenCashFlow.Contracts.DTOs.Admin;
+global using OpenCashFlow.Contracts.DTOs.Cash;
+global using OpenCashFlow.Contracts.DTOs.Identity;
+global using OpenCashFlow.Contracts.DTOs.Payments;
+global using OpenCashFlow.Contracts.Enums;
+global using OpenCashFlow.Contracts.Models;
+global using OpenCashFlow.Contracts.Security;

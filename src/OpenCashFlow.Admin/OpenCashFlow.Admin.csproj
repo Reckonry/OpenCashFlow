@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../OpenCashFlow.Shared/OpenCashFlow.Shared.csproj" />
+    <ProjectReference Include="../OpenCashFlow.Contracts/OpenCashFlow.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

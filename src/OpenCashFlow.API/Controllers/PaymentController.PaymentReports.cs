@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using global::Shared.Models;
 
 namespace OpenCashFlow.API.Controllers
 {

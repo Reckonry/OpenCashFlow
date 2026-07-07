@@ -1,11 +1,12 @@
 using OpenCashFlow.Test.Factories;
 using OpenCashFlow.Test.Fixtures;
-using global::Shared.DTOs;
+using OpenCashFlow.Contracts.DTOs;
 using System.Net;
 using System.Text.Json;
 using Xunit;
 using Microsoft.EntityFrameworkCore;
-using global::Shared.Models;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
+using OpenCashFlow.Contracts.Core;
 
 namespace OpenCashFlow.Test.Tests
 {
@@ -75,7 +76,7 @@ namespace OpenCashFlow.Test.Tests
             var client = _factory.CreateClient();
 
             // Use an email known to exist from seeded data
-            var existingEmail = "lorenzosalami1998@gmail.com";
+            var existingEmail = "admin.seed@example.local";
             var payload = new Register_DTO
             {
                 CompanyName = "Duplicate Email Co",
@@ -429,8 +430,8 @@ namespace OpenCashFlow.Test.Tests
                 .ToList();
 
             Assert.NotEmpty(roles);
-            // Current implementation assigns "Administrator" as default
-            Assert.Contains(roles, r => r.AspNetRole != null && r.AspNetRole.RoleName == "Administrator");
+            Assert.Contains(roles, r => r.RoleID == Configuration.CompanyAdminRoleID);
+            Assert.Contains(roles, r => r.AspNetRole != null && r.AspNetRole.RoleName == Configuration.CompanyAdminRoleName);
         }
 
         //todo: Registrazione [OK] (genera token o step successivo per verifica email, se attivo)
@@ -559,11 +560,11 @@ namespace OpenCashFlow.Test.Tests
             {
                 builder.ConfigureServices(services =>
                 {
-                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(global::Shared.Services.Interfaces.IEmailSender));
+                    var existing = services.FirstOrDefault(d => d.ServiceType == typeof(OpenCashFlow.Application.Abstractions.IEmailSender));
                     if (existing != null) services.Remove(existing);
 
                     services.Add(new Microsoft.Extensions.DependencyInjection.ServiceDescriptor(
-                        typeof(global::Shared.Services.Interfaces.IEmailSender),
+                        typeof(OpenCashFlow.Application.Abstractions.IEmailSender),
                         typeof(FakeEmailSender),
                         Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton));
                 });
@@ -600,11 +601,11 @@ namespace OpenCashFlow.Test.Tests
         }
 
         // Test helper used to capture outgoing emails in DI
-        private class FakeEmailSender : global::Shared.Services.Interfaces.IEmailSender
+        private class FakeEmailSender : OpenCashFlow.Application.Abstractions.IEmailSender
         {
-            public static readonly List<(global::Shared.Models.EmailMessage Msg, string Name, string Email)> Sent = new();
+            public static readonly List<(OpenCashFlow.Application.Abstractions.EmailMessage Msg, string Name, string Email)> Sent = new();
 
-            public void SendEmail(global::Shared.Models.EmailMessage message, string DestUserName, string DestUserEmail)
+            public void SendEmail(OpenCashFlow.Application.Abstractions.EmailMessage message, string DestUserName, string DestUserEmail)
             {
                 lock (Sent)
                 {
@@ -612,7 +613,7 @@ namespace OpenCashFlow.Test.Tests
                 }
             }
 
-            public Task SendEmailAsync(global::Shared.Models.EmailMessage message, string DestUserName, string DestUserEmail)
+            public Task SendEmailAsync(OpenCashFlow.Application.Abstractions.EmailMessage message, string DestUserName, string DestUserEmail)
             {
                 SendEmail(message, DestUserName, DestUserEmail);
                 return Task.CompletedTask;

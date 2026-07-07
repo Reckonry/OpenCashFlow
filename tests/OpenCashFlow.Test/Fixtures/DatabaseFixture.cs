@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using global::Shared.Data;
+using OpenCashFlow.Infrastructure.Persistence;
 using OpenCashFlow.Test.Utilities;
 
 namespace OpenCashFlow.Test.Fixtures

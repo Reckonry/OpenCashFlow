@@ -1,0 +1,1208 @@
+﻿@using System.Globalization
+@using System.Security.Claims
+@model IEnumerable<Payment_List_DTO>
+@inject Microsoft.Extensions.Localization.IStringLocalizer<SharedResource> SharedLocalizer
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer Localizer
+@{
+    ViewData["Title"] = (SharedLocalizer?["PaymentsList"].Value) ?? "Payments List";
+}
+@section PageStyles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+
+    <style>
+        /* Green entry */
+        #entry:checked + label {
+            background-color: #198754; /* Bootstrap green */
+            border-color: #198754;
+            color: white;
+        }
+        /* Red exit */
+        #exit:checked + label {
+            background-color: #dc3545; /* Bootstrap red */
+            border-color: #dc3545;
+            color: white;
+        }
+
+        /* Normal view - large icons */
+        #paymentsList:not(.compact-view) .payment-icon {
+            font-size: 2.5rem;
+        }
+
+        /* Compact view - small icons */
+        .compact-view .payment-icon {
+            font-size: 1.45rem;
+        }
+
+        /* Compact view */
+        .compact-view table td {
+            padding: 0.35rem 0.5rem !important;
+            vertical-align: middle !important;
+        }
+
+        .compact-view table th {
+            padding: 0.75rem 0.5rem !important;
+        }
+
+        /* Inline amount and description */
+        .compact-view .user-name .d-flex.flex-column {
+            display: inline !important;
+        }
+
+        .compact-view .text-muted::before {
+            content: " - ";
+        }
+
+        /* Operator name and date inline */
+        .compact-view td:nth-child(4) {
+            white-space: nowrap;
+        }
+
+        .compact-view td:nth-child(4) > div {
+            display: inline-block;
+        }
+
+        .compact-view td:nth-child(4) ul.list-unstyled {
+            display: inline !important;
+            margin: 0;
+            padding: 0;
+        }
+
+        .compact-view td:nth-child(4) ul.list-unstyled li {
+            display: inline;
+        }
+
+        .compact-view td:nth-child(4) .ri-time-line {
+            margin-left: 0.5rem;
+        }
+
+        /* Compact edit/delete buttons */
+        .compact-view .btn-group-sm .btn {
+            padding: 0.2rem 0.4rem;
+        }
+
+        /* Actions column right-aligned */
+        .compact-view td:nth-child(5),
+        .compact-view th:nth-child(5) {
+            text-align: right;
+        }
+        
+        .compact-view th:nth-child(5){
+            padding-right: 1rem !important;
+        }
+
+        /* Active icon when compact view is enabled */
+        #compactViewToggle.active {
+            background-color: #696cff !important;
+            border-color: #696cff !important;
+            color: white !important;
+        }
+    </style>
+}
+
+@section PageScripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
+ 
+    <!-- 1) Load the SignalR library -->
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@8.0.7/dist/browser/signalr.min.js"></script>
+    <script>
+        if (typeof window.signalR === 'undefined') {
+          console.error('SignalR library failed to load. Check CDN connectivity.');
+        }
+    </script>
+    @* <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script> *@
+    <script>
+        window.parseAsUtc = function parseAsUtc(input) {
+          if (!input) return new Date();
+
+          const str = String(input);
+
+          // Handle .NET high-precision timestamps by removing excess milliseconds
+          if (str.includes('Z') && str.includes('.')) {
+            // Extract parts: "2025-09-24T07:08:40.8969250Z" -> "2025-09-24T07:08:40.896Z"
+            const parts = str.split('.');
+            if (parts.length === 2) {
+              const datePart = parts[0]; // "2025-09-24T07:08:40"
+              const msPart = parts[1].replace('Z', ''); // "8969250"
+              const truncatedMs = msPart.substring(0, 3); // "896"
+              const result = `${datePart}.${truncatedMs}Z`;
+              return new Date(result);
+            }
+          }
+
+          // Handle strings without timezone - treat as UTC
+          if (/^\d{4}-\d{2}-\d{2}T/.test(str) && !(/[Z+\-]\d{2}:?\d{2}$/.test(str))) {
+            return new Date(str + "Z");
+          }
+
+          return new Date(str);
+        }
+        function pick(obj, camelKey) {
+          if (!obj) return undefined;
+          const pascalKey = camelKey.charAt(0).toUpperCase() + camelKey.slice(1);
+          return (obj[camelKey] !== undefined ? obj[camelKey] : obj[pascalKey]);
+        }
+        function toIsoLocalDateString(input) {
+          const d = parseAsUtc(input);
+          if (isNaN(d)) return '';
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        }
+        function getDisplayedDayIso() {
+          // Prefer a persisted ISO day value on the list container
+          const fromAttr = document.querySelector('#paymentsList')?.getAttribute('data-day');
+          if (fromAttr) return fromAttr;
+          // Try the flatpickr instance if exposed
+          try {
+            if (window.dayPickerFp && window.dayPickerFp.selectedDates && window.dayPickerFp.selectedDates[0]) {
+              return window.dayPickerFp.formatDate(window.dayPickerFp.selectedDates[0], 'Y-m-d');
+            }
+          } catch (_) { /* ignore */ }
+          // Flatpickr keeps ISO value in the original input when dateFormat='Y-m-d'
+          const v = document.getElementById('dayPicker')?.value || '';
+          if (v) return v;
+          const first = document.querySelector('#paymentsList table tbody tr[data-date-ins]');
+          if (first) return first.getAttribute('data-date-ins') || '';
+          // Fallback: today local
+          const now = new Date();
+          const y = now.getFullYear();
+          const m = String(now.getMonth() + 1).padStart(2, '0');
+          const d = String(now.getDate()).padStart(2, '0');
+          return `${y}-${m}-${d}`;
+        }
+        // Format numbers with decimal comma (it-IT)
+        function formatAmountIt(value) {
+          const n = typeof value === 'string' ? Number(value) : value;
+          if (!Number.isFinite(n)) return value ?? '';
+          return n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        window.friendlyDateTime = function friendlyDateTime(dateString) {
+            const date = parseAsUtc(dateString);
+            if (isNaN(date)) return ""; // safety
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const dateOnly = new Date(date); // COPIA
+            dateOnly.setHours(0, 0, 0, 0);
+            const diffMs = today - dateOnly;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const timePart = date.toLocaleTimeString("it-IT", {
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+            if (diffDays === 0) return `@Html.Raw(SharedLocalizer?["TodayAt"].Value ?? "today at") ${timePart}`;
+            if (diffDays === 1) return `@Html.Raw(SharedLocalizer?["YesterdayAt"].Value ?? "yesterday at") ${timePart}`;
+            if (diffDays === 2) return `@Html.Raw(SharedLocalizer?["DayBeforeYesterdayAt"].Value ?? "day before yesterday at") ${timePart}`;
+            const options = { day: "numeric", month: "short" };
+            let datePart = date.toLocaleDateString("it-IT", options);
+            if (date.getFullYear() !== today.getFullYear()) {
+                datePart += ` ${date.getFullYear()}`;
+            }
+            return `${datePart} @Html.Raw(SharedLocalizer?["At"].Value ?? "at") ${timePart}`;
+        }
+
+        function escapeHtml(value) {
+            return value == null
+                ? ''
+                : String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+        }
+
+        function normalizeUtcIso(input) {
+            const date = parseAsUtc(input);
+            if (isNaN(date)) return '';
+            return date.toISOString();
+        }
+
+        function renderPaymentDateMarkup(rawDate) {
+            const isoUtc = normalizeUtcIso(rawDate);
+            const friendly = friendlyDateTime(rawDate).trim();
+            const safeIso = escapeHtml(isoUtc);
+            const safeFriendly = escapeHtml(friendly);
+            return `<span class="js-payment-date" data-payment-utc="${safeIso}">${safeFriendly}</span>`;
+        }
+
+        window.applyFriendlyPaymentDates = function applyFriendlyPaymentDates(root) {
+            try {
+                const scope = root && root.querySelectorAll ? root : document;
+                const nodes = scope.querySelectorAll('.js-payment-date[data-payment-utc]');
+                nodes.forEach(function (node) {
+                    const raw = node.getAttribute('data-payment-utc');
+                    if (!raw) return;
+                    const text = friendlyDateTime(raw).trim();
+                    if (!text) return;
+                    node.textContent = text;
+                });
+            } catch (e) {
+                console && console.debug && console.debug('applyFriendlyPaymentDates error', e);
+            }
+        }
+
+        $(function () {
+            applyFriendlyPaymentDates(document.getElementById('paymentsList'));
+        });
+
+        // Compact view handling
+        function toggleCompactView() {
+            const paymentsList = document.getElementById('paymentsList');
+            const toggle = document.getElementById('compactViewToggle');
+
+            if (paymentsList.classList.contains('compact-view')) {
+                paymentsList.classList.remove('compact-view');
+                toggle.classList.remove('active');
+                localStorage.setItem('paymentsCompactView', 'false');
+            } else {
+                paymentsList.classList.add('compact-view');
+                toggle.classList.add('active');
+                localStorage.setItem('paymentsCompactView', 'true');
+            }
+        }
+
+        // Apply saved preference on load
+        $(function() {
+            const isCompact = localStorage.getItem('paymentsCompactView') === 'true';
+            if (isCompact) {
+                document.getElementById('paymentsList').classList.add('compact-view');
+                document.getElementById('compactViewToggle').classList.add('active');
+            }
+
+            // Listener for the toggle
+            $('#compactViewToggle').on('click', toggleCompactView);
+        });
+    </script>
+    <script>
+        // Client-side labels for entry types (from SharedLocalizer)
+        const ENTRY_TYPE_LABELS = {
+            income: "@(SharedLocalizer?["Income"].Value ?? "Income")",
+            outcome: "@(SharedLocalizer?["Outcome"].Value ?? "Outcome")"
+        };
+
+        // Client-side labels for payment methods
+        const PAYMENT_METHOD_LABELS = {
+            cash: "@(SharedLocalizer?["Cash"].Value ?? "Cash")",
+            contanti: "@(SharedLocalizer?["Cash"].Value ?? "Cash")",
+            "credit card": "@(SharedLocalizer?["Credit Card"].Value ?? "Credit Card")",
+            card: "@(SharedLocalizer?["Card"].Value ?? "Card")",
+            carta: "@(SharedLocalizer?["Card"].Value ?? "Card")",
+            pos: "@(SharedLocalizer?["POS"].Value ?? "POS")",
+            bancomat: "@(SharedLocalizer?["POS"].Value ?? "POS")",
+            "bank transfer": "@(SharedLocalizer?["Bank Transfer"].Value ?? "Bank Transfer")",
+            bonifico: "@(SharedLocalizer?["Bank Transfer"].Value ?? "Bank Transfer")",
+            check: "@(SharedLocalizer?["Check"].Value ?? "Check")",
+            assegno: "@(SharedLocalizer?["Check"].Value ?? "Check")"
+        };
+
+        // Client-side labels for document types
+        const DOCUMENT_TYPE_LABELS = {
+            invoice: "@(SharedLocalizer?["Invoice"].Value ?? "Invoice")",
+            fattura: "@(SharedLocalizer?["Invoice"].Value ?? "Invoice")",
+            receipt: "@(SharedLocalizer?["Receipt"].Value ?? "Receipt")",
+            ricevuta: "@(SharedLocalizer?["Receipt"].Value ?? "Receipt")",
+            "tax receipt": "@(SharedLocalizer?["Tax Receipt"].Value ?? "Tax Receipt")",
+            "ricevuta fiscale": "@(SharedLocalizer?["Tax Receipt"].Value ?? "Tax Receipt")"
+        };
+
+        function localizeEntryType(et) {
+            const k = String(et || "").toLowerCase();
+            return ENTRY_TYPE_LABELS[k] || et || "";
+        }
+
+        function localizePaymentMethod(pm) {
+            if (!pm) return "";
+            const k = String(pm).toLowerCase().trim();
+            return PAYMENT_METHOD_LABELS[k] || pm;
+        }
+
+        function localizeDocumentType(dt) {
+            if (!dt) return "";
+            const k = String(dt).toLowerCase().trim();
+            return DOCUMENT_TYPE_LABELS[k] || dt;
+        }
+    </script>
+    <script name="SignalRPayments">
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/paymentHub")
+            .withAutomaticReconnect()
+            .configureLogging(signalR.LogLevel.Warning)
+            .build();
+        @* /*3) Define the callback for the "PaymentAdded" event*/ *@
+        connection.on("PaymentAdded", function(newPayment) {
+            // 1) Compare the displayed day with the propagated payment day
+            const dateInsRaw = pick(newPayment, 'dateIns');
+            const paymentDayIso = toIsoLocalDateString(dateInsRaw);
+            const displayedDayIso = getDisplayedDayIso();
+            if (!paymentDayIso || !displayedDayIso || paymentDayIso !== displayedDayIso) {
+                // Do not add if the selected day is different
+                return;
+            }
+            const entryType = pick(newPayment, 'entryType') || '';
+            const paymentID = pick(newPayment, 'paymentID');
+            const paymentMethodID = pick(newPayment, 'paymentMethodID') || '';
+            const documentTypeID = pick(newPayment, 'documentTypeID') || '';
+            const paymentMethodName = pick(newPayment, 'paymentMethodName') || '';
+            const documentTypeName = pick(newPayment, 'documentTypeName') || '';
+            const employeeFullName = pick(newPayment, 'employeeFullName') || '';
+            const amount = pick(newPayment, 'amount');
+            const description = pick(newPayment, 'description') || '';
+            const isIncome = String(entryType).toLowerCase() === 'income';
+            const iconClass = isIncome ? 'ri-inbox-archive-line' : 'ri-bank-card-line';
+            const textClass = isIncome ? 'text-success' : 'text-danger';
+            const rowHtml = `
+                <tr class="table-success" 
+                    data-date-ins="${paymentDayIso}"
+                    data-payment-id="${paymentID}"
+                    data-payment-method-id="${paymentMethodID}"
+                    data-document-type-id="${documentTypeID}"
+                    data-entry-type="${entryType}"
+                    data-amount="${amount}">
+                    <td>
+                        <div class="d-flex justify-content-start align-items-center user-name">
+                     
+                        <div class="avatar-wrapper">
+                                <i class="${iconClass} payment-icon ${textClass} me-2"></i>
+                            </div>
+                            <div class="d-flex flex-column">
+                                <a href="#" class="text-body text-truncate">
+                                <span class="fw-semibold">
+                                    <span class="${textClass}">${localizeEntryType(entryType)}:</span>
+                                    <span class="fw-semibold"> &euro; ${formatAmountIt(amount)}</span>
+                                </span>
+                                </a>
+                                <small class="text-muted">${description}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-capitalize">${localizePaymentMethod(paymentMethodName)}</td>
+                    <td class="text-capitalize">${localizeDocumentType(documentTypeName)}</td>
+                    <td>
+                        <div>
+                        <ul class="list-unstyled m-0 avatar-group d-flex align-items-center">
+                            <li class="avatar avatar-xs pull-up" title="${employeeFullName}">
+                            ${employeeFullName}
+                            </li>
+                        </ul>
+                        </div>
+                        <i class="ri-time-line me-1"></i>${renderPaymentDateMarkup(dateInsRaw)}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary btn-edit-payment"
+                                        data-payment-id="${paymentID}" title="@(SharedLocalizer?["Edit"].Value ?? "Edit")">
+                                <i class="ri-pencil-line"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-delete-payment"
+                                            data-payment-id="${paymentID}" title="@(SharedLocalizer?["Delete"].Value ?? "Delete")">
+                                <i class="ri-delete-bin-7-line"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+                if ($("#NoPaymentYet").length) {
+                  $("#NoPaymentYet").remove();
+                }
+            @* /* Insert at the top so the most recent row appears first */ *@
+            const $newRow = $("#paymentsList table tbody").prepend(rowHtml).find("tr").first();
+                // Force reflow to apply compact-view styles
+                if ($newRow.length) {
+                    void $newRow[0].offsetHeight;
+                }
+                // 3) Start a timer (e.g., 3 seconds) to remove the "table-success" class
+                setTimeout(function() {
+                    $newRow.removeClass("table-success");
+                }, 3000); // 3000 milliseconds = 3 seconds
+                if (typeof updatePaymentTotals === 'function') { updatePaymentTotals(); }
+                if (typeof refreshCashBalance === 'function') { refreshCashBalance(); }
+        });
+        connection.on("PaymentUpdated", function(updatedPayment) {
+            const dateInsRaw = pick(updatedPayment, 'dateIns');
+            const paymentDayIso = toIsoLocalDateString(dateInsRaw);
+            const displayedDayIso = getDisplayedDayIso();
+            const paymentID = pick(updatedPayment, 'paymentID');
+            const $tbody = $("#paymentsList table tbody");
+            const $row = $tbody.find(`tr[data-payment-id="${paymentID}"]`);
+
+            function buildRowHtml(p) {
+                const entryType = pick(p, 'entryType') || '';
+                const paymentMethodID = pick(p, 'paymentMethodID') || '';
+                const documentTypeID = pick(p, 'documentTypeID') || '';
+                const paymentMethodName = pick(p, 'paymentMethodName') || '';
+                const documentTypeName = pick(p, 'documentTypeName') || '';
+                const employeeFullName = pick(p, 'employeeFullName') || '';
+                const amount = pick(p, 'amount');
+                const description = pick(p, 'description') || '';
+                const isIncome = String(entryType).toLowerCase() === 'income';
+                const iconClass = isIncome ? 'ri-inbox-archive-line' : 'ri-bank-card-line';
+                const textClass = isIncome ? 'text-success' : 'text-danger';
+                return `
+                <tr class="table-success"
+                    data-date-ins="${toIsoLocalDateString(pick(p, 'dateIns'))}"
+                    data-payment-id="${pick(p, 'paymentID')}"
+                    data-payment-method-id="${paymentMethodID}"
+                    data-document-type-id="${documentTypeID}"
+                    data-entry-type="${entryType}"
+                    data-amount="${amount}">
+                    <td>
+                        <div class="d-flex justify-content-start align-items-center user-name">
+                            <div class="avatar-wrapper">
+                                <i class="${iconClass} payment-icon ${textClass} me-2"></i>
+                            </div>
+                            <div class="d-flex flex-column">
+                                <a href="#" class="text-body text-truncate">
+                                    <span class="fw-semibold">
+                                        <span class="${textClass}">${localizeEntryType(entryType)}:</span>
+                                        <span class="fw-semibold"> &euro; ${formatAmountIt(amount)}</span>
+                                    </span>
+                                </a>
+                                <small class="text-muted">${description}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-capitalize">${localizePaymentMethod(paymentMethodName)}</td>
+                    <td class="text-capitalize">${localizeDocumentType(documentTypeName)}</td>
+                    <td>
+                        <div>
+                            <ul class="list-unstyled m-0 avatar-group d-flex align-items-center">
+                                <li class="avatar avatar-xs pull-up" title="${employeeFullName}">
+                                    ${employeeFullName}
+                                </li>
+                            </ul>
+                        </div>
+                        <i class="ri-time-line me-1"></i>${renderPaymentDateMarkup(pick(p, 'dateIns'))}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary btn-edit-payment"
+                                        data-payment-id="${p.paymentID}" title="@(SharedLocalizer?["Edit"].Value ?? "Edit")">
+                                <i class="ri-pencil-line"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-delete-payment"
+                                        data-payment-id="${p.paymentID}" title="@(SharedLocalizer?["Delete"].Value ?? "Delete")">
+                                <i class="ri-delete-bin-7-line"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            }
+
+            // Strategy:
+            // - If the row already exists in the current table, always update it in place (do not remove).
+            //   This avoids accidental removals due to TZ/day-boundary mismatches; users cannot change DateIns from the edit modal anyway.
+            // - If the row does not exist, only insert it when the currently displayed view is a single-day view
+            //   matching the updated payment's local day.
+
+            if ($row.length) {
+                const entryType = pick(updatedPayment, 'entryType') || '';
+                const isIncome = String(entryType).toLowerCase() === 'income';
+                const iconClass = isIncome ? 'ri-inbox-archive-line' : 'ri-bank-card-line';
+                const textClass = isIncome ? 'text-success' : 'text-danger';
+                const newCellsHtml = `
+                    <td>
+                      <div class="d-flex justify-content-start align-items-center user-name">
+                        <div class="avatar-wrapper">
+                          <i class="${iconClass} payment-icon ${textClass} me-2"></i>
+                        </div>
+                        <div class="d-flex flex-column">
+                          <a href="#" class="text-body text-truncate">
+                            <span class="fw-semibold">
+                              <span class="${textClass}">${localizeEntryType(entryType)}:</span>
+                              <span class="fw-semibold"> &euro; ${formatAmountIt(pick(updatedPayment, 'amount'))}</span>
+                            </span>
+                          </a>
+                          <small class="text-muted">${pick(updatedPayment, 'description') || ''}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-capitalize">${localizePaymentMethod(pick(updatedPayment, 'paymentMethodName') || '')}</td>
+                    <td class="text-capitalize">${localizeDocumentType(pick(updatedPayment, 'documentTypeName') || '')}</td>
+                    <td>
+                      <div>
+                        <ul class="list-unstyled m-0 avatar-group d-flex align-items-center">
+                          <li class="avatar avatar-xs pull-up" title="${pick(updatedPayment, 'employeeFullName') || ''}">
+                            ${pick(updatedPayment, 'employeeFullName') || ''}
+                          </li>
+                        </ul>
+                      </div>
+                      <i class="ri-time-line me-1"></i>${renderPaymentDateMarkup(dateInsRaw)}
+                    </td>
+                    <td>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-edit-payment" data-payment-id="${paymentID}" title="@(SharedLocalizer?["Edit"].Value ?? "Edit")">
+                          <i class="ri-pencil-line"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-delete-payment" data-payment-id="${paymentID}" title="@(SharedLocalizer?["Delete"].Value ?? "Delete")">
+                          <i class="ri-delete-bin-7-line"></i>
+                        </button>
+                      </div>
+                    </td>`;
+                $row.attr('data-payment-method-id', pick(updatedPayment, 'paymentMethodID') || '');
+                $row.attr('data-document-type-id', pick(updatedPayment, 'documentTypeID') || '');
+                $row.attr('data-entry-type', entryType || '');
+                $row.attr('data-amount', pick(updatedPayment, 'amount'));
+                $row.attr('data-date-ins', paymentDayIso);
+                $row.html(newCellsHtml);
+                // Force reflow to apply compact-view styles
+                if ($row.length) {
+                    void $row[0].offsetHeight;
+                }
+                $row.addClass('table-warning');
+                setTimeout(function(){ $row.removeClass('table-warning'); }, 2000);
+            } else if (paymentDayIso === displayedDayIso) {
+                if ($("#NoPaymentYet").length) { $("#NoPaymentYet").remove(); }
+                const rowHtml = buildRowHtml(updatedPayment);
+                const $newRow = $tbody.prepend(rowHtml).find('tr').first();
+                // Force reflow to apply compact-view styles
+                if ($newRow.length) {
+                    void $newRow[0].offsetHeight;
+                }
+                setTimeout(function(){ $newRow.removeClass('table-success'); }, 3000);
+            }
+            if (typeof updatePaymentTotals === 'function') { updatePaymentTotals(); }
+            if (typeof refreshCashBalance === 'function') { refreshCashBalance(); }
+        });
+        connection.on("PaymentDeleted", function(paymentID) {
+            const displayedDayIso = getDisplayedDayIso();
+            const $row = $(`#paymentsList table tbody tr[data-payment-id="${paymentID}"]`);
+            if ($row.length) {
+                const rowDay = $row.attr('data-date-ins') || '';
+                if (rowDay !== displayedDayIso) { return; }
+                $row.fadeOut(300, function() {
+                    $(this).remove();
+                    if (typeof updatePaymentTotals === 'function') { updatePaymentTotals(); }
+                    if (typeof refreshCashBalance === 'function') { refreshCashBalance(); }
+                });
+            }
+        });
+        @* /* 4) Start the SignalR connection */  *@
+        connection.start()
+            .catch(err => console.error("SignalR error:", err.toString()));
+        @*
+		// -------------------------------------------------------
+		// 5) Open the create modal
+		// -------------------------------------------------------
+		*@
+        let isLoadingModal = false;
+        $('#openModalButton').on('click', function () {
+          if (this.disabled) return; // block when not on today
+          if (isLoadingModal) return;
+          isLoadingModal = true;
+          $('#modalContainer').empty();
+          $('#modalContainer').load('/internal/Payment/CreatePaymentModal', function () {
+            setTimeout(function () {
+              const modalEl = document.getElementById('createPaymentModal');
+              if (!modalEl) {
+                alert('@(SharedLocalizer?["ModalNotFound"].Value ?? "ERROR: Modal createPaymentModal not found in DOM!")');
+                isLoadingModal = false;
+                return;
+              }
+              const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl, {
+                backdrop: 'static',
+                keyboard: false
+              });
+              modalInstance.show();
+              modalEl.addEventListener('hidden.bs.modal', function handleHidden() {
+                isLoadingModal = false;
+                modalEl.removeEventListener('hidden.bs.modal', handleHidden);
+                $('#modalContainer').empty();
+              });
+            }, 30);
+          });
+        });
+    </script>
+    <script name="btn-delete-payment">
+        // -------------------------------------------------
+        // 2) Click handler for the "Delete" button in each row
+        // -------------------------------------------------
+        let isDeleteModalOpen = false;
+        $(document).on('click', '.btn-delete-payment', function() {
+            // 2. If the modal is already open/loading, ignore the click
+            if (isDeleteModalOpen) {
+                return;
+            }
+            isDeleteModalOpen = true; // block subsequent openings
+            // 3. Get the payment ID from the data attribute
+            const paymentID = $(this).data('payment-id');
+            // 4. Store the ID on the modal for confirmation
+            $('#confirmDeleteModal').data('payment-id', paymentID);
+            // 5. Show the confirmation modal
+            const modalEl = document.getElementById('confirmDeleteModal');
+            // Create or retrieve the Bootstrap Modal instance
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl, {
+                backdrop: 'static',
+                keyboard: false
+            });
+            // Reset confirm button state/text at each open
+            $('#btnConfirmDelete')
+              .prop('disabled', false)
+              .html('<i class="ri-delete-bin-7-line me-1"></i> @(SharedLocalizer?["YesDelete"].Value ?? "Yes, delete")');
+            modalInstance.show();
+            // 6. Reset the flag when the modal closes
+            modalEl.addEventListener('hidden.bs.modal', function handleHidden() {
+                isDeleteModalOpen = false;               // allow reopening
+                // Clear state on close
+                $('#confirmDeleteModal').removeData('payment-id');
+                $('#btnConfirmDelete')
+                  .prop('disabled', false)
+                  .html('<i class="ri-delete-bin-7-line me-1"></i> @(SharedLocalizer?["YesDelete"].Value ?? "Yes, delete")');
+                modalEl.removeEventListener('hidden.bs.modal', handleHidden);
+                // If you want to clear data or reset the modal internal state,
+                // you can do it here (e.g., remove any messages or fields)
+            });
+        });
+        // -------------------------------------------------
+        // 3) When the user confirms "Yes, delete" (btnConfirmDelete)
+        // -------------------------------------------------
+        $('#btnConfirmDelete').on('click', function() {
+          // Retrieve the ID saved on the modal
+          const paymentID = $('#confirmDeleteModal').data('payment-id');
+          // Disable the button to avoid multi-clicks
+          $(this).prop('disabled', true).html(
+            '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>'
+            + '@(SharedLocalizer?["Deleting"].Value ?? "Deleting…")'
+          );          // Make the AJAX call to delete
+          $.ajax({
+            url: '/internal/Payment/DeletePayment',
+            method: 'POST',
+            data: { paymentID: paymentID },
+            success: function(resp) {
+              // Re-enable the button and restore the text
+              $('#btnConfirmDelete').html('<i class="ri-delete-bin-7-line me-1"></i> @(SharedLocalizer?["YesDelete"].Value ?? "Yes, delete")');
+              // Close the confirmation modal
+              const modalEl = document.getElementById('confirmDeleteModal');
+              bootstrap.Modal.getInstance(modalEl)?.hide();
+              if (resp.success) {
+                // If you're using SignalR, "PaymentDeleted" will remove the row
+                // Otherwise, as a fallback, you can remove manually:
+                $(`tr[data-payment-id="${paymentID}"]`).fadeOut(300, function() {
+                  $(this).remove();
+                });
+              } else {
+                // Show error (use toastr, alert, etc.)
+                alert('@(SharedLocalizer?["DeleteError"].Value ?? "Delete error")' + ': ' + resp.message);
+              }
+            },
+            error: function() {
+              $('#btnConfirmDelete').html('<i class="ri-delete-bin-7-line me-1"></i> @(SharedLocalizer?["YesDelete"].Value ?? "Yes, delete")');
+              alert('@(SharedLocalizer?["ServerConnectionError"].Value ?? "Server connection error")');
+            },
+            complete: function() {
+              $('#btnConfirmDelete')
+                .prop('disabled', false)
+                .html('<i class="ri-delete-bin-7-line me-1"></i> @(SharedLocalizer?["YesDelete"].Value ?? "Yes, delete")');
+            }
+          });
+        });
+    </script>
+    <script name="btn-edit-payment">
+        let isEditModalOpen = false;
+        $(document).on('click', '.btn-edit-payment', function() {
+            if (isEditModalOpen) {
+                return;
+            }
+            isEditModalOpen = true;  // block subsequent openings
+            const $button = $(this);
+            const paymentID = $button.data('payment-id');
+            $button.prop('disabled', true).text('@(SharedLocalizer?["Editing"].Value ?? "Editing…")');
+            $('#modalContainer').load(`/internal/Payment/EditPaymentModal?paymentID=${paymentID}`, function() {
+                // Modal markup is inserted into #modalContainer here
+                const modalEl = document.getElementById('editPaymentModal');
+                const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl, {
+                    backdrop: 'static',
+                    keyboard: false
+                });
+                modalInstance.show();
+                // When the modal closes, reset the flag and re-enable the button
+                modalEl.addEventListener('hidden.bs.modal', function handleHidden() {
+                    isEditModalOpen = false;                  // allow future openings
+                    $button.prop('disabled', false).html('<i class="ri-pencil-line"></i>'); // Restore button text and state
+                    modalEl.removeEventListener('hidden.bs.modal', handleHidden);
+                    // Remove content to avoid duplicates:
+                    $('#modalContainer').empty();
+                });
+            });
+        });
+    </script>
+    <script name="search-modal">
+        $(document).on('click', '#SubmitButtonSearch', function(e) {
+            e.preventDefault();
+            // 1. Clear any error messages
+            $('.text-danger').text('');
+            $('.is-invalid').removeClass('is-invalid');
+            let isValid = true;
+            // 2. DATE VALIDATION: if both set, FromDate <= ToDate
+            const fromDateVal = $('#FromDate').val();
+            const toDateVal = $('#ToDate').val();
+            if (fromDateVal && toDateVal) {
+                const d1 = new Date(fromDateVal);
+                const d2 = new Date(toDateVal);
+                if (d1 > d2) {
+                    isValid = false;
+                    $('#FromDate').addClass('is-invalid');
+                    $('#ToDate').addClass('is-invalid');
+                    $('#Error_ToDate').text('@(SharedLocalizer?["EndDateMustBeAfterOrEqualToStartDate"].Value ?? "End date must be after or equal to start date")');
+                }
+            }
+            // 3. AMOUNT VALIDATION: if both set, MinAmount <= MaxAmount
+            const minAmt = parseFloat($('#MinAmount').val());
+            const maxAmt = parseFloat($('#MaxAmount').val());
+            if (!isNaN(minAmt) && !isNaN(maxAmt)) {
+                if (minAmt < 0) {
+                    isValid = false;
+                    $('#MinAmount').addClass('is-invalid');
+                    $('#Error_MinAmount').text('@(SharedLocalizer?["MinAmountCannotBeNegative"].Value ?? "Minimum amount cannot be negative")');
+                }
+                if (maxAmt < 0) {
+                    isValid = false;
+                    $('#MaxAmount').addClass('is-invalid');
+                    $('#Error_MaxAmount').text('@(SharedLocalizer?["MaxAmountCannotBeNegative"].Value ?? "Maximum amount cannot be negative")');
+                }
+                if (minAmt > maxAmt) {
+                    isValid = false;
+                    $('#MinAmount').addClass('is-invalid');
+                    $('#MaxAmount').addClass('is-invalid');
+                    $('#Error_MaxAmount').text('@(SharedLocalizer?["MaxAmountMustBeGreaterThanMin"].Value ?? "Maximum amount must be greater than minimum amount")');
+                }
+            }
+            // 4. ENTRY TYPE VALIDATION: (optional, no required selection here)
+                    // const entryTypeVal = $('#EntryType').val();
+                    // if (!entryTypeVal) {
+                        //  isValid = false;
+                        //  $('#EntryType').addClass('is-invalid');
+                        //  $('#Error_EntryType').text('Select an income type');
+                    // }
+                    // 5. PAYMENT METHOD VALIDATION: (optional, no required selection here)
+                    // const paymentMethodVal = $('#PaymentMethodID').val();
+                    // if (!paymentMethodVal) {
+                        //  isValid = false;
+                        //  $('#PaymentMethodID').addClass('is-invalid');
+                        //  $('#Error_PaymentMethodID').text('Select a payment method');
+                    // }
+            // 6. If there is at least one error, do not proceed and do not show loader
+            if (!isValid) {
+                return false;
+            }
+            // 7. If validation ok: disable "Filter" and show "Loading"
+            $('#SubmitButtonSearch').addClass('d-none');
+            $('#LoadingSearch').removeClass('d-none');
+            // 8. AJAX submit (post) to FilterPayments
+            const $form = $('#searchPaymentsForm');
+            // Normalize date range: set ToDate to end of day if present
+            const fromVal = $('#FromDate').val();
+            let toVal = $('#ToDate').val();
+            if (toVal && !/T\d{2}:\d{2}/.test(toVal)) {
+                toVal = toVal + 'T23:59:59';
+            }
+            // Build data while preserving other fields
+            const dataObj = $form.serializeArray().reduce(function (acc, cur) {
+                acc[cur.name] = cur.value;
+                return acc;
+            }, {});
+            if (fromVal) dataObj['FromDate'] = fromVal + (fromVal.includes('T') ? '' : 'T00:00:00');
+            if (toVal) dataObj['ToDate'] = toVal;
+            const formData = $.param(dataObj);
+            $.ajax({
+                url: '/internal/Payment/FilterPayments',
+                method: 'POST',
+                data: formData,
+                success: function(resp) {
+                    if (resp.success) {
+                        // Replace the payments list
+                        $('#paymentsList').html(resp.html);
+                        applyFriendlyPaymentDates(document.getElementById('paymentsList'));
+                        if (typeof updatePaymentTotals === 'function') { updatePaymentTotals(); }
+                        if (typeof refreshCashBalance === 'function') { refreshCashBalance(); }
+                        // Close the modal (optional)
+                        const modalEl = document.getElementById('editUser');
+                        bootstrap.Modal.getInstance(modalEl)?.hide();
+                    } else {
+                        alert(resp.message || '@(SharedLocalizer?["FilterError"].Value ?? "Filter error")');
+                    }
+                },
+                error: function() {
+                    alert('@(SharedLocalizer?["ServerConnectionError"].Value ?? "Server connection error")');
+                },
+                complete: function() {
+                    // Restore the "Filter" button
+                    $('#SubmitButtonSearch').removeClass('d-none');
+                    $('#LoadingSearch').addClass('d-none');
+                }
+            });
+            return false;
+        });
+    </script>
+    <script name="PaymentTotals">
+        // Calculate totals from rows currently visible in the table
+        function updatePaymentTotals() {
+            try {
+                const CASH_ID = "00000000-0000-0000-0000-000000000002";
+                const POS_ID  = "00000000-0000-0000-0000-000000000001";
+                let CashAmountTotal = 0;
+                let cashTotal = 0;
+                let electronicTotal = 0;
+
+                $('#paymentsList table tbody tr').each(function () {
+                    const $tr = $(this);
+                    const amountRaw = $tr.attr('data-amount');
+                    const entryType = String($tr.attr('data-entry-type') || '').toLowerCase();
+                    const paymentMethodId = String($tr.attr('data-payment-method-id') || '');
+
+                    // Try to read amount from attributes; if not available, skip
+                    let amount = Number(amountRaw);
+                    if (!Number.isFinite(amount) && amountRaw != null) {
+                        amount = Number(String(amountRaw).replace(',', '.'));
+                    }
+                    if (!Number.isFinite(amount)) return;
+
+                    const sign = entryType === 'income' ? 1 : (entryType === 'outcome' ? -1 : 0);
+                    if (paymentMethodId && paymentMethodId.toLowerCase() === CASH_ID.toLowerCase()) {
+                        cashTotal += sign * amount;
+                        if(entryType === 'income')
+                            CashAmountTotal += sign * amount;
+                    }
+                    if (paymentMethodId && paymentMethodId.toLowerCase() === POS_ID.toLowerCase()) {
+                        // Only income, not outcomes
+                        if(entryType === 'income')
+                            electronicTotal += amount;
+                    }
+                });
+
+                $('#DailyCashTotal').text('\u20AC ' + formatAmountIt(CashAmountTotal));
+                $('#DailyElectronicPaymentsTotal').text('\u20AC ' + formatAmountIt(electronicTotal));
+            } catch (err) {
+                console && console.debug && console.debug('updatePaymentTotals error', err);
+            }
+        }
+        // Calculate on first load
+        $(function(){ updatePaymentTotals(); });
+    </script>
+    <script name="CashBalance">
+        function refreshCashBalance() {
+            try {
+                if (!$("#CashAmountTotal").length) return; // only if widget is visible
+                $.getJSON("/internal/Payment/GetCashBalance", function(resp) {
+                    if (resp && resp.success) {
+                        const val = Number(resp.amount);
+                        $("#CashAmountTotal").text("\u20AC " + formatAmountIt(val));
+                    }
+                });
+            } catch (e) {
+                console && console.debug && console.debug("refreshCashBalance error", e);
+            }
+        }
+        $(function(){ refreshCashBalance(); });
+    </script>
+    <script name="DayNavigation">
+        // Single source of truth: Flatpickr instance on #dayPicker
+        const fp = flatpickr("#dayPicker", {
+            locale: "it",
+            dateFormat: "Y-m-d",      // submitted value (ISO-like)
+            altInput: true,
+            altFormat: "l, j M Y",    // human label
+            allowInput: true,
+            defaultDate: new Date(),
+            inline: false,
+            // When the date changes (by calendar, typing, or programmatic setDate with trigger=true),
+            // load the selected day exactly once.
+            onChange: function(selectedDates, dateStr) {
+                if (!dateStr) { return; }
+                // Persist selected ISO day for other handlers
+                $('#paymentsList').attr('data-day', dateStr);
+                loadDay(dateStr);
+                // Update add button state against today
+                updateAddButtonState();
+            }
+        });
+        // Expose instance and persist initial ISO day
+        try {
+            window.dayPickerFp = fp;
+            const initialIso = fp && fp.selectedDates && fp.selectedDates[0]
+                ? fp.formatDate(fp.selectedDates[0], 'Y-m-d')
+                : (document.getElementById('dayPicker')?.value || '');
+            if (initialIso) $('#paymentsList').attr('data-day', initialIso);
+            // Initialize add button state on load
+            updateAddButtonState();
+        } catch(_) { /* noop */ }
+
+        // Prev/Next buttons only move the flatpickr date; onChange above will fire the load.
+        document.getElementById("dayPrev").addEventListener("click", () => shiftDay(-1));
+        document.getElementById("dayNext").addEventListener("click", () => shiftDay(1));
+
+        function shiftDay(delta) {
+            const base = fp.selectedDates[0] ? new Date(fp.selectedDates[0]) : new Date();
+            // Normalize to local midnight to avoid TZ drift, then add delta days
+            const normalized = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+            normalized.setDate(normalized.getDate() + delta);
+            // true => trigger input change event so onChange runs
+            fp.setDate(normalized, true);
+        }
+
+        function loadDay(dateIso) {
+            const $prev = $('#dayPrev');
+            const $next = $('#dayNext');
+            $prev.prop('disabled', true);
+            $next.prop('disabled', true);
+            // Persist requested day for SignalR gating even if HTML refresh occurs
+            $('#paymentsList').attr('data-day', dateIso);
+
+            $.ajax({
+                url: '/internal/Payment/FilterPayments',
+                method: 'POST',
+                data: {
+                    FromDate: dateIso + 'T00:00:00',
+                    ToDate:   dateIso + 'T23:59:59',
+                    IncludeAllUsers: true
+                },
+                success: function (resp) {
+                    if (resp && resp.success) {
+                        $('#paymentsList').html(resp.html);
+                        applyFriendlyPaymentDates(document.getElementById('paymentsList'));
+                        if (typeof updatePaymentTotals === 'function') { updatePaymentTotals(); }
+                        if (typeof refreshCashBalance === 'function') { refreshCashBalance(); }
+                    } else {
+                        alert((resp && resp.message) || '@(SharedLocalizer?["FilterError"].Value ?? "Filter error")');
+                    }
+                },
+                error: function () {
+                    alert('@(SharedLocalizer?["ServerConnectionError"].Value ?? "Server connection error")');
+                },
+                complete: function () {
+                    $prev.prop('disabled', false);
+                    $next.prop('disabled', false);
+                }
+            });
+        }
+
+        // Optional: if you want to immediately sync the list to the picker value on page load,
+        // uncomment the following two lines.
+        // const initialIso = fp.formatDate(fp.selectedDates[0] || new Date(), 'Y-m-d');
+        // loadDay(initialIso);
+
+        // ---------------------------------------------
+        // Add Payment button: disable when not today
+        // and show a popover to quickly return to today
+        // ---------------------------------------------
+        function todayIso() {
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function goToToday() {
+            try {
+                fp.setDate(new Date(), true); // triggers onChange -> loadDay + state update
+            } catch (_) { /* noop */ }
+            const wrapper = document.getElementById('addPaymentWrapper');
+            if (wrapper) {
+                const inst = window.bootstrap && window.bootstrap.Popover ? window.bootstrap.Popover.getInstance(wrapper) : null;
+                inst && inst.hide();
+            }
+        }
+
+     function updateAddButtonState() {
+            const btn = document.getElementById('openModalButton');
+            const wrapper = document.getElementById('addPaymentWrapper');
+            if (!btn) return;
+            const displayed = getDisplayedDayIso();
+            const isToday = displayed === todayIso();
+            btn.disabled = !isToday;
+            btn.setAttribute('aria-disabled', String(!isToday));
+
+            const title = '@(SharedLocalizer?["AddPayment"].Value ?? "Add Payment")';
+            const hint = '@(SharedLocalizer?["OnlyTodayAddPayment"].Value ?? "You can add payments only for today.")';
+            const action = '@(SharedLocalizer?["ReturnToToday"].Value ?? "Return to today")';
+
+            // Dispose existing popover if any
+            if (window.bootstrap && window.bootstrap.Popover) {
+                const target = wrapper || btn;
+                const existing = window.bootstrap.Popover.getInstance(target);
+                if (existing) {
+                  existing.dispose();
+                }
+
+                if (!isToday) {
+                    const pop = new window.bootstrap.Popover(target, {
+                        container: 'body',
+                        trigger: 'manual',
+                        placement: 'bottom',
+                        html: true,
+                        sanitize: false,
+                        title: title,
+                        template: `
+                        <div class="popover" role="tooltip">
+                            <div class="popover-arrow"></div>
+                            <div class="popover-body"></div>
+                        </div>`,                        
+                        content: `
+                        <div class="text-center">${hint}
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-sm btn-primary" id="goTodayBtn">${action}</button>
+                            </div>
+                        </div>`
+                    });
+
+                    // Hover-to-open, close-on-leave handlers
+                    let hideTimer = null;
+                    let hoverCount = 0; // how many "active zones" are under the pointer (target or popover)
+
+                    const isShown = () => {
+                    const tip = (pop && (pop.tip || (pop.getTipElement && pop.getTipElement()))) || null;
+                    return !!(tip && tip.classList.contains('show'));
+                    };
+                    const cancelHide = () => { if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; } };
+                    const scheduleHide = () => {
+                    if (hideTimer) return; // avoid timer spam
+                    hideTimer = setTimeout(() => {
+                        hideTimer = null;
+                        if (hoverCount === 0 && isShown()) {
+                        pop.hide();
+                        }
+                    }, 250);
+                    };
+                    const ensureShown = () => {
+                    if (!isShown() && pop && typeof pop.show === 'function' && target && target.isConnected) {
+                        try { pop.show(); } catch (e) { console.debug('popover show (simplified) error', e); }
+                    }
+                    };
+
+                    // Target (button/wrapper) -> open and keep alive
+                    const onTargetEnter = () => { hoverCount++; cancelHide(); ensureShown(); };
+                    const onTargetLeave = () => { hoverCount = Math.max(hoverCount - 1, 0); scheduleHide(); };
+
+                    target.addEventListener('pointerenter', onTargetEnter);
+                    target.addEventListener('pointerleave', onTargetLeave);
+
+                    // When the popover is shown, attach handlers to the tip
+                    target.addEventListener('shown.bs.popover', function onShown() {
+                    const tips = document.querySelectorAll('.popover');
+                    const tipEl =
+                        (pop && (pop.tip || (pop.getTipElement && pop.getTipElement()))) ||
+                        (tips.length ? tips[tips.length - 1] : null);
+                    if (!tipEl) return;
+
+                    const onTipEnter = () => { hoverCount++; cancelHide(); };
+                    const onTipLeave = () => { hoverCount = Math.max(hoverCount - 1, 0); scheduleHide(); };
+
+                    tipEl.addEventListener('pointerenter', onTipEnter);
+                    tipEl.addEventListener('pointerleave', onTipLeave);
+
+                    // ESC to close while inside the popover (accessibility)
+                    tipEl.addEventListener('keydown', (ev) => {
+                        if (ev.key === 'Escape') { hoverCount = 0; cancelHide(); pop.hide(); }
+                    });
+
+                    // "Return to today" button
+                    const el = document.getElementById('goTodayBtn');
+                    if (el) {
+                        el.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        goToToday();
+                        pop.hide();
+                        }, { once: true });
+                    }
+
+                    // Cleanup on close
+                    const onHidden = function () {
+                        tipEl.removeEventListener('pointerenter', onTipEnter);
+                        tipEl.removeEventListener('pointerleave', onTipLeave);
+                        target.removeEventListener('hidden.bs.popover', onHidden);
+                        hoverCount = 0;
+                        cancelHide();
+                    };
+                    target.addEventListener('hidden.bs.popover', onHidden);
+                    });
+                }
+            }
+        }
+    </script>
+
+}
+
+
+
+@* Page header (Tabler style) *@
+<div class="page-header d-print-none mb-4">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2 class="page-title">@(SharedLocalizer?["PaymentsList"].Value ?? "Payments")</h2>
+      <div class="text-secondary mt-1">@(SharedLocalizer?["DailyTransactionsList"].Value ?? "Daily transactions")</div>
+    </div>
+    <div class="col-auto ms-auto d-print-none">
+      <div class="btn-list">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editUser">
+          <i class="ri-search-2-line me-2"></i> @(SharedLocalizer?["Search"].Value ?? "Search")
+        </button>
+        <span id="addPaymentWrapper" class="d-inline-block">
+          <button id="openModalButton" type="button" class="btn btn-success">
+            <i class="ri-add-large-line me-2"></i>
+            @(SharedLocalizer?["AddPayment"].Value ?? "Add Payment")
+          </button>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+@* KPI widgets *@
+<div class="row row-cards mb-4" id="reports">
+  @{ var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "CompanyAdmin"); }
+
+  @if (isAdmin)
+  {
+    <div class="col-12 col-sm-6 col-lg-4">
+      @await Html.PartialAsync("Partials/_WidgetCard", ("CashAmountTotal", Localizer["CashAmountTotal"].Value, "ri ri-user-line", "h-100"))
+    </div>
+  }
+
+  <div class="col-12 col-sm-6 @(isAdmin ? "col-lg-4" : "col-lg-6")">
+    @await Html.PartialAsync("Partials/_WidgetCard", ("DailyCashTotal", Localizer["DailyCashTotal"].Value, "ri ri-pages-line", "h-100"))
+  </div>
+
+  <div class="col-12 col-sm-6 @(isAdmin ? "col-lg-4" : "col-lg-6")">
+    @await Html.PartialAsync("Partials/_WidgetCard", ("DailyElectronicPaymentsTotal", Localizer["DailyElectronicPaymentsTotal"].Value, "ri ri-wallet-line", "h-100"))
+  </div>
+</div>
+
+@* List *@
+<div class="card">
+  <div class="card-header">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-2 w-100">
+
+      <div class="d-flex align-items-center gap-2">
+        <h3 class="card-title mb-0">@(SharedLocalizer?["DailyTransactionsList"].Value ?? "Daily transactions")</h3>
+        <button type="button" id="compactViewToggle" class="btn btn-outline-secondary btn-sm"
+                title="@(SharedLocalizer?["ToggleCompactView"]?.Value ?? "Toggle Compact View")">
+          <i class="ri-layout-row-line"></i>
+        </button>
+      </div>
+
+      <div class="d-flex flex-wrap justify-content-end align-items-center gap-2" id="dayNav">
+        <div class="input-group input-group-sm">
+          <button class="btn btn-outline-secondary" type="button" id="dayPrev" title="@(SharedLocalizer?["PreviousDay"].Value ?? "Previous day")">
+            <i class="ri-arrow-left-s-line"></i>
+          </button>
+          <input type="text" class="form-control" id="dayPicker" style="width: 220px;" />
+          <button class="btn btn-outline-secondary" type="button" id="dayNext" title="@(SharedLocalizer?["NextDay"].Value ?? "Next day")">
+            <i class="ri-arrow-right-s-line"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="paymentsList">
+    @await Html.PartialAsync("Partials/_PaymentsList", Model)
+  </div>
+</div>
+
+<div id="modalContainer"></div>
+@await Html.PartialAsync("Components/_ConfirmDeleteModal")
+@await Component.InvokeAsync("SearchPaymentsModal")

@@ -1,6 +1,6 @@
 using OpenCashFlow.Test.Factories;
 using OpenCashFlow.Test.Fixtures;
-using global::Shared.DTOs;
+using OpenCashFlow.Contracts.DTOs;
 using System.Net;
 using System.Text.Json;
 using Xunit;

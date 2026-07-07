@@ -1,5 +1,5 @@
-﻿using global::Shared.Models;
-using global::Shared.Models.Core;
+﻿using OpenCashFlow.Infrastructure.Persistence.Entities;
+using OpenCashFlow.Infrastructure.Persistence.Entities.Core;
 
 public partial class AuthenticationAPIService
 {

@@ -1,8 +1,9 @@
 using AutoMapper;
-using OpenCashFlow.Shared.Mappings;
+using OpenCashFlow.API.Mapping;
 using OpenCashFlow.Test.Utilities;
 using Microsoft.EntityFrameworkCore;
-using global::Shared.Data; // ✅ Usa il vero ApplicationDbContext
+using Microsoft.Extensions.Logging.Abstractions;
+using OpenCashFlow.Infrastructure.Persistence; // ✅ Usa il vero ApplicationDbContext
 
 public abstract class BaseTest
 {
@@ -13,7 +14,7 @@ public abstract class BaseTest
         var config = new MapperConfiguration(cfg =>
         {
             cfg.AddProfile<MappingProfile>();
-        });
+        }, NullLoggerFactory.Instance);
         _mapper = config.CreateMapper();
     }
 

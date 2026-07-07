@@ -100,9 +100,9 @@ jobs:
           # Connection string for API (provide both common keys)
           export DB_CS="Host=127.0.0.1;Port=5432;Database=opencashflow;Username=opencashflow;Password=opencashflow"
 
-          # Start APP and API with logs
-          nohup bash -lc 'ASPNETCORE_URLS=${ASPNETCORE_URLS_APP} dotnet run --project OpenCashFlow.App --no-build > app.log 2>&1' &
-          nohup bash -lc 'ASPNETCORE_URLS=${ASPNETCORE_URLS_API} ConnectionStrings__Default=${DB_CS} ConnectionStrings__DefaultConnection=${DB_CS} dotnet run --project OpenCashFlow.Api --no-build > api.log 2>&1' &
+          # Start WebApp and API with logs
+          nohup bash -lc 'ASPNETCORE_URLS=${ASPNETCORE_URLS_APP} dotnet run --project src/OpenCashFlow.WebApp/OpenCashFlow.WebApp.csproj --no-build > app.log 2>&1' &
+          nohup bash -lc 'ASPNETCORE_URLS=${ASPNETCORE_URLS_API} ConnectionStrings__Default=${DB_CS} ConnectionStrings__DefaultConnection=${DB_CS} dotnet run --project src/OpenCashFlow.API/OpenCashFlow.API.csproj --no-build > api.log 2>&1' &
 
           APP_HEALTH="${TARGET_APP%/}/healthz"
           API_HEALTH="${TARGET_API%/}/healthz"

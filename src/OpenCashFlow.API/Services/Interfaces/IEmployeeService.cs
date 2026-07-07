@@ -1,4 +1,4 @@
-﻿using global::Shared.DTOs.Employees;
+﻿using OpenCashFlow.Contracts.DTOs.Employees;
 
 namespace OpenCashFlow.API.Services.Interfaces
 {

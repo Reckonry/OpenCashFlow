@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace OpenCashFlow.API.Controllers
 {
     public partial class AuthenticationController : ControllerBase
     {
         [HttpPost("forgot-password")]
+        [EnableRateLimiting("auth-limiter")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
         {
             try
@@ -25,6 +27,7 @@ namespace OpenCashFlow.API.Controllers
         }
 
         [HttpPost("reset-password")]
+        [EnableRateLimiting("auth-limiter")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
         {
             try
@@ -34,16 +37,13 @@ namespace OpenCashFlow.API.Controllers
                     return BadRequest(new { message = "Token and new password are required" });
                 }
 
-                var decodedToken = TryDecodeBase64Url(request.Token) ?? request.Token;
-
-                // Extract UserID from the token (DB/token store) using the decoded token
-                var userIdFromToken = await ExtractUserIdFromToken(decodedToken, cancellationToken);
+                var userIdFromToken = await ExtractUserIdFromToken(request.Token, cancellationToken);
                 if (userIdFromToken == null)
                 {
                     return BadRequest(new { message = "Token is invalid or expired" });
                 }
 
-                await _authenticationService.ResetPasswordAsync(userIdFromToken.Value, decodedToken, request.NewPassword, cancellationToken);
+                await _authenticationService.ResetPasswordAsync(userIdFromToken.Value, request.Token, request.NewPassword, cancellationToken);
                 return Ok(new { message = "Password reset completed successfully" });
             }
             catch (UnauthorizedAccessException ex)
@@ -62,15 +62,11 @@ namespace OpenCashFlow.API.Controllers
         {
             try
             {
-                // Test basic dependency injection
-                var isEmployeeRepoNull = _employeeRepository == null;
                 var isAuthServiceNull = _authenticationService == null;
 
-                _logger.LogInformation("Testing configuration. EmployeeRepo is null: {EmployeeRepoNull}, AuthService is null: {AuthServiceNull}",
-                    isEmployeeRepoNull, isAuthServiceNull);
+                _logger.LogInformation("Testing configuration. AuthService is null: {AuthServiceNull}", isAuthServiceNull);
 
                 return Ok(new {
-                    employeeRepositoryAvailable = !isEmployeeRepoNull,
                     authenticationServiceAvailable = !isAuthServiceNull,
                     message = "Configuration test completed"
                 });
@@ -92,14 +88,13 @@ namespace OpenCashFlow.API.Controllers
                     return BadRequest(new { message = "Token is required" });
                 }
 
-                var decoded = TryDecodeBase64Url(token) ?? token;
-                var (isValid, isExpired, user) = await _employeeRepository.ValidateResetTokenAsync(decoded, cancellationToken);
+                var validation = await _authenticationService.ValidateResetTokenAsync(token, cancellationToken);
 
                 return Ok(new {
-                    isValid = isValid,
-                    isExpired = isExpired,
-                    message = isValid ? "Token is valid" :
-                             isExpired ? "Token expired" : "Token is invalid"
+                    isValid = validation.IsValid,
+                    isExpired = validation.IsExpired,
+                    message = validation.IsValid ? "Token is valid" :
+                             validation.IsExpired ? "Token expired" : "Token is invalid"
                 });
             }
             catch (Exception ex)
@@ -113,7 +108,7 @@ namespace OpenCashFlow.API.Controllers
         {
             try
             {
-                return await _employeeRepository.GetUserIdFromResetTokenAsync(token, cancellationToken);
+                return await _authenticationService.GetUserIdFromResetTokenAsync(token, cancellationToken);
             }
             catch
             {

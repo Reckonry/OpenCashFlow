@@ -1,484 +1,409 @@
-﻿using AutoMapper;
-using OpenCashFlow.API.Repositories.Interfaces;
-using OpenCashFlow.API.Services.Interfaces;
-using global::Shared.Core;
-using global::Shared.DTOs.Employees;
-using global::Shared.Models;
-using global::Shared.Models.Identity;
-using global::Shared.Services.Interfaces;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text.RegularExpressions;
-using System.Globalization;
-using System.Text;
+﻿using OpenCashFlow.API.Services.Interfaces;
+using OpenCashFlow.Application.Employees.CreateEmployee;
+using OpenCashFlow.Application.Employees.DeleteEmployee;
+using OpenCashFlow.Application.Employees.GetEmployeeDetail;
+using OpenCashFlow.Application.Employees.GetEmployees;
+using OpenCashFlow.Application.Employees.Models;
+using OpenCashFlow.Application.Employees.ResendPin;
+using OpenCashFlow.Application.Employees.UpdateEmployee;
+using OpenCashFlow.Application.Employees.UpdateMyProfile;
+using OpenCashFlow.Contracts.DTOs.Employees;
 
 namespace OpenCashFlow.API.Services
 {
     public class EmployeeService : IEmployeeService
     {
-        private readonly IEmployeeRepository _employeeRepository;
         private readonly IAuthenticationService _authenticationService;
-        private readonly IMapper _mapper;
-        private readonly IEmailSender _emailSender;
-        private readonly IWebHostEnvironment _env;
+        private readonly IGetEmployeesUseCase _getEmployeesUseCase;
+        private readonly IGetEmployeeDetailUseCase _getEmployeeDetailUseCase;
+        private readonly ICreateEmployeeUseCase _createEmployeeUseCase;
+        private readonly IUpdateEmployeeUseCase _updateEmployeeUseCase;
+        private readonly IDeleteEmployeeUseCase _deleteEmployeeUseCase;
+        private readonly IUpdateMyProfileUseCase _updateMyProfileUseCase;
+        private readonly IResendEmployeePinUseCase _resendEmployeePinUseCase;
 
-        // Username policy / limits
-        private const int PolicyMaxUserNameLength = 40;     // soft UX limit
-        private const int DbMaxUserNameLength = 256;        // hard DB column size (varchar(256))
-        private static readonly int MaxUserNameLength = Math.Min(PolicyMaxUserNameLength, DbMaxUserNameLength);
-        private const string DefaultUserBase = "user";
-
-        // Sanitization helpers
-        private static readonly Regex AllowedUsernameCharsRegex = new("[^a-z0-9._-]+", RegexOptions.Compiled);
-        private static readonly Regex RepeatSeparatorsRegex = new("[._-]{2,}", RegexOptions.Compiled);
-        private static readonly Regex EdgeSeparatorsRegex = new("^[._-]+|[._-]+$", RegexOptions.Compiled);
-
-        public EmployeeService(IEmployeeRepository EmployeeRepository, IAuthenticationService authenticationService, IMapper mapper, IEmailSender emailSender, IWebHostEnvironment env)
+        public EmployeeService(
+            IAuthenticationService authenticationService,
+            IGetEmployeesUseCase getEmployeesUseCase,
+            IGetEmployeeDetailUseCase getEmployeeDetailUseCase,
+            ICreateEmployeeUseCase createEmployeeUseCase,
+            IUpdateEmployeeUseCase updateEmployeeUseCase,
+            IDeleteEmployeeUseCase deleteEmployeeUseCase,
+            IUpdateMyProfileUseCase updateMyProfileUseCase,
+            IResendEmployeePinUseCase resendEmployeePinUseCase)
         {
-            _employeeRepository = EmployeeRepository;
             _authenticationService = authenticationService;
-            _mapper = mapper;
-            _emailSender = emailSender;
-            _env = env;
+            _getEmployeesUseCase = getEmployeesUseCase;
+            _getEmployeeDetailUseCase = getEmployeeDetailUseCase;
+            _createEmployeeUseCase = createEmployeeUseCase;
+            _updateEmployeeUseCase = updateEmployeeUseCase;
+            _deleteEmployeeUseCase = deleteEmployeeUseCase;
+            _updateMyProfileUseCase = updateMyProfileUseCase;
+            _resendEmployeePinUseCase = resendEmployeePinUseCase;
         }
 
         public async Task<IEnumerable<Employee_List_DTO>?> GetEmployeesAsync(CancellationToken cancellationToken)
         {
-            return _mapper.Map<IEnumerable<Employee_List_DTO>>(
-                await _employeeRepository.GetEmployeesAsync(_authenticationService.GetTenantID(), cancellationToken));
+            var employees = await _getEmployeesUseCase.ExecuteAsync(_authenticationService.GetTenantID(), cancellationToken);
+            return employees.Select(MapEmployeeList).ToList();
         }
 
         public async Task<Employee_Detail_DTO?> GetEmployeesByIDAsync(Guid UserID, CancellationToken cancellationToken)
         {
-            var employee = await _employeeRepository.GetEmployeeByIdAsync(UserID, _authenticationService.GetTenantID(), cancellationToken);
-            return _mapper.Map<Employee_Detail_DTO?>(employee);
+            var employee = await _getEmployeeDetailUseCase.ExecuteAsync(UserID, _authenticationService.GetTenantID(), cancellationToken);
+            return employee is null ? null : MapEmployeeDetail(employee);
         }
 
         public async Task<Employee_Detail_DTO> CreateEmployeeAsync(Employee_Create_DTO model, CancellationToken cancellationToken)
         {
-            // Server-side validation for required fields not enforced by attributes (e.g., Guid default)
-            if (string.IsNullOrWhiteSpace(model.Email))
-                throw new ArgumentException("Email is required", nameof(model.Email));
-            if (string.IsNullOrWhiteSpace(model.TmpNewPassword))
-                throw new ArgumentException("Password is required", nameof(model.TmpNewPassword));
-
-            // Password policy validation: min 8 chars, upper, lower, digit, special
-            if (!IsStrongPassword(model.TmpNewPassword))
-                throw new ArgumentException("Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character.", nameof(model.TmpNewPassword));
-
-            // The PIN no longer comes from the client: generate it here and ensure uniqueness per company
-            var companyId = _authenticationService.GetTenantID();
-            var generatedPin = await GenerateUniquePinAsync(companyId, cancellationToken);
-            model.TmpFastLoginPin = generatedPin;
-
-            // Pre-generate the UserID so we can derive a deterministic username with a short GUID tag
-            model.UserID = Guid.NewGuid();
-
-            // Username: human-friendly slug + short GUID tag (no DB lookup), obeys 40/256 limits
-            model.UserName = GenerateUsernameFromGuid(model, model.UserID);
-
-            // Ensure the fast login PIN is not already used within the company
-
-            // Basic duplicate checks (by username/email)
-            var existingByEmail = await _employeeRepository.GetUserByEmailAsync(model.Email, cancellationToken);
-            if (existingByEmail != null)
-                throw new InvalidOperationException("Email already exists");
-
-            model.TenantID = companyId;
-            model.CreatedBy = _authenticationService.GetUserID();
-            model.IsApproved = true; // user created by the system -> already approved
-            await _employeeRepository.CreateEmployeeAsync(model, cancellationToken);
-            var newEmployee = await GetEmployeesByIDAsync(model.UserID, cancellationToken);
-
-            // Send an email with the PIN to the new user using the HTML template
-            try
-            {
-                if (!string.IsNullOrWhiteSpace(model.Email))
-                {
-                    var displayName = string.Join(" ", new[] { model.UserFirstName, model.UserLastName }.Where(s => !string.IsNullOrWhiteSpace(s)));
-                    var subject = "Welcome to OpenCashFlow - Your fast login PIN";
-
-                    var templatePath = Path.Combine(_env.ContentRootPath, "EmailTemplates", "EmployeeCreatedFastLoginPin.html");
-                    string htmlContent;
-
-                    if (File.Exists(templatePath))
-                    {
-                        htmlContent = await File.ReadAllTextAsync(templatePath);
-                        htmlContent = htmlContent
-                            .Replace("{{FirstName}}", System.Net.WebUtility.HtmlEncode(model.UserFirstName ?? displayName))
-                            .Replace("{{Email}}", System.Net.WebUtility.HtmlEncode(model.Email))
-                            .Replace("{{FastLoginPin}}", System.Net.WebUtility.HtmlEncode(generatedPin));
-                    }
-                    else
-                    {
-                        // Fallback if the template is not available
-                        htmlContent = $@"<p>Hi {System.Net.WebUtility.HtmlEncode(displayName)},</p>
-                                         <p>Your fast login PIN is: <strong>{generatedPin}</strong>.</p>
-                                         <p>Keep it safe and do not share it with anyone.</p>
-                                         <p>– OpenCashFlow</p>";
-                    }
-
-                    await _emailSender.SendEmailAsync(
-                        new EmailMessage(subject, htmlContent)
-                        {
-                            FromName = "OpenCashFlow — PIN"
-                        },
-                        displayName,
-                        model.Email
-                    );
-                }
-            }
-            catch
-            {
-                // Do not block creation if email sending fails
-            }
-            return newEmployee ?? throw new InvalidOperationException("Employee retrieval failed after creation.");
-        }
-
-        // Preferred: GUID-based deterministic username (human slug + short guid tag)
-        private static string GenerateUsernameFromGuid(Employee_Create_DTO model, Guid userId)
-        {
-            var slug = BuildUsernameSeed(model);
-            slug = SanitizeUsername(slug);
-            if (string.IsNullOrWhiteSpace(slug)) slug = DefaultUserBase;
-
-            var tag = userId.ToString("N").Substring(0, 6).ToLowerInvariant(); // 6-char tag
-            var reserved = 1 + tag.Length; // '-' + tag
-            var headLen = Math.Max(1, MaxUserNameLength - reserved);
-            var head = Truncate(slug, headLen);
-            return $"{head}-{tag}";
-        }
-
-        private static string BuildUsernameSeed(Employee_Create_DTO model)
-        {
-            var pieces = new[]
-            {
-                model.UserFirstName,
-                model.UserLastName
-            }
-            .Where(s => !string.IsNullOrWhiteSpace(s))
-            .Select(s => s!.Trim());
-
-            var fromNames = string.Join(".", pieces);
-            if (!string.IsNullOrWhiteSpace(fromNames))
-                return fromNames;
-
-            if (!string.IsNullOrWhiteSpace(model.Email))
-            {
-                var localPart = model.Email.Split('@')[0];
-                if (!string.IsNullOrWhiteSpace(localPart))
-                    return localPart;
-            }
-
-            return "user";
-        }
-
-        private static string SanitizeUsername(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input))
-                return string.Empty;
-
-            // Lowercase + remove diacritics
-            var s = RemoveDiacritics(input).ToLowerInvariant();
-
-            // Keep only allowed chars
-            s = AllowedUsernameCharsRegex.Replace(s, string.Empty);
-
-            // Collapse repeated separators (.. -> . , __ -> _ , -- -> -)
-            s = RepeatSeparatorsRegex.Replace(s, m => m.Value[0].ToString());
-
-            // Trim separators at the edges
-            s = EdgeSeparatorsRegex.Replace(s, string.Empty);
-
-            return s;
-        }
-
-        private static string RemoveDiacritics(string text)
-        {
-            var normalized = text.Normalize(NormalizationForm.FormD);
-            var sb = new StringBuilder(capacity: normalized.Length);
-            foreach (var c in normalized)
-            {
-                var uc = CharUnicodeInfo.GetUnicodeCategory(c);
-                if (uc != UnicodeCategory.NonSpacingMark)
-                    sb.Append(c);
-            }
-            return sb.ToString().Normalize(NormalizationForm.FormC);
-        }
-
-        private static string Truncate(string value, int maxLength)
-        {
-            if (string.IsNullOrEmpty(value) || value.Length <= maxLength)
-                return value;
-            return value.Substring(0, maxLength);
+            var result = await _createEmployeeUseCase.ExecuteAsync(MapCreateCommand(model), cancellationToken);
+            return MapEmployeeDetail(result.Employee);
         }
 
         public async Task<Employee_Update_Response_DTO> UpdateEmployeeAsync(Guid userID, Employee_Update_DTO model, CancellationToken cancellationToken)
         {
-            var employee = await _employeeRepository.GetEmployeeByIdAsync(userID, _authenticationService.GetTenantID(), cancellationToken);
-            if (employee == null)
-                return new Employee_Update_Response_DTO
-                {
-                    Success = false,
-                    Message = "Employee not found"
-                };
-
-            bool emailChanged = false;
-            string? oldEmail = employee.User?.Email;
-
-            // Validate email uniqueness if email is being changed
-            if (!string.IsNullOrWhiteSpace(model.Email) &&
-                !string.Equals(employee.User?.Email, model.Email, StringComparison.OrdinalIgnoreCase))
-            {
-                emailChanged = true;
-
-                // Validate email format
-                if (!IsValidEmail(model.Email))
-                    throw new ArgumentException("Invalid email format", nameof(model.Email));
-
-                // Check if email is already used by another user
-                var emailInUse = await _employeeRepository.IsEmailInUseByOtherUserAsync(model.Email, userID, cancellationToken);
-                if (emailInUse)
-                    throw new InvalidOperationException("Email already used by another employee");
-            }
-
-            model.UserID = userID;
-            model.TenantID = _authenticationService.GetTenantID();
-            model.EditedBy = _authenticationService.GetUserID();
-            model.DateEdit = DateTime.UtcNow;
-
-            // If email changed, keep user active (no need for confirmation)
-            if (emailChanged)
-            {
-                // Email is immediately active - no confirmation required
-                model.EmailConfirmed = true;
-                model.IsApproved = true;
-            }
-
-            await _employeeRepository.UpdateEmployeeAsync(model, cancellationToken);
-
-            bool pinSentSuccessfully = true;
-            // If email changed, resend PIN to new email
-            if (emailChanged && !string.IsNullOrWhiteSpace(model.Email))
-            {
-                try
-                {
-                    await ResendPinToUpdatedEmailAsync(userID, model.Email, oldEmail, cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    pinSentSuccessfully = false;
-                    // Log error but don't fail the update operation
-                    // The employee data was successfully updated, email sending is secondary
-                    Console.WriteLine($"[EmployeeService ERROR] Failed to send PIN to new email {model.Email}: {ex.Message}");
-                }
-            }
-
-            // Build response message based on what happened
-            string message;
-            if (emailChanged)
-            {
-                if (pinSentSuccessfully)
-                {
-                    message = $"Employee updated successfully. PIN sent to the new email address: {model.Email}";
-                }
-                else
-                {
-                    message = $"Employee updated successfully, but there was an error sending the PIN to the new email address: {model.Email}";
-                }
-            }
-            else
-            {
-                message = "Employee updated successfully";
-            }
-
+            var result = await _updateEmployeeUseCase.ExecuteAsync(MapUpdateCommand(userID, model), cancellationToken);
             return new Employee_Update_Response_DTO
             {
-                Success = true,
-                EmailChanged = emailChanged,
-                PinSentSuccessfully = emailChanged ? pinSentSuccessfully : true, // If email didn't change, no PIN to send
-                Message = message,
-                NewEmail = emailChanged ? model.Email : null
+                Success = result.Success,
+                EmailChanged = result.EmailChanged,
+                PinSentSuccessfully = result.PinSentSuccessfully,
+                Message = result.Message,
+                NewEmail = result.NewEmail
             };
         }
 
         public async Task<bool> DeleteEmployeeAsync(Guid userID, CancellationToken cancellationToken)
         {
-            var employee = await _employeeRepository.GetEmployeeByIdAsync(userID, _authenticationService.GetTenantID(), cancellationToken);
-            if (employee?.User == null)
-                return false;
-
-            // Prevent deletion of the current user (self-deletion)
-            var currentUserId = _authenticationService.GetUserID();
-            if (userID == currentUserId)
-                throw new InvalidOperationException("You cannot delete your own account");
-
-            // Perform soft delete
-            await _employeeRepository.DeleteEmployeeAsync(employee.User, cancellationToken);
-            return true;
+            return await _deleteEmployeeUseCase.ExecuteAsync(
+                userID,
+                _authenticationService.GetTenantID(),
+                _authenticationService.GetUserID(),
+                cancellationToken);
         }
 
         public async Task<bool> UpdateMyProfileAsync(Employee_MyProfile_Update_DTO model, CancellationToken cancellationToken)
         {
-            var userId = _authenticationService.GetUserID();
-            await _employeeRepository.UpdateMyProfileAsync(userId, model, cancellationToken);
+            await _updateMyProfileUseCase.ExecuteAsync(_authenticationService.GetUserID(), new EmployeeProfileUpdate
+            {
+                UserFirstName = model.UserFirstName,
+                UserLastName = model.UserLastName,
+                Email = model.Email,
+                PhoneNumberPrefix = model.PhoneNumberPrefix,
+                PhoneNumber = model.PhoneNumber,
+                Language = model.Language,
+                Country = model.Country,
+                Timezone = model.Timezone
+            }, cancellationToken);
             return true;
         }
 
-        private async Task<string> GenerateUniquePinAsync(Guid companyId, CancellationToken cancellationToken)
+        private CreateEmployeeCommand MapCreateCommand(Employee_Create_DTO model)
         {
-            const int maxAttempts = 50;
-            for (int i = 0; i < maxAttempts; i++)
+            return new CreateEmployeeCommand
             {
-                var pin = RandomNumberGenerator.GetInt32(0, 100000).ToString("D5");
-                var inUse = await _employeeRepository.IsFastLoginPinInUseAsync(companyId, pin, cancellationToken);
-                if (!inUse)
-                    return pin;
-            }
-            throw new InvalidOperationException("Unable to generate a unique PIN. Please try again.");
+                TenantID = _authenticationService.GetTenantID(),
+                CurrentUserID = _authenticationService.GetUserID(),
+                SelectedRoleID = model.SelectedRoleID,
+                UserAvatar = model.UserAvatar,
+                Language = model.Language,
+                Country = model.Country,
+                Timezone = model.Timezone,
+                UserTitle = model.UserTitle,
+                UserFirstName = model.UserFirstName,
+                UserMiddleName = model.UserMiddleName,
+                UserLastName = model.UserLastName,
+                Email = model.Email,
+                EmailConfirmed = model.EmailConfirmed,
+                PhoneNumberPrefix = model.PhoneNumberPrefix,
+                PhoneNumber = model.PhoneNumber,
+                PhoneNumberConfirmed = model.PhoneNumberConfirmed,
+                Gender = model.Gender,
+                Pronouns = model.Pronouns,
+                DoB = model.DoB,
+                PoB = model.PoB,
+                SoB = model.SoB,
+                CoB = model.CoB,
+                Nationality = model.Nationality,
+                PrivacyPolicyAcepted = model.PrivacyPolicyAcepted,
+                PrivacyPolicyVersion = model.PrivacyPolicyVersion,
+                PrivacyPolicyAcceptedDate = model.PrivacyPolicyAcceptedDate,
+                LockoutEnd = model.LockoutEnd,
+                LockoutEnabled = model.LockoutEnabled,
+                AccessFailedCount = model.AccessFailedCount,
+                FailedPasswordAnswerAttemptCount = model.FailedPasswordAnswerAttemptCount,
+                TimeCost = model.TimeCost,
+                BadgeID = model.BadgeID,
+                OutOfReports = model.OutOfReports,
+                RequireShiftCheckIn = model.RequireShiftCheckIn,
+                LastCheckIn = model.LastCheckIn,
+                LastCheckOut = model.LastCheckOut,
+                Role = model.Role,
+                Department = model.Department,
+                WorkLocation = model.WorkLocation,
+                ContractStartDate = model.ContractStartDate,
+                ContractEndDate = model.ContractEndDate,
+                MonthlySalary = model.MonthlySalary,
+                Bonuses = model.Bonuses,
+                Allowances = model.Allowances,
+                EmploymentType = model.EmploymentType,
+                OvertimeRate = model.OvertimeRate,
+                Skills = model.Skills,
+                SupervisorID = model.SupervisorID,
+                PasswordQuestion = model.TmpPasswordQuestion,
+                PasswordAnswer = model.TmpPasswordAnswer,
+                AccessLevel = model.AccessLevel,
+                AuthorizedAreas = model.AuthorizedAreas,
+                InternalNotes = model.InternalNotes,
+                PublicNotes = model.PublicNotes,
+                ExternalSystemReference = model.ExternalSystemReference,
+                SyncStatus = model.SyncStatus,
+                NewPassword = model.TmpNewPassword
+            };
         }
 
-        private static bool IsValidEmail(string email)
+        private UpdateEmployeeCommand MapUpdateCommand(Guid userID, Employee_Update_DTO model)
         {
-            if (string.IsNullOrWhiteSpace(email))
-                return false;
-
-            try
+            return new UpdateEmployeeCommand
             {
-                var addr = new System.Net.Mail.MailAddress(email);
-                return addr.Address == email;
-            }
-            catch
-            {
-                return false;
-            }
+                TenantID = _authenticationService.GetTenantID(),
+                CurrentUserID = _authenticationService.GetUserID(),
+                UserID = userID,
+                UserName = model.UserName,
+                UserAvatar = model.UserAvatar,
+                Language = model.Language,
+                Country = model.Country,
+                Timezone = model.Timezone,
+                SelectedRoleID = model.SelectedRoleID,
+                RoleIDs = model.RoleIDs.ToList(),
+                UserTitle = model.UserTitle,
+                UserFirstName = model.UserFirstName,
+                UserMiddleName = model.UserMiddleName,
+                UserLastName = model.UserLastName,
+                Email = model.Email,
+                EmailConfirmed = model.EmailConfirmed,
+                PhoneNumberPrefix = model.PhoneNumberPrefix,
+                PhoneNumber = model.PhoneNumber,
+                PhoneNumberConfirmed = model.PhoneNumberConfirmed,
+                Gender = model.Gender,
+                Pronouns = model.Pronouns,
+                DoB = model.DoB,
+                PoB = model.PoB,
+                SoB = model.SoB,
+                CoB = model.CoB,
+                Nationality = model.Nationality,
+                PrivacyPolicyAcepted = model.PrivacyPolicyAcepted,
+                PrivacyPolicyVersion = model.PrivacyPolicyVersion,
+                PrivacyPolicyAcceptedDate = model.PrivacyPolicyAcceptedDate,
+                LockoutEnd = model.LockoutEnd,
+                LockoutEnabled = model.LockoutEnabled,
+                IsApproved = model.IsApproved,
+                AccessFailedCount = model.AccessFailedCount,
+                FailedPasswordAnswerAttemptCount = model.FailedPasswordAnswerAttemptCount,
+                TimeCost = model.TimeCost,
+                BadgeID = model.BadgeID,
+                OutOfReports = model.OutOfReports,
+                RequireShiftCheckIn = model.RequireShiftCheckIn,
+                LastCheckIn = model.LastCheckIn,
+                LastCheckOut = model.LastCheckOut,
+                Role = model.Role,
+                Department = model.Department,
+                WorkLocation = model.WorkLocation,
+                ContractStartDate = model.ContractStartDate,
+                ContractEndDate = model.ContractEndDate,
+                MonthlySalary = model.MonthlySalary,
+                Bonuses = model.Bonuses,
+                Allowances = model.Allowances,
+                EmploymentType = model.EmploymentType,
+                OvertimeRate = model.OvertimeRate,
+                Skills = model.Skills,
+                SupervisorID = model.SupervisorID,
+                AccessLevel = model.AccessLevel,
+                AuthorizedAreas = model.AuthorizedAreas,
+                InternalNotes = model.InternalNotes,
+                PublicNotes = model.PublicNotes,
+                ExternalSystemReference = model.ExternalSystemReference,
+                SyncStatus = model.SyncStatus,
+                IsDeleted = model.IsDeleted,
+                IsDeletedBy = model.IsDeletedBy,
+                IsDeletedWhy = model.IsDeletedWhy,
+                DateDeleted = model.DateDeleted,
+                CreatedBy = model.CreatedBy,
+                DateIns = model.DateIns
+            };
         }
 
-        private static bool IsStrongPassword(string password)
+        private static Employee_List_DTO MapEmployeeList(EmployeeListItem employee)
         {
-            if (string.IsNullOrEmpty(password) || password.Length < 8) return false;
-            bool hasUpper = password.Any(char.IsUpper);
-            bool hasLower = password.Any(char.IsLower);
-            bool hasDigit = password.Any(char.IsDigit);
-            bool hasSpecial = password.Any(ch => !char.IsLetterOrDigit(ch));
-            return hasUpper && hasLower && hasDigit && hasSpecial;
+            return new Employee_List_DTO
+            {
+                TenantID = employee.TenantID,
+                UserID = employee.UserID,
+                UserName = employee.UserName,
+                UserAvatar = employee.UserAvatar,
+                Language = employee.Language,
+                Country = employee.Country,
+                TimezoneID = employee.TimezoneID,
+                Roles = employee.Roles.Select(MapRole).ToList(),
+                AssignedPermissions = employee.AssignedPermissions.Select(MapAssignedPermission).ToList(),
+                DeniedPermissions = employee.DeniedPermissions.Select(MapDeniedPermission).ToList(),
+                UserTitle = employee.UserTitle,
+                UserFirstName = employee.UserFirstName,
+                UserMiddleName = employee.UserMiddleName,
+                UserLastName = employee.UserLastName,
+                Email = employee.Email,
+                EmailConfirmed = employee.EmailConfirmed,
+                PhoneNumberPrefix = employee.PhoneNumberPrefix,
+                PhoneNumber = employee.PhoneNumber,
+                PhoneNumberConfirmed = employee.PhoneNumberConfirmed,
+                Gender = employee.Gender,
+                Pronouns = employee.Pronouns,
+                PrivacyPolicyAcepted = employee.PrivacyPolicyAcepted,
+                PrivacyPolicyVersion = employee.PrivacyPolicyVersion,
+                PrivacyPolicyAcceptedDate = employee.PrivacyPolicyAcceptedDate,
+                LockoutEnd = employee.LockoutEnd,
+                LockoutEnabled = employee.LockoutEnabled,
+                IsApproved = employee.IsApproved,
+                AccessFailedCount = employee.AccessFailedCount,
+                FailedPasswordAnswerAttemptCount = employee.FailedPasswordAnswerAttemptCount,
+                TimeCost = employee.TimeCost,
+                BadgeID = employee.BadgeID,
+                OutOfReports = employee.OutOfReports,
+                RequireShiftCheckIn = employee.RequireShiftCheckIn,
+                LastCheckIn = employee.LastCheckIn,
+                LastCheckOut = employee.LastCheckOut,
+                Role = employee.Role,
+                Department = employee.Department,
+                WorkLocation = employee.WorkLocation,
+                AccessLevel = employee.AccessLevel,
+                AuthorizedAreas = employee.AuthorizedAreas
+            };
+        }
+
+        private static Employee_Detail_DTO MapEmployeeDetail(EmployeeDetailResult employee)
+        {
+            return new Employee_Detail_DTO
+            {
+                TenantID = employee.TenantID,
+                UserID = employee.UserID,
+                UserName = employee.UserName,
+                UserAvatar = employee.UserAvatar,
+                Language = employee.Language,
+                Country = employee.Country,
+                Timezone = employee.Timezone,
+                Roles = employee.Roles.Select(MapRole).ToList(),
+                AssignedPermissions = employee.AssignedPermissions.Select(MapAssignedPermission).ToList(),
+                DeniedPermissions = employee.DeniedPermissions.Select(MapDeniedPermission).ToList(),
+                UserTitle = employee.UserTitle,
+                UserFirstName = employee.UserFirstName,
+                UserMiddleName = employee.UserMiddleName,
+                UserLastName = employee.UserLastName,
+                Email = employee.Email,
+                EmailConfirmed = employee.EmailConfirmed,
+                PhoneNumberPrefix = employee.PhoneNumberPrefix,
+                PhoneNumber = employee.PhoneNumber,
+                PhoneNumberConfirmed = employee.PhoneNumberConfirmed,
+                Gender = employee.Gender,
+                Pronouns = employee.Pronouns,
+                DoB = employee.DoB,
+                PoB = employee.PoB,
+                SoB = employee.SoB,
+                CoB = employee.CoB,
+                Nationality = employee.Nationality,
+                PrivacyPolicyAcepted = employee.PrivacyPolicyAcepted,
+                PrivacyPolicyVersion = employee.PrivacyPolicyVersion,
+                PrivacyPolicyAcceptedDate = employee.PrivacyPolicyAcceptedDate,
+                LockoutEnd = employee.LockoutEnd,
+                LockoutEnabled = employee.LockoutEnabled,
+                IsApproved = employee.IsApproved,
+                AccessFailedCount = employee.AccessFailedCount,
+                FailedPasswordAnswerAttemptCount = employee.FailedPasswordAnswerAttemptCount,
+                TimeCost = employee.TimeCost,
+                BadgeID = employee.BadgeID,
+                OutOfReports = employee.OutOfReports,
+                RequireShiftCheckIn = employee.RequireShiftCheckIn,
+                LastCheckIn = employee.LastCheckIn,
+                LastCheckOut = employee.LastCheckOut,
+                Role = employee.Role,
+                Department = employee.Department,
+                WorkLocation = employee.WorkLocation,
+                ContractStartDate = employee.ContractStartDate,
+                ContractEndDate = employee.ContractEndDate,
+                MonthlySalary = employee.MonthlySalary,
+                Bonuses = employee.Bonuses,
+                Allowances = employee.Allowances,
+                EmploymentType = employee.EmploymentType,
+                OvertimeRate = employee.OvertimeRate,
+                Skills = employee.Skills,
+                SupervisorID = employee.SupervisorID,
+                AccessLevel = employee.AccessLevel,
+                AuthorizedAreas = employee.AuthorizedAreas,
+                InternalNotes = employee.InternalNotes,
+                PublicNotes = employee.PublicNotes,
+                ExternalSystemReference = employee.ExternalSystemReference,
+                SyncStatus = employee.SyncStatus,
+                IsDeleted = employee.IsDeleted,
+                IsDeletedBy = employee.IsDeletedBy,
+                IsDeletedWhy = employee.IsDeletedWhy,
+                DateDeleted = employee.DateDeleted,
+                CreatedBy = employee.CreatedBy,
+                DateIns = employee.DateIns,
+                EditedBy = employee.EditedBy,
+                DateEdit = employee.DateEdit
+            };
+        }
+
+        private static EmployeeRoleDto MapRole(EmployeeRoleResult role)
+        {
+            return new EmployeeRoleDto
+            {
+                RoleID = role.RoleID,
+                RoleName = role.RoleName,
+                NormalizedName = role.NormalizedName,
+                ConcurrencyStamp = role.ConcurrencyStamp,
+                RolePermissions = role.RolePermissions.Select(p => new EmployeeRolePermissionDto
+                {
+                    Id = p.Id,
+                    RoleId = p.RoleId,
+                    Permission = p.Permission
+                }).ToList(),
+                RoleImage = role.RoleImage,
+                IsVisible = role.IsVisible,
+                IsDeleted = role.IsDeleted,
+                IsDeletedBy = role.IsDeletedBy,
+                IsDeletedWhy = role.IsDeletedWhy,
+                CreatedBy = role.CreatedBy,
+                DateIns = role.DateIns,
+                EditedBy = role.EditedBy,
+                DateEdit = role.DateEdit
+            };
+        }
+
+        private static EmployeeUserPermissionDto MapAssignedPermission(EmployeeUserPermissionResult permission)
+        {
+            return new EmployeeUserPermissionDto
+            {
+                Id = permission.Id,
+                UserId = permission.UserId,
+                Permission = permission.Permission
+            };
+        }
+
+        private static EmployeeUserDeniedPermissionDto MapDeniedPermission(EmployeeUserDeniedPermissionResult permission)
+        {
+            return new EmployeeUserDeniedPermissionDto
+            {
+                Id = permission.Id,
+                UserId = permission.UserId,
+                Permission = permission.Permission
+            };
         }
 
         public async Task<bool> ResendPinAsync(Guid userID, CancellationToken cancellationToken)
         {
-            var employee = await _employeeRepository.GetEmployeeByIdAsync(userID, _authenticationService.GetTenantID(), cancellationToken);
-            if (employee?.User == null || string.IsNullOrWhiteSpace(employee.User.Email))
-                return false;
-
-            try
-            {
-                await SendPinEmailAsync(employee.User, cancellationToken);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private async Task ResendPinToUpdatedEmailAsync(Guid userID, string newEmail, string? oldEmail, CancellationToken cancellationToken)
-        {
-            var employee = await _employeeRepository.GetEmployeeByIdAsync(userID, _authenticationService.GetTenantID(), cancellationToken);
-            if (employee?.User == null)
-                throw new InvalidOperationException("Employee not found");
-
-            // If PasswordSalt is missing, we can't proceed
-            if (string.IsNullOrWhiteSpace(employee.User.PasswordSalt))
-                throw new InvalidOperationException("Missing PasswordSalt - unable to generate a new PIN");
-
-            // Send PIN directly to new email (no confirmation required)
-            await SendPinEmailToSpecificEmailAsync(employee.User, newEmail, cancellationToken);
-
-            // Send notification to old email about the change
-            if (!string.IsNullOrWhiteSpace(oldEmail) && !string.Equals(oldEmail, newEmail, StringComparison.OrdinalIgnoreCase))
-            {
-                try
-                {
-                    await SendEmailChangeNotificationAsync(oldEmail, newEmail, employee.User, cancellationToken);
-                }
-                catch
-                {
-                    // Ignore notification failures to old email
-                }
-            }
-        }
-
-
-        private async Task SendPinEmailAsync(AspNetUser user, CancellationToken cancellationToken)
-        {
-            await SendPinEmailToSpecificEmailAsync(user, user.Email, cancellationToken);
-        }
-
-        private async Task SendPinEmailToSpecificEmailAsync(AspNetUser user, string targetEmail, CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrWhiteSpace(targetEmail) || string.IsNullOrWhiteSpace(user.PasswordSalt))
-                throw new InvalidOperationException("Incomplete user data for sending the PIN");
-
-            // For security, we need to get the actual PIN from the hash
-            // Since we can't decrypt, we'll need to generate a new PIN if email changed
-            var companyId = _authenticationService.GetTenantID();
-            var newPin = await GenerateUniquePinAsync(companyId, cancellationToken);
-
-            // Update the user's PIN hash
-            var newPinHash = PasswordHasher.HashPasswordArgon2(newPin, user.PasswordSalt);
-            await _employeeRepository.UpdateUserPinAsync(user.UserID, newPinHash, cancellationToken);
-
-            var displayName = string.Join(" ", new[] { user.UserFirstName, user.UserLastName }.Where(s => !string.IsNullOrWhiteSpace(s)));
-            var subject = "OpenCashFlow - New fast login PIN";
-
-            var templatePath = Path.Combine(_env.ContentRootPath, "EmailTemplates", "EmployeeCreatedFastLoginPin.html");
-            string htmlContent;
-
-            if (File.Exists(templatePath))
-            {
-                htmlContent = await File.ReadAllTextAsync(templatePath);
-                htmlContent = htmlContent
-                    .Replace("{{FirstName}}", System.Net.WebUtility.HtmlEncode(user.UserFirstName ?? displayName))
-                    .Replace("{{Email}}", System.Net.WebUtility.HtmlEncode(targetEmail))
-                    .Replace("{{FastLoginPin}}", System.Net.WebUtility.HtmlEncode(newPin));
-            }
-            else
-            {
-                htmlContent = $@"<p>Hi {System.Net.WebUtility.HtmlEncode(displayName)},</p>
-                                 <p>Your email has been updated. Your new fast login PIN is: <strong>{newPin}</strong>.</p>
-                                 <p>Keep it safe and do not share it with anyone.</p>
-                                 <p>– OpenCashFlow</p>";
-            }
-
-            await _emailSender.SendEmailAsync(
-                new EmailMessage(subject, htmlContent)
-                {
-                    FromName = "OpenCashFlow — PIN"
-                },
-                displayName,
-                targetEmail
-            );
-        }
-
-        private async Task SendEmailChangeNotificationAsync(string oldEmail, string newEmail, AspNetUser user, CancellationToken cancellationToken)
-        {
-            var displayName = string.Join(" ", new[] { user.UserFirstName, user.UserLastName }.Where(s => !string.IsNullOrWhiteSpace(s)));
-            var subject = "OpenCashFlow - Email changed";
-
-            var htmlContent = $@"<p>Hi {System.Net.WebUtility.HtmlEncode(displayName)},</p>
-                                 <p>We are letting you know that your email in OpenCashFlow has been changed from <strong>{System.Net.WebUtility.HtmlEncode(oldEmail)}</strong> to <strong>{System.Net.WebUtility.HtmlEncode(newEmail)}</strong>.</p>
-                                 <p>A new access PIN has been sent to the new email address.</p>
-                                 <p>If you did not request this change, contact the administrator immediately.</p>
-                                 <p>– OpenCashFlow</p>";
-
-            await _emailSender.SendEmailAsync(
-                new EmailMessage(subject, htmlContent)
-                {
-                    FromName = "OpenCashFlow — Security"
-                },
-                displayName,
-                oldEmail
-            );
+            return await _resendEmployeePinUseCase.ExecuteAsync(
+                new ResendEmployeePinCommand(_authenticationService.GetTenantID(), userID),
+                cancellationToken);
         }
 
     }

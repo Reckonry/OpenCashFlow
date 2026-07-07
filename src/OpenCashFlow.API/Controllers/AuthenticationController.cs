@@ -3,11 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using global::Shared.DTOs;
-using global::Shared.Models;
-using global::Shared.Models.Core;
+using OpenCashFlow.Contracts.DTOs;
 using System.Threading;
-using OpenCashFlow.API.Repositories.Interfaces;
 using Asp.Versioning;
 
 namespace OpenCashFlow.API.Controllers
@@ -19,14 +16,12 @@ namespace OpenCashFlow.API.Controllers
     public partial class AuthenticationController : ControllerBase
     {
         private readonly IAuthenticationService _authenticationService;
-        private readonly IEmployeeRepository _employeeRepository;
         private readonly ILogger<AuthenticationController> _logger;
         private readonly IConfiguration _configuration;
 
-        public AuthenticationController(IAuthenticationService authenticationService, IEmployeeRepository employeeRepository, ILogger<AuthenticationController> logger, IConfiguration configuration)
+        public AuthenticationController(IAuthenticationService authenticationService, ILogger<AuthenticationController> logger, IConfiguration configuration)
         {
             _authenticationService = authenticationService;
-            _employeeRepository = employeeRepository;
             _logger = logger;
             _configuration = configuration;
         }

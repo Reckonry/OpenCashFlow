@@ -112,7 +112,8 @@ jobs:
               -I \
               -m 0 \
               -t "${TARGET_APP}" \
-              -r "zap-baseline-report-app.html" || true
+              -r "zap-baseline-report-app.html" \
+              -J "zap-baseline-report-app.json" || true
 
       # Esegue la baseline scan (API)
       - name: Run ZAP Baseline scan (API)
@@ -125,28 +126,69 @@ jobs:
               -I \
               -m 0 \
               -t "${TARGET_API}" \
-              -r "zap-baseline-report-api.html" || true
+              -r "zap-baseline-report-api.html" \
+              -J "zap-baseline-report-api.json" || true
 
       # Quality Gate: fallisce se il report contiene Medium/High > delle soglie
       - name: Quality gate (Medium/High)
         run: |
-          for REPORT in zap-baseline-report-app.html zap-baseline-report-api.html; do
-            FILE="${REPORTS_DIR}/$REPORT"
-            if [ ! -s "$FILE" ]; then echo "Report non trovato o vuoto: $FILE" >&2; exit 2; fi
-            MEDIUM=$(grep -o "Medium" "$FILE" | wc -l | xargs)
-            HIGH=$(grep -o "High" "$FILE" | wc -l | xargs)
-            echo "$REPORT -> Medium=$MEDIUM, High=$HIGH (Soglie: Medium<=${MAX_MEDIUM}, High<=${MAX_HIGH})"
-            if [ "$MEDIUM" -gt "$MAX_MEDIUM" ] || [ "$HIGH" -gt "$MAX_HIGH" ]; then
-              echo "Quality gate fallita per $REPORT" >&2; exit 1
-            fi
-          done
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          reports = [
+              ("APP", "zap-baseline-report-app.json"),
+              ("API", "zap-baseline-report-api.json"),
+          ]
+          thresholds = {
+              "medium": int(os.environ["MAX_MEDIUM"]),
+              "high": int(os.environ["MAX_HIGH"]),
+          }
+          failed = False
+
+          for label, report in reports:
+              path = os.path.join(os.environ["REPORTS_DIR"], report)
+              if not os.path.exists(path) or os.path.getsize(path) == 0:
+                  print(f"Report non trovato o vuoto: {path}", file=sys.stderr)
+                  failed = True
+                  continue
+
+              with open(path, encoding="utf-8") as handle:
+                  data = json.load(handle)
+
+              counts = {"medium": 0, "high": 0}
+              findings = []
+              for site in data.get("site", []):
+                  for alert in site.get("alerts", []):
+                      risk = str(alert.get("riskdesc") or alert.get("risk") or "").lower()
+                      if risk.startswith("medium"):
+                          counts["medium"] += 1
+                          findings.append(("Medium", alert.get("alert", "Unknown alert")))
+                      elif risk.startswith("high"):
+                          counts["high"] += 1
+                          findings.append(("High", alert.get("alert", "Unknown alert")))
+
+              print(
+                  f"{label} -> Medium={counts['medium']}, High={counts['high']} "
+                  f"(Soglie: Medium<={thresholds['medium']}, High<={thresholds['high']})"
+              )
+              for risk, alert_name in findings:
+                  print(f"  {risk}: {alert_name}")
+
+              if counts["medium"] > thresholds["medium"] or counts["high"] > thresholds["high"]:
+                  failed = True
+
+          if failed:
+              sys.exit(1)
+          PY
 
       - name: Upload ZAP Baseline HTML report (APP)
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: zap-baseline-report-app
-          path: reports/zap-baseline-report-app.html
+          path: reports/zap-baseline-report-app.*
           if-no-files-found: error
 
       - name: Upload ZAP Baseline HTML report (API)
@@ -154,7 +196,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zap-baseline-report-api
-          path: reports/zap-baseline-report-api.html
+          path: reports/zap-baseline-report-api.*
           if-no-files-found: error
 
 

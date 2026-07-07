@@ -1,0 +1,22 @@
+@* Payments page header. IDs/classes are used by page scripts and must remain stable. *@
+<div class="page-header d-print-none mb-4">
+  <div class="row align-items-center">
+    <div class="col">
+      <h2 class="page-title">@(SharedLocalizer?["PaymentsList"].Value ?? "Payments")</h2>
+      <div class="text-secondary mt-1">@(SharedLocalizer?["DailyTransactionsList"].Value ?? "Daily transactions")</div>
+    </div>
+    <div class="col-auto ms-auto d-print-none">
+      <div class="btn-list">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editUser">
+          <i class="ri-search-2-line me-2"></i> @(SharedLocalizer?["Search"].Value ?? "Search")
+        </button>
+        <span id="addPaymentWrapper" class="d-inline-block">
+          <button id="openModalButton" type="button" class="btn btn-success">
+            <i class="ri-add-large-line me-2"></i>
+            @(SharedLocalizer?["AddPayment"].Value ?? "Add Payment")
+          </button>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

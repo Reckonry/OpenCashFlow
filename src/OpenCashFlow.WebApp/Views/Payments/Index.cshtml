@@ -1,103 +1,12 @@
-﻿@using System.Globalization
-@using System.Security.Claims
-@model IEnumerable<Payment_List_DTO>
+﻿@model IEnumerable<Payment_List_DTO>
 @inject Microsoft.Extensions.Localization.IStringLocalizer<SharedResource> SharedLocalizer
-@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer Localizer
 @{
     ViewData["Title"] = (SharedLocalizer?["PaymentsList"].Value) ?? "Payments List";
 }
 @section PageStyles {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
-
-    <style>
-        /* Green entry */
-        #entry:checked + label {
-            background-color: #198754; /* Bootstrap green */
-            border-color: #198754;
-            color: white;
-        }
-        /* Red exit */
-        #exit:checked + label {
-            background-color: #dc3545; /* Bootstrap red */
-            border-color: #dc3545;
-            color: white;
-        }
-
-        /* Normal view - large icons */
-        #paymentsList:not(.compact-view) .payment-icon {
-            font-size: 2.5rem;
-        }
-
-        /* Compact view - small icons */
-        .compact-view .payment-icon {
-            font-size: 1.45rem;
-        }
-
-        /* Compact view */
-        .compact-view table td {
-            padding: 0.35rem 0.5rem !important;
-            vertical-align: middle !important;
-        }
-
-        .compact-view table th {
-            padding: 0.75rem 0.5rem !important;
-        }
-
-        /* Inline amount and description */
-        .compact-view .user-name .d-flex.flex-column {
-            display: inline !important;
-        }
-
-        .compact-view .text-muted::before {
-            content: " - ";
-        }
-
-        /* Operator name and date inline */
-        .compact-view td:nth-child(4) {
-            white-space: nowrap;
-        }
-
-        .compact-view td:nth-child(4) > div {
-            display: inline-block;
-        }
-
-        .compact-view td:nth-child(4) ul.list-unstyled {
-            display: inline !important;
-            margin: 0;
-            padding: 0;
-        }
-
-        .compact-view td:nth-child(4) ul.list-unstyled li {
-            display: inline;
-        }
-
-        .compact-view td:nth-child(4) .ri-time-line {
-            margin-left: 0.5rem;
-        }
-
-        /* Compact edit/delete buttons */
-        .compact-view .btn-group-sm .btn {
-            padding: 0.2rem 0.4rem;
-        }
-
-        /* Actions column right-aligned */
-        .compact-view td:nth-child(5),
-        .compact-view th:nth-child(5) {
-            text-align: right;
-        }
-        
-        .compact-view th:nth-child(5){
-            padding-right: 1rem !important;
-        }
-
-        /* Active icon when compact view is enabled */
-        #compactViewToggle.active {
-            background-color: #696cff !important;
-            border-color: #696cff !important;
-            color: white !important;
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/pages/payments-index.css" asp-append-version="true">
 }
 
 @section PageScripts {
@@ -1127,81 +1036,9 @@
 
 
 
-@* Page header (Tabler style) *@
-<div class="page-header d-print-none mb-4">
-  <div class="row align-items-center">
-    <div class="col">
-      <h2 class="page-title">@(SharedLocalizer?["PaymentsList"].Value ?? "Payments")</h2>
-      <div class="text-secondary mt-1">@(SharedLocalizer?["DailyTransactionsList"].Value ?? "Daily transactions")</div>
-    </div>
-    <div class="col-auto ms-auto d-print-none">
-      <div class="btn-list">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editUser">
-          <i class="ri-search-2-line me-2"></i> @(SharedLocalizer?["Search"].Value ?? "Search")
-        </button>
-        <span id="addPaymentWrapper" class="d-inline-block">
-          <button id="openModalButton" type="button" class="btn btn-success">
-            <i class="ri-add-large-line me-2"></i>
-            @(SharedLocalizer?["AddPayment"].Value ?? "Add Payment")
-          </button>
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-
-@* KPI widgets *@
-<div class="row row-cards mb-4" id="reports">
-  @{ var isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "CompanyAdmin"); }
-
-  @if (isAdmin)
-  {
-    <div class="col-12 col-sm-6 col-lg-4">
-      @await Html.PartialAsync("Partials/_WidgetCard", ("CashAmountTotal", Localizer["CashAmountTotal"].Value, "ri ri-user-line", "h-100"))
-    </div>
-  }
-
-  <div class="col-12 col-sm-6 @(isAdmin ? "col-lg-4" : "col-lg-6")">
-    @await Html.PartialAsync("Partials/_WidgetCard", ("DailyCashTotal", Localizer["DailyCashTotal"].Value, "ri ri-pages-line", "h-100"))
-  </div>
-
-  <div class="col-12 col-sm-6 @(isAdmin ? "col-lg-4" : "col-lg-6")">
-    @await Html.PartialAsync("Partials/_WidgetCard", ("DailyElectronicPaymentsTotal", Localizer["DailyElectronicPaymentsTotal"].Value, "ri ri-wallet-line", "h-100"))
-  </div>
-</div>
-
-@* List *@
-<div class="card">
-  <div class="card-header">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-2 w-100">
-
-      <div class="d-flex align-items-center gap-2">
-        <h3 class="card-title mb-0">@(SharedLocalizer?["DailyTransactionsList"].Value ?? "Daily transactions")</h3>
-        <button type="button" id="compactViewToggle" class="btn btn-outline-secondary btn-sm"
-                title="@(SharedLocalizer?["ToggleCompactView"]?.Value ?? "Toggle Compact View")">
-          <i class="ri-layout-row-line"></i>
-        </button>
-      </div>
-
-      <div class="d-flex flex-wrap justify-content-end align-items-center gap-2" id="dayNav">
-        <div class="input-group input-group-sm">
-          <button class="btn btn-outline-secondary" type="button" id="dayPrev" title="@(SharedLocalizer?["PreviousDay"].Value ?? "Previous day")">
-            <i class="ri-arrow-left-s-line"></i>
-          </button>
-          <input type="text" class="form-control" id="dayPicker" style="width: 220px;" />
-          <button class="btn btn-outline-secondary" type="button" id="dayNext" title="@(SharedLocalizer?["NextDay"].Value ?? "Next day")">
-            <i class="ri-arrow-right-s-line"></i>
-          </button>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <div id="paymentsList">
-    @await Html.PartialAsync("Partials/_PaymentsList", Model)
-  </div>
-</div>
+@await Html.PartialAsync("Partials/_PaymentsPageHeader")
+@await Html.PartialAsync("Partials/_PaymentsKpiWidgets")
+@await Html.PartialAsync("Partials/_PaymentsDailyListCard", Model)
 
 <div id="modalContainer"></div>
 @await Html.PartialAsync("Components/_ConfirmDeleteModal")

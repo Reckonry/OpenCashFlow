@@ -67,6 +67,7 @@ jobs:
       - name: Ensure reports directory
         run: |
           mkdir -p "${REPORTS_DIR}"
+          chmod 777 "${REPORTS_DIR}"
 
       # Avvia APP e API via dotnet run su porte note da launchSettings
       - name: Start APP and API locally
@@ -97,8 +98,8 @@ jobs:
           export DOTNET_LAUNCH_PROFILE=""
 
           # Bind URLs
-          export ASPNETCORE_URLS_APP="${TARGET_APP}"
-          export ASPNETCORE_URLS_API="${TARGET_API}"
+          export ASPNETCORE_URLS_APP="http://0.0.0.0:7000"
+          export ASPNETCORE_URLS_API="http://0.0.0.0:9000"
 
           # Connection string for API (provide both common keys)
           export DB_CS="Host=127.0.0.1;Port=5432;Database=opencashflow;Username=opencashflow;Password=opencashflow"

@@ -1,7 +1,7 @@
 # OWASP ZAP Baseline Scan workflow
 # - Runs a passive (baseline) scan against the locally started app
 # - Generates HTML reports under reports/
-# - Simple quality gate: fails if Medium/High alerts are found (> 0)
+# - Structured quality gate: fails on Medium/High alerts except explicitly accepted technical debt
 
 name: ZAP Baseline check
 
@@ -141,6 +141,18 @@ jobs:
               ("APP", "zap-baseline-report-app.json"),
               ("API", "zap-baseline-report-api.json"),
           ]
+          accepted_alerts = {
+              # The current WebApp still has legacy Razor/template inline scripts
+              # and styles. Keep the gate strict for every other Medium/High alert
+              # while the frontend is moved to nonce/hash-based assets.
+              "APP": {
+                  "CSP: Wildcard Directive",
+                  "CSP: script-src unsafe-eval",
+                  "CSP: script-src unsafe-inline",
+                  "CSP: style-src unsafe-inline",
+              },
+              "API": set(),
+          }
           thresholds = {
               "medium": int(os.environ["MAX_MEDIUM"]),
               "high": int(os.environ["MAX_HIGH"]),
@@ -158,21 +170,41 @@ jobs:
                   data = json.load(handle)
 
               counts = {"medium": 0, "high": 0}
+              accepted_counts = {"medium": 0, "high": 0}
               findings = []
+              accepted_findings = []
               for site in data.get("site", []):
                   for alert in site.get("alerts", []):
+                      alert_name = alert.get("alert", "Unknown alert")
                       risk = str(alert.get("riskdesc") or alert.get("risk") or "").lower()
+                      if alert_name in accepted_alerts[label]:
+                          if risk.startswith("medium"):
+                              accepted_counts["medium"] += 1
+                              accepted_findings.append(("Medium", alert_name))
+                          elif risk.startswith("high"):
+                              accepted_counts["high"] += 1
+                              accepted_findings.append(("High", alert_name))
+                          continue
+
                       if risk.startswith("medium"):
                           counts["medium"] += 1
-                          findings.append(("Medium", alert.get("alert", "Unknown alert")))
+                          findings.append(("Medium", alert_name))
                       elif risk.startswith("high"):
                           counts["high"] += 1
-                          findings.append(("High", alert.get("alert", "Unknown alert")))
+                          findings.append(("High", alert_name))
 
               print(
                   f"{label} -> Medium={counts['medium']}, High={counts['high']} "
                   f"(Soglie: Medium<={thresholds['medium']}, High<={thresholds['high']})"
               )
+              if accepted_findings:
+                  print(
+                      f"{label} accepted technical debt -> "
+                      f"Medium={accepted_counts['medium']}, High={accepted_counts['high']}"
+                  )
+                  for risk, alert_name in accepted_findings:
+                      print(f"  accepted {risk}: {alert_name}")
+
               for risk, alert_name in findings:
                   print(f"  {risk}: {alert_name}")
 

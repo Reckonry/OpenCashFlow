@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OpenCashFlow.Domain\OpenCashFlow.Domain.csproj" />
-    <ProjectReference Include="..\OpenCashFlow.Shared\OpenCashFlow.Shared.csproj" />
   </ItemGroup>
 
 </Project>

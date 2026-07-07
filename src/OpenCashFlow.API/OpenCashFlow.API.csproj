@@ -28,7 +28,7 @@
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.5" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenCashFlow.Shared\OpenCashFlow.Shared.csproj" />
+    <ProjectReference Include="..\OpenCashFlow.Contracts\OpenCashFlow.Contracts.csproj" />
     <ProjectReference Include="..\OpenCashFlow.Application\OpenCashFlow.Application.csproj" />
     <ProjectReference Include="..\OpenCashFlow.Infrastructure\OpenCashFlow.Infrastructure.csproj" />
   </ItemGroup>

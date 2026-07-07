@@ -25,7 +25,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.6" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.1" />
 		<PackageReference Include="IdentityModel" Version="7.0.0" />
 	</ItemGroup>
 
@@ -45,7 +45,7 @@
         </ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\OpenCashFlow.Shared\OpenCashFlow.Shared.csproj" />
+		<ProjectReference Include="..\..\src\OpenCashFlow.Contracts\OpenCashFlow.Contracts.csproj" />
 		<ProjectReference Include="..\..\src\OpenCashFlow.API\OpenCashFlow.API.csproj" />
 		<ProjectReference Include="..\..\src\OpenCashFlow.Infrastructure\OpenCashFlow.Infrastructure.csproj" />
 	</ItemGroup>

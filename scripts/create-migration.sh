@@ -1,8 +1,3 @@
-dotnet ef migrations add InitialCreate \
-  --project src/OpenCashFlow.Shared/OpenCashFlow.Shared.csproj \
-  --startup-project src/OpenCashFlow.API/OpenCashFlow.API.csproj \
-  --context ApplicationDbContext \
-  --output-dir Data/Migrations
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -20,10 +15,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-PROJECT_CSproj="src/OpenCashFlow.Shared/OpenCashFlow.Shared.csproj"
+PROJECT_CSproj="src/OpenCashFlow.Infrastructure/OpenCashFlow.Infrastructure.csproj"
 STARTUP_CSproj="src/OpenCashFlow.API/OpenCashFlow.API.csproj"
 DBCONTEXT="ApplicationDbContext"
-OUTPUT_DIR="Data/Migrations"
+OUTPUT_DIR="Persistence/Migrations"
 
 print_usage() {
   cat <<'USAGE'

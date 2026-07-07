@@ -38,6 +38,8 @@ The web projects include vendored assets under `wwwroot/libs`. Before publishing
 - Tabler UI assets: MIT, subject to upstream asset notices.
 - Choices/select/dropzone/chart/vector-map/editor/player libraries: verify package-level license files before redistribution.
 
+Vendored frontend `package.json` files are intentionally not kept in `wwwroot/libs` because OpenCashFlow does not run npm install or ship those upstream development dependency graphs. Keep runtime JS/CSS assets and upstream license/readme files, but do not reintroduce inactive npm manifests unless the WebApp gains an actual npm build pipeline.
+
 ## Redistributable asset rule
 
 Do not commit or ship commercial themes, fonts, stock images, icons, or templates unless their license explicitly allows redistribution in an open-source repository. If an asset cannot be verified, replace it with an open-license equivalent or remove it from the release package.

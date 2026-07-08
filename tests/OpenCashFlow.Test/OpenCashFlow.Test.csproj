@@ -38,9 +38,13 @@
                 <Folder Include="TestUtils\" />
         </ItemGroup>
 
-        <!-- Exclude database-level tests that require PostgreSQL -->
+        <!--
+          Historical database-level tests require a dedicated PostgreSQL integration-test pass.
+          They are intentionally excluded from the default suite and triaged in Docs/testing/db-test-triage.md.
+        -->
         <ItemGroup>
                 <Compile Remove="Tests/db/**/*.cs" />
+                <None Include="Tests/db/**/*.cs" />
         </ItemGroup>
 
 	<ItemGroup>

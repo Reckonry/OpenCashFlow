@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenCashFlow.Contracts.DTOs.Companies;
+using System.Text.Json.Serialization;
 
 namespace OpenCashFlow.Contracts.DTOs
 {
@@ -73,6 +74,9 @@ namespace OpenCashFlow.Contracts.DTOs
 
         //todo: controllare nomenclatura correta ... NIN non e corretto
         public string? NIN { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? TIN { get; set; }
 
         public string? AttorneyName { get; set; }
 

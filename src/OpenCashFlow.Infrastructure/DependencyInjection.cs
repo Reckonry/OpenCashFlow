@@ -57,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<ISetupReader, SetupReader>();
         services.AddScoped<ISetupWriter, SetupWriter>();
         services.AddScoped<ICompanyReader, CompanyReader>();
+        services.AddScoped<ICompanyWriter, CompanyWriter>();
         services.AddScoped<IEmployeeReader, EmployeeReader>();
         services.AddScoped<IEmployeeWriter, EmployeeWriter>();
         services.AddScoped<IEmployeeCredentialService, EmployeeCredentialService>();

@@ -51,6 +51,71 @@ public sealed class CompanyResult
     public DateTime? DateEdit { get; set; }
 }
 
+public sealed record CompanyListQuery(
+    bool? IsActive = null,
+    string? Name = null,
+    string? Tin = null,
+    decimal? RevenueFrom = null,
+    decimal? RevenueTo = null);
+
+public sealed class CompanyWriteCommand
+{
+    public Guid TenantID { get; set; }
+    public required string CompanyName { get; set; }
+    public long? MaxUsers { get; set; }
+    public string? Avatar { get; set; }
+    public string? BusinessCategory { get; set; }
+    public decimal? EstimatedAnnualRevenue { get; set; }
+    public string? BusinessHours { get; set; }
+    public string? Website { get; set; }
+    public string? SocialLinks { get; set; }
+    public decimal? InternalRating { get; set; }
+    public int? PriorityLevel { get; set; }
+    public double? VATRates { get; set; }
+    public string? VAT { get; set; }
+    public string? SDI { get; set; }
+    public string? Tin { get; set; }
+    public string? AttorneyName { get; set; }
+    public string? AttorneyMiddleName { get; set; }
+    public string? AttorneySurname { get; set; }
+    public string? IBAN { get; set; }
+    public string? BIC { get; set; }
+    public string? SWIFT { get; set; }
+    public string? PreferredPaymentMethod { get; set; }
+    public decimal? MonthlyExpenseLimit { get; set; }
+    public double? BaseDiscountPercentage { get; set; }
+    public DateTime? StartingContract { get; set; }
+    public DateTime? EndingContract { get; set; }
+    public string? LicenseType { get; set; }
+    public bool? GdprConsent { get; set; }
+    public DateTime? GdprConsentDate { get; set; }
+    public bool? ContractAcepted { get; set; }
+    public string? ContractVersion { get; set; }
+    public DateTime? ContractAcceptedDate { get; set; }
+    public string? DefaultCurrency { get; set; }
+    public string? DefaultTimezone { get; set; }
+    public string? DefaultLanguage { get; set; }
+    public string? DefaultCountry { get; set; }
+    public bool? IsActive { get; set; }
+    public Guid? StatusID { get; set; }
+    public Guid CurrentUserID { get; set; }
+}
+
+public sealed record CompanyDeleteCommand(Guid TenantID, Guid CurrentUserID);
+
+public enum CompanyWriteStatus
+{
+    Success,
+    NotFound,
+    ValidationFailed,
+    DuplicateCompanyName,
+    DuplicateTin,
+    HasActiveRelations,
+    AlreadyDeleted
+}
+
+public sealed record CompanyWriteResult(CompanyWriteStatus Status, CompanyResult? Company = null, string? Message = null);
+
 public sealed class CompanyInvoiceItemResult
 {
     public Guid TenantID { get; set; }

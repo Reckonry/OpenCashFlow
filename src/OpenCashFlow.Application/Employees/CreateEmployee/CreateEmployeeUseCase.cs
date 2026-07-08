@@ -1,3 +1,4 @@
+using OpenCashFlow.Application.Companies.Ports;
 using OpenCashFlow.Application.Employees.Models;
 using OpenCashFlow.Application.Employees.Ports;
 using System.Globalization;
@@ -9,6 +10,7 @@ namespace OpenCashFlow.Application.Employees.CreateEmployee;
 public sealed class CreateEmployeeUseCase(
     IEmployeeReader employeeReader,
     IEmployeeWriter employeeWriter,
+    ICompanyReader companyReader,
     IEmployeeCredentialService credentialService,
     IEmployeePinService pinService,
     IEmployeeNotificationSender notificationSender) : ICreateEmployeeUseCase
@@ -34,6 +36,17 @@ public sealed class CreateEmployeeUseCase(
         if (await employeeReader.EmailExistsAsync(command.Email, cancellationToken))
         {
             throw new InvalidOperationException("Email already exists");
+        }
+
+        var userLimit = await companyReader.GetUserLimitAsync(command.TenantID, cancellationToken);
+        if (userLimit is null)
+        {
+            throw new InvalidOperationException("Company not found");
+        }
+
+        if (userLimit.Value.MaxUsers > 0 && userLimit.Value.ActiveUsers >= userLimit.Value.MaxUsers)
+        {
+            throw new InvalidOperationException("Company user limit exceeded");
         }
 
         var userId = Guid.NewGuid();

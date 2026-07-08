@@ -1,6 +1,9 @@
-﻿using OpenCashFlow.Application.Companies.GetCompanies;
+﻿using OpenCashFlow.Application.Companies.CreateCompany;
+using OpenCashFlow.Application.Companies.DeleteCompany;
+using OpenCashFlow.Application.Companies.GetCompanies;
 using OpenCashFlow.Application.Companies.GetCompany;
 using OpenCashFlow.Application.Companies.Models;
+using OpenCashFlow.Application.Companies.UpdateCompany;
 using OpenCashFlow.API.Services.Interfaces;
 using OpenCashFlow.Contracts.DTOs;
 using OpenCashFlow.Contracts.DTOs.Companies;
@@ -12,17 +15,26 @@ namespace OpenCashFlow.API.Services
         private readonly IAuthenticationService _authenticationService;
         private readonly IGetCompanyUseCase _getCompanyUseCase;
         private readonly IGetCompaniesUseCase _getCompaniesUseCase;
+        private readonly ICreateCompanyUseCase _createCompanyUseCase;
+        private readonly IUpdateCompanyUseCase _updateCompanyUseCase;
+        private readonly IDeleteCompanyUseCase _deleteCompanyUseCase;
 
         public CompanyService(
             IAuthenticationService authenticationService,
             IGetCompanyUseCase getCompanyUseCase,
             IGetCompaniesUseCase getCompaniesUseCase,
+            ICreateCompanyUseCase createCompanyUseCase,
+            IUpdateCompanyUseCase updateCompanyUseCase,
+            IDeleteCompanyUseCase deleteCompanyUseCase,
             OpenCashFlow.Application.Companies.Invoices.IGetCompanyInvoicesUseCase getCompanyInvoicesUseCase,
             OpenCashFlow.Application.Companies.Invoices.IGetCompanyInvoiceDetailUseCase getCompanyInvoiceDetailUseCase)
         {
             _authenticationService = authenticationService;
             _getCompanyUseCase = getCompanyUseCase;
             _getCompaniesUseCase = getCompaniesUseCase;
+            _createCompanyUseCase = createCompanyUseCase;
+            _updateCompanyUseCase = updateCompanyUseCase;
+            _deleteCompanyUseCase = deleteCompanyUseCase;
             _getCompanyInvoicesUseCase = getCompanyInvoicesUseCase;
             _getCompanyInvoiceDetailUseCase = getCompanyInvoiceDetailUseCase;
         }
@@ -43,6 +55,84 @@ namespace OpenCashFlow.API.Services
         {
             var companies = await _getCompaniesUseCase.ExecuteAsync(cancellationToken);
             return companies.Select(MapCompany).ToList();
+        }
+
+        public async Task<IEnumerable<Company_Detail_DTO>?> GetAllCompaniesAsync(CompanyListQuery query, CancellationToken cancellationToken)
+        {
+            var companies = await _getCompaniesUseCase.ExecuteAsync(query, cancellationToken);
+            return companies.Select(MapCompany).ToList();
+        }
+
+        public async Task<CompanyWriteResult> CreateCompanyAsync(Company_Detail_DTO model, CancellationToken cancellationToken)
+        {
+            var result = await _createCompanyUseCase.ExecuteAsync(MapWriteCommand(model, Guid.Empty), cancellationToken);
+            return MapResult(result);
+        }
+
+        public async Task<CompanyWriteResult> UpdateCompanyAsync(Guid tenantId, Company_Detail_DTO model, CancellationToken cancellationToken)
+        {
+            var result = await _updateCompanyUseCase.ExecuteAsync(MapWriteCommand(model, tenantId), cancellationToken);
+            return MapResult(result);
+        }
+
+        public Task<CompanyWriteResult> DeleteCompanyAsync(Guid tenantId, CancellationToken cancellationToken)
+        {
+            return _deleteCompanyUseCase.ExecuteAsync(
+                new CompanyDeleteCommand(tenantId, _authenticationService.GetUserID()),
+                cancellationToken);
+        }
+
+        private CompanyWriteCommand MapWriteCommand(Company_Detail_DTO model, Guid tenantId)
+        {
+            return new CompanyWriteCommand
+            {
+                TenantID = tenantId == Guid.Empty ? model.TenantID : tenantId,
+                CompanyName = model.CompanyName,
+                MaxUsers = model.MaxUsers == 0 ? null : model.MaxUsers,
+                Avatar = model.Avatar,
+                BusinessCategory = model.BusinessCategory,
+                EstimatedAnnualRevenue = model.EstimatedAnnualRevenue,
+                BusinessHours = model.BusinessHours,
+                Website = model.Website,
+                SocialLinks = model.SocialLinks,
+                InternalRating = model.InternalRating,
+                PriorityLevel = model.PriorityLevel,
+                VATRates = model.VATRates,
+                VAT = model.VAT,
+                SDI = model.SDI,
+                Tin = model.TIN ?? model.NIN,
+                AttorneyName = model.AttorneyName,
+                AttorneyMiddleName = model.AttorneyMiddleName,
+                AttorneySurname = model.AttorneySurname,
+                IBAN = model.IBAN,
+                BIC = model.BIC,
+                SWIFT = model.SWIFT,
+                PreferredPaymentMethod = model.PreferredPaymentMethod,
+                MonthlyExpenseLimit = model.MonthlyExpenseLimit,
+                BaseDiscountPercentage = model.BaseDiscountPercentage,
+                StartingContract = model.StartingContract == default ? null : model.StartingContract,
+                EndingContract = model.EndingContract == default ? null : model.EndingContract,
+                LicenseType = model.LicenseType,
+                GdprConsent = model.GdprConsent,
+                GdprConsentDate = model.GdprConsentDate,
+                ContractAcepted = model.ContractAcepted,
+                ContractVersion = model.ContractVersion,
+                ContractAcceptedDate = model.ContractAcceptedDate,
+                DefaultCurrency = model.DefaultCurrency,
+                DefaultTimezone = model.DefaultTimezone,
+                DefaultLanguage = model.DefaultLanguage,
+                DefaultCountry = model.DefaultCountry,
+                IsActive = model.IsActive,
+                StatusID = model.StatusID == Guid.Empty ? null : model.StatusID,
+                CurrentUserID = _authenticationService.GetUserID()
+            };
+        }
+
+        private static CompanyWriteResult MapResult(CompanyWriteResult result)
+        {
+            return result.Company is null
+                ? result
+                : result with { Company = result.Company };
         }
 
         private static Company_Detail_DTO MapCompany(CompanyResult company)

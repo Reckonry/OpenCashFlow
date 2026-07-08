@@ -22,6 +22,89 @@ public sealed class CompanyReader(ApplicationDbContext db) : ICompanyReader
         return companies.Select(MapCompany).ToList();
     }
 
+    public async Task<IReadOnlyList<CompanyResult>> GetAllAsync(CompanyListQuery query, CancellationToken cancellationToken = default)
+    {
+        var companies = db.Company_DS.AsNoTracking().AsQueryable();
+
+        if (query.IsActive.HasValue)
+        {
+            companies = companies.Where(c => c.IsActive == query.IsActive.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Name))
+        {
+            var name = query.Name.Trim().ToLower();
+            companies = companies.Where(c => c.CompanyName.ToLower().Contains(name));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Tin))
+        {
+            var tin = query.Tin.Trim().ToLower();
+            companies = companies.Where(c => c.TIN != null && c.TIN.ToLower().Contains(tin));
+        }
+
+        if (query.RevenueFrom.HasValue)
+        {
+            companies = companies.Where(c => c.EstimatedAnnualRevenue >= query.RevenueFrom.Value);
+        }
+
+        if (query.RevenueTo.HasValue)
+        {
+            companies = companies.Where(c => c.EstimatedAnnualRevenue <= query.RevenueTo.Value);
+        }
+
+        var result = await companies.ToListAsync(cancellationToken);
+        return result.Select(MapCompany).ToList();
+    }
+
+    public async Task<bool> ExistsByNameAsync(string companyName, Guid? excludingTenantId = null, CancellationToken cancellationToken = default)
+    {
+        var normalized = companyName.Trim().ToLower();
+        return await db.Company_DS.AsNoTracking()
+            .AnyAsync(c => c.CompanyName.ToLower() == normalized &&
+                (!excludingTenantId.HasValue || c.TenantID != excludingTenantId.Value), cancellationToken);
+    }
+
+    public async Task<bool> ExistsByTinAsync(string tin, Guid? excludingTenantId = null, CancellationToken cancellationToken = default)
+    {
+        var normalized = tin.Trim().ToLower();
+        return await db.Company_DS.AsNoTracking()
+            .AnyAsync(c => c.TIN != null && c.TIN.ToLower() == normalized &&
+                (!excludingTenantId.HasValue || c.TenantID != excludingTenantId.Value), cancellationToken);
+    }
+
+    public async Task<bool> HasActiveRelationsAsync(Guid tenantId, CancellationToken cancellationToken = default)
+    {
+        var hasStaff = await db.Company_Staff_DS.AsNoTracking()
+            .AnyAsync(s => s.TenantID == tenantId && !s.IsDeleted, cancellationToken);
+        if (hasStaff) return true;
+
+        var hasPayments = await db.Payment_DS.AsNoTracking()
+            .AnyAsync(p => p.TenantID == tenantId && !p.IsDeleted, cancellationToken);
+        if (hasPayments) return true;
+
+        return await db.Company_Invoice_DS.AsNoTracking()
+            .AnyAsync(i => i.TenantID == tenantId, cancellationToken);
+    }
+
+    public async Task<(long MaxUsers, int ActiveUsers)?> GetUserLimitAsync(Guid tenantId, CancellationToken cancellationToken = default)
+    {
+        var company = await db.Company_DS.AsNoTracking()
+            .Where(c => c.TenantID == tenantId && !c.IsDeleted)
+            .Select(c => new { c.MaxUsers })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (company is null)
+        {
+            return null;
+        }
+
+        var activeUsers = await db.Company_Staff_DS.AsNoTracking()
+            .CountAsync(s => s.TenantID == tenantId && !s.IsDeleted, cancellationToken);
+
+        return (company.MaxUsers, activeUsers);
+    }
+
     public async Task<IReadOnlyList<CompanyInvoiceListItem>> GetInvoicesAsync(Guid tenantId, CancellationToken cancellationToken = default)
     {
         var invoices = await db.Company_Invoice_DS.AsNoTracking()

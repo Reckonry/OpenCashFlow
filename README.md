@@ -76,7 +76,7 @@ Planned module work is documented in [Docs/modules/architecture.md](Docs/modules
 ### Build And Test
 
 ```bash
-git clone https://github.com/<your-org-or-user>/OpenCashFlow.git
+git clone https://github.com/Reckonry/OpenCashFlow.git
 cd OpenCashFlow
 
 dotnet restore OpenCashFlow.sln

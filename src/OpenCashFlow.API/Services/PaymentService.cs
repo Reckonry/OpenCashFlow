@@ -101,10 +101,14 @@ namespace OpenCashFlow.API.Services
         {
             if (payment == null) return null;
 
+            var tenantId = _authenticationService.GetTenantID();
+            var userId = _authenticationService.GetUserID();
+            EnsureCreateTenantAndUserMatchCurrentContext(payment, tenantId, userId);
+
             var command = new CreatePaymentCommand(
                 payment.PaymentID,
-                _authenticationService.GetTenantID(),
-                _authenticationService.GetUserID(),
+                tenantId,
+                userId,
                 payment.RequestId,
                 Convert.ToDecimal(payment.Amount),
                 payment.EntryType,
@@ -121,10 +125,14 @@ namespace OpenCashFlow.API.Services
         {
             if (payment == null) return null;
 
+            var tenantId = _authenticationService.GetTenantID();
+            var userId = _authenticationService.GetUserID();
+            EnsureLockedFieldsAreNotChanged(payment, userId);
+
             var command = new UpdatePaymentCommand(
                 payment.PaymentID,
-                _authenticationService.GetTenantID(),
-                _authenticationService.GetUserID(),
+                tenantId,
+                userId,
                 Convert.ToDecimal(payment.Amount),
                 payment.EntryType,
                 payment.PaymentMethodID,
@@ -134,6 +142,27 @@ namespace OpenCashFlow.API.Services
 
             var result = await _updatePaymentOrchestrator.ExecuteAsync(command, cancellationToken);
             return result == null ? null : ToUpdateDto(result.Payment);
+        }
+
+        private static void EnsureCreateTenantAndUserMatchCurrentContext(Payment_Create_DTO payment, Guid tenantId, Guid userId)
+        {
+            if (payment.TenantID != Guid.Empty && payment.TenantID != tenantId)
+            {
+                throw new ArgumentException("Payment tenant does not match the current tenant.", nameof(payment.TenantID));
+            }
+
+            if (payment.UserID != Guid.Empty && payment.UserID != userId)
+            {
+                throw new ArgumentException("Payment user does not match the current user.", nameof(payment.UserID));
+            }
+        }
+
+        private static void EnsureLockedFieldsAreNotChanged(Payment_Detail_DTO payment, Guid userId)
+        {
+            if (payment.UserID != Guid.Empty && payment.UserID != userId)
+            {
+                throw new ArgumentException("Payment user cannot be changed.", nameof(payment.UserID));
+            }
         }
 
         public async Task<bool> DeletePaymentAsync(Guid PaymentID, CancellationToken cancellationToken)

@@ -13,7 +13,7 @@ from the community core. Some EF models and tables remain temporarily to avoid d
 - `Company_Renewal`, `Stripe_Webhook_Event`, and Stripe fields on `Company` remain schema history.
 - `SubscriptionAuthorizationMiddleware`, Billing API endpoints, disabled Billing services, App Billing routes and Stripe
   services are no longer part of the core runtime.
-- The detached `src/OpenCashFlow.Admin` folder is not in the solution and is not a core component.
+- The legacy `src/OpenCashFlow.Admin` project has been removed from the active repository source tree.
 
 ## Future Move
 

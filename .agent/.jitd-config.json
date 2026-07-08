@@ -1,8 +1,0 @@
-{
-  "version": "1.0.0",
-  "project_management": "github",
-  "task_prefix": "TASK",
-  "team_chat": "slack",
-  "auto_load_navigator": true,
-  "compact_strategy": "conservative"
-}

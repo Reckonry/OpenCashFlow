@@ -8,7 +8,8 @@ namespace OpenCashFlow.Infrastructure.Payments.Persistence;
 
 public sealed class PaymentPersistenceReader(
     ApplicationDbContext context,
-    IPaymentMethodReader paymentMethodReader) : IPaymentPersistenceReader, IPaymentReader
+    IPaymentMethodReader paymentMethodReader,
+    IDocumentTypeReader documentTypeReader) : IPaymentPersistenceReader, IPaymentReader
 {
     public async Task<PaymentSnapshot?> GetByIdAsync(Guid paymentId, Guid tenantId, CancellationToken cancellationToken = default)
     {
@@ -49,5 +50,13 @@ public sealed class PaymentPersistenceReader(
         return paymentMethod == null
             ? null
             : new PaymentMethodSnapshot(paymentMethod.PaymentMethodId, paymentMethod.Name);
+    }
+
+    public async Task<DocumentTypeSnapshot?> GetDocumentTypeByIdAsync(Guid documentTypeId, Guid tenantId, CancellationToken cancellationToken = default)
+    {
+        var documentType = await documentTypeReader.GetByIdAsync(documentTypeId, tenantId, cancellationToken);
+        return documentType == null
+            ? null
+            : new DocumentTypeSnapshot(documentType.DocumentTypeId, documentType.Name);
     }
 }

@@ -79,9 +79,10 @@ Deferred until they can be introduced safely:
 - stricter analyzers;
 - warning-as-error policy;
 - SBOM generation as a required gate;
-- making skipped tests fail CI.
+- failing CI automatically on any future skipped test.
 
-Skipped tests are still visible in CI output. They should be reduced or tracked in `Docs/testing/skipped-tests-backlog.md` once that backlog branch is merged.
+Skipped tests remain visible in CI output. The current skipped-test status is tracked in
+`Docs/testing/skipped-tests-backlog.md`; any future skipped test should include a precise reason, risk, and follow-up.
 
 ## Local Verification
 
@@ -98,7 +99,8 @@ Results:
 
 - `git diff --check`: passed.
 - `dotnet build OpenCashFlow.sln --configuration Release --no-restore`: passed with 0 warnings and 0 errors.
-- `dotnet test OpenCashFlow.sln --configuration Release --no-build`: passed with 225 passed, 30 skipped, 0 failed.
+- `dotnet test OpenCashFlow.sln --configuration Release --no-build`: passed. See current CI output and
+  `Docs/testing/skipped-tests-backlog.md` for the current test count.
 - `docker compose config`: passed.
 
 Local note:

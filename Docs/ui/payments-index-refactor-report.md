@@ -98,4 +98,5 @@ Results:
 
 - `git diff --check`: passed.
 - `dotnet build OpenCashFlow.sln --configuration Release --no-restore`: passed with 0 warnings and 0 errors.
-- `dotnet test OpenCashFlow.sln --configuration Release --no-build`: passed with 225 passed, 30 skipped, 0 failed.
+- `dotnet test OpenCashFlow.sln --configuration Release --no-build`: passed. See current CI output and
+  `Docs/testing/skipped-tests-backlog.md` for the current test count.

@@ -6,6 +6,11 @@ public interface ICompanyReader
 {
     Task<CompanyResult?> GetByIdAsync(Guid tenantId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<CompanyResult>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<CompanyResult>> GetAllAsync(CompanyListQuery query, CancellationToken cancellationToken = default);
+    Task<bool> ExistsByNameAsync(string companyName, Guid? excludingTenantId = null, CancellationToken cancellationToken = default);
+    Task<bool> ExistsByTinAsync(string tin, Guid? excludingTenantId = null, CancellationToken cancellationToken = default);
+    Task<bool> HasActiveRelationsAsync(Guid tenantId, CancellationToken cancellationToken = default);
+    Task<(long MaxUsers, int ActiveUsers)?> GetUserLimitAsync(Guid tenantId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<CompanyInvoiceListItem>> GetInvoicesAsync(Guid tenantId, CancellationToken cancellationToken = default);
     Task<CompanyInvoiceDetailResult?> GetInvoiceByIdAsync(Guid invoiceId, Guid tenantId, CancellationToken cancellationToken = default);
 }

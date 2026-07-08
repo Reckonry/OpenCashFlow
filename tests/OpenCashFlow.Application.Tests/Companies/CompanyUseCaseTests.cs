@@ -47,6 +47,31 @@ public sealed class CompanyUseCaseTests
             return Task.FromResult<IReadOnlyList<CompanyResult>>([]);
         }
 
+        public Task<IReadOnlyList<CompanyResult>> GetAllAsync(CompanyListQuery query, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<IReadOnlyList<CompanyResult>>([]);
+        }
+
+        public Task<bool> ExistsByNameAsync(string companyName, Guid? excludingTenantId = null, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task<bool> ExistsByTinAsync(string tin, Guid? excludingTenantId = null, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task<bool> HasActiveRelationsAsync(Guid tenantId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task<(long MaxUsers, int ActiveUsers)?> GetUserLimitAsync(Guid tenantId, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<(long MaxUsers, int ActiveUsers)?>((50, 1));
+        }
+
         public Task<IReadOnlyList<CompanyInvoiceListItem>> GetInvoicesAsync(Guid tenantId, CancellationToken cancellationToken = default)
         {
             GetInvoicesCalled = true;

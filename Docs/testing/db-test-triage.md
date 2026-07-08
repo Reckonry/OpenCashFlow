@@ -17,6 +17,10 @@ That means `dotnet test OpenCashFlow.sln --configuration Release --no-build` rep
 
 This document classifies them so they are no longer silent debt.
 
+Follow-up foundation work has started in `tests/OpenCashFlow.Database.Tests`. That project runs real PostgreSQL
+Testcontainers tests for a small set of high-value persistence behaviors. The old `Tests/db/**/*.cs` files remain
+excluded and should not be re-enabled in bulk.
+
 ## Inventory
 
 | File | Declared Tests | `Skip =` Attributes | Area | Current Status |
@@ -142,13 +146,33 @@ Recommended phases:
 6. Archive or delete the old excluded files only after migrated coverage exists.
 7. Add a CI job or optional workflow that can run the DB integration suite explicitly.
 
+## Integration Test Foundation Added
+
+`tests/OpenCashFlow.Database.Tests` now provides the first real database integration-test foundation.
+
+Current migrated coverage:
+
+- Company soft-delete flags persist to PostgreSQL.
+- Company optional nullable fields persist as `NULL`.
+- Payment insert fails for an unknown `PaymentMethodID`.
+- Payment insert fails for an unknown `DocumentTypeID`.
+- Payment insert fails for an unknown `UserID`.
+- Deleting a referenced payment method cascades to the related payment with the current EF schema.
+
+The cascade lookup test is intentionally named as current-schema behavior. It is not a recommendation that lookup
+deletes should cascade in the product. If the intended product rule is "restrict lookup delete while referenced", that
+requires an explicit schema/model change and migration in a later slice.
+
+The new tests use deterministic per-test data builders and avoid `.First()` seed assumptions. They do not carry any
+`Skip` attributes.
+
 ## Group Decisions
 
 | Group | Decision | Reason |
 | --- | --- | --- |
-| Company DB tests | Convert selected tests into DB integration tests | Several API contract behaviors are covered, but persistence defaults/timestamps/FK restrictions still have value. |
-| Payment DB tests | Convert selected tests into DB integration tests | API/Application coverage is strong, but raw FK and timestamp persistence behavior remains useful. |
-| Lookup DB tests | Convert many into DB integration tests | Current lookup API tests are mostly placeholders, so database/use-case coverage remains weak. |
+| Company DB tests | Partially converted into DB integration tests | Soft-delete and nullable-field persistence are covered. Date chronology and hard company delete rules remain product/schema decisions. |
+| Payment DB tests | Partially converted into DB integration tests | FK behavior for payment method, document type, and user is covered. Tenant FK is not asserted because the current EF model does not define a Company FK on `Payment.TenantID`. |
+| Lookup DB tests | Partially converted through payment lookup FK behavior | Referenced payment-method delete currently cascades; restrict-delete behavior would require a deliberate schema change. |
 | Employee DB tests | Convert after product decisions | User/company cardinality and delete semantics need explicit decisions before assertions are safe. |
 | Registration DB TODO file | Archive or delete after mapping TODOs | It contains no executable tests; current API registration tests already cover much of the valuable behavior. |
 
@@ -171,4 +195,14 @@ This keeps the default suite stable while making the excluded files visible as n
 
 The default test result can still say `0 skipped` while these historical DB test drafts remain outside compilation. The risk is now documented, but not eliminated.
 
-The most important remaining coverage gap is not "make skipped count non-zero"; it is converting valuable persistence behaviors into real Testcontainers-backed integration tests with deterministic setup and assertions.
+The most important remaining coverage gap is not "make skipped count non-zero"; it is continuing to convert valuable
+persistence behaviors into real Testcontainers-backed integration tests with deterministic setup and assertions.
+
+Remaining migration candidates:
+
+- Company hard-delete behavior once product/schema rules are explicit.
+- Company `DateIns`/`DateEdit` persistence behavior.
+- Payment timestamp persistence.
+- Document-type referenced-delete behavior.
+- Employee/company-staff cardinality, FK behavior, and delete semantics after a product decision.
+- Archival or deletion of the registration DB TODO file after mapping its notes to current tests/backlog.

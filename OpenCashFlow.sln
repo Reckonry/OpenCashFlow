@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCashFlow.Application.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCashFlow.Contracts", "src\OpenCashFlow.Contracts\OpenCashFlow.Contracts.csproj", "{EE9F0C09-E4A8-4A66-916B-3857F4A14A38}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenCashFlow.Database.Tests", "tests\OpenCashFlow.Database.Tests\OpenCashFlow.Database.Tests.csproj", "{E492D93A-CAE0-4C4F-B249-6F093E527E31}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -143,6 +145,18 @@ Global
 		{EE9F0C09-E4A8-4A66-916B-3857F4A14A38}.Release|x64.Build.0 = Release|Any CPU
 		{EE9F0C09-E4A8-4A66-916B-3857F4A14A38}.Release|x86.ActiveCfg = Release|Any CPU
 		{EE9F0C09-E4A8-4A66-916B-3857F4A14A38}.Release|x86.Build.0 = Release|Any CPU
+		{E492D93A-CAE0-4C4F-B249-6F093E527E31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E492D93A-CAE0-4C4F-B249-6F093E527E31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E492D93A-CAE0-4C4F-B249-6F093E527E31}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E492D93A-CAE0-4C4F-B249-6F093E527E31}.Debug|x64.Build.0 = Debug|Any CPU
+		{E492D93A-CAE0-4C4F-B249-6F093E527E31}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E492D93A-CAE0-4C4F-B249-6F093E527E31}.Debug|x86.Build.0 = Debug|Any CPU
+		{E492D93A-CAE0-4C4F-B249-6F093E527E31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E492D93A-CAE0-4C4F-B249-6F093E527E31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E492D93A-CAE0-4C4F-B249-6F093E527E31}.Release|x64.ActiveCfg = Release|Any CPU
+		{E492D93A-CAE0-4C4F-B249-6F093E527E31}.Release|x64.Build.0 = Release|Any CPU
+		{E492D93A-CAE0-4C4F-B249-6F093E527E31}.Release|x86.ActiveCfg = Release|Any CPU
+		{E492D93A-CAE0-4C4F-B249-6F093E527E31}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -157,6 +171,7 @@ Global
 		{21D55372-03A9-4FDE-9165-7F659BFC7D32} = {9BE36780-75DB-4BFE-BCA3-1799549F4556}
 		{CAF17142-CCB8-40C1-A765-3B94BFCCF347} = {9BE36780-75DB-4BFE-BCA3-1799549F4556}
 		{EE9F0C09-E4A8-4A66-916B-3857F4A14A38} = {165EE37F-DFDD-4A81-8772-333E2E004B84}
+		{E492D93A-CAE0-4C4F-B249-6F093E527E31} = {9BE36780-75DB-4BFE-BCA3-1799549F4556}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {96084FEB-7ED7-4016-933A-7C16D6B806C8}

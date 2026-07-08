@@ -2,6 +2,8 @@ using OpenCashFlow.Application.Auth.ForgotPassword;
 using OpenCashFlow.Application.Auth.Models;
 using OpenCashFlow.Application.Auth.Ports;
 using OpenCashFlow.Application.Auth.ResetPassword;
+using OpenCashFlow.Application.Companies.Models;
+using OpenCashFlow.Application.Companies.Ports;
 using OpenCashFlow.Application.Employees.CreateEmployee;
 using OpenCashFlow.Application.Employees.Models;
 using OpenCashFlow.Application.Employees.Ports;
@@ -14,7 +16,7 @@ public sealed class EmployeeAuthUseCaseTests
     [Fact]
     public async Task CreateEmployee_WithEmptyEmail_Throws()
     {
-        var useCase = new CreateEmployeeUseCase(new FakeEmployeeReader(), new FakeEmployeeWriter(), new FakeCredentialService(), new FakePinService(), new FakeEmployeeNotificationSender());
+        var useCase = new CreateEmployeeUseCase(new FakeEmployeeReader(), new FakeEmployeeWriter(), new FakeCompanyReader(), new FakeCredentialService(), new FakePinService(), new FakeEmployeeNotificationSender());
 
         await Assert.ThrowsAsync<ArgumentException>(() => useCase.ExecuteAsync(new CreateEmployeeCommand
         {
@@ -89,6 +91,36 @@ public sealed class EmployeeAuthUseCaseTests
         public Task<bool> SoftDeleteAsync(Guid userId, Guid tenantId, CancellationToken cancellationToken = default) => Task.FromResult(true);
         public Task UpdateMyProfileAsync(Guid userId, EmployeeProfileUpdate model, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task UpdatePinHashAsync(Guid userId, string pinHash, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
+    private sealed class FakeCompanyReader : ICompanyReader
+    {
+        public Task<CompanyResult?> GetByIdAsync(Guid tenantId, CancellationToken cancellationToken = default)
+            => Task.FromResult<CompanyResult?>(new CompanyResult { TenantID = tenantId, CompanyName = "Test", MaxUsers = 50 });
+
+        public Task<IReadOnlyList<CompanyResult>> GetAllAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<CompanyResult>>([]);
+
+        public Task<IReadOnlyList<CompanyResult>> GetAllAsync(CompanyListQuery query, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<CompanyResult>>([]);
+
+        public Task<bool> ExistsByNameAsync(string companyName, Guid? excludingTenantId = null, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<bool> ExistsByTinAsync(string tin, Guid? excludingTenantId = null, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<bool> HasActiveRelationsAsync(Guid tenantId, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<(long MaxUsers, int ActiveUsers)?> GetUserLimitAsync(Guid tenantId, CancellationToken cancellationToken = default)
+            => Task.FromResult<(long MaxUsers, int ActiveUsers)?>((50, 1));
+
+        public Task<IReadOnlyList<CompanyInvoiceListItem>> GetInvoicesAsync(Guid tenantId, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<CompanyInvoiceListItem>>([]);
+
+        public Task<CompanyInvoiceDetailResult?> GetInvoiceByIdAsync(Guid invoiceId, Guid tenantId, CancellationToken cancellationToken = default)
+            => Task.FromResult<CompanyInvoiceDetailResult?>(null);
     }
 
     private sealed class FakeCredentialService : IEmployeeCredentialService

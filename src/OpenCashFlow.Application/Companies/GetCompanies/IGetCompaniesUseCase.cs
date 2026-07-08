@@ -5,4 +5,5 @@ namespace OpenCashFlow.Application.Companies.GetCompanies;
 public interface IGetCompaniesUseCase
 {
     Task<IReadOnlyList<CompanyResult>> ExecuteAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<CompanyResult>> ExecuteAsync(CompanyListQuery query, CancellationToken cancellationToken = default);
 }

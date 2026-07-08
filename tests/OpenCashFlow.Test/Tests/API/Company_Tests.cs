@@ -6,6 +6,8 @@ using System.Text.Json;
 using Xunit;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
+using OpenCashFlow.Infrastructure.Persistence.Entities;
 
 namespace OpenCashFlow.Test.Tests
 {
@@ -25,7 +27,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Integration")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "POST /v1/company should create company", Skip = "Endpoint not implemented yet")]
+        [Fact(DisplayName = "POST /v1/company should create company")]
         public async Task CreateCompany_ShouldSucceed()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -68,7 +70,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Validation")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "POST /v1/company missing required CompanyName should fail", Skip = "Endpoint not implemented yet")]
+        [Fact(DisplayName = "POST /v1/company missing required CompanyName should fail")]
         public async Task CreateCompany_MissingRequiredField_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -86,7 +88,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Validation")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "POST /v1/company with duplicate CompanyName should fail", Skip = "Endpoint not implemented yet")]
+        [Fact(DisplayName = "POST /v1/company with duplicate CompanyName should fail")]
         public async Task CreateCompany_DuplicateCompanyName_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -94,7 +96,11 @@ namespace OpenCashFlow.Test.Tests
             var client = _factory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var payload = new { CompanyName = "Scunio SRL" }; // already present in seed data
+            var companyName = $"Duplicate Name {Guid.NewGuid():N}";
+            var payload = new { CompanyName = companyName, MaxUsers = 10 };
+            var created = await client.PostAsJsonAsync("/v1/Company", payload);
+            Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+
             var response = await client.PostAsJsonAsync("/v1/Company", payload);
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         }
@@ -104,7 +110,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Validation")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "POST /v1/company with duplicate TIN should fail", Skip = "Endpoint not implemented yet")]
+        [Fact(DisplayName = "POST /v1/company with duplicate TIN should fail")]
         public async Task CreateCompany_DuplicateTin_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -112,8 +118,11 @@ namespace OpenCashFlow.Test.Tests
             var client = _factory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            // Assuming one of the seeded companies has a null TIN: this test requires an API/DB constraint.
-            var payload = new { CompanyName = $"DupTin {Guid.NewGuid():N}", TIN = "IT12345678901" };
+            var tin = $"IT{Guid.NewGuid():N}"[..16];
+            var created = await client.PostAsJsonAsync("/v1/Company", new { CompanyName = $"TIN Source {Guid.NewGuid():N}", TIN = tin, MaxUsers = 10 });
+            Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+
+            var payload = new { CompanyName = $"DupTin {Guid.NewGuid():N}", TIN = tin, MaxUsers = 10 };
             var response = await client.PostAsJsonAsync("/v1/Company", payload);
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         }
@@ -203,12 +212,12 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Validation")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "GET /v1/company/view/{id} with non-existent id should fail", Skip = "Endpoint ignores route id and returns current company")]        
+        [Fact(DisplayName = "GET /v1/company/view/{id} with non-existent id should fail")]
         public async Task GetCompanyDetails_NonExistentId_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
             var nonExistentId = Guid.NewGuid();
-            var token = await _factory.GenerateJwtTokenAsync(userId);
+            var token = await OpenCashFlow.Test.Utilities.JwtTokenGenerator.GenerateTokenAsync(_factory.Services, userId, role: "InstanceAdmin");
 
             var client = _factory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -224,16 +233,16 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Integration")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "PUT /v1/company/{id} should update company", Skip = "Endpoint not implemented yet")]
+        [Fact(DisplayName = "PUT /v1/company/{id} should update company")]
         public async Task UpdateCompany_Authorized_ShouldSucceed()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-            var token = await _factory.GenerateJwtTokenAsync(userId);
+            var token = await OpenCashFlow.Test.Utilities.JwtTokenGenerator.GenerateTokenAsync(_factory.Services, userId, role: "InstanceAdmin");
             var client = _factory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var companyId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-            var payload = new { CompanyName = "Scunio SRL Updated" };
+            var companyId = await CreateCompanyAsync(client, $"Update Source {Guid.NewGuid():N}");
+            var payload = new { CompanyName = $"Updated {Guid.NewGuid():N}" };
             var response = await client.PutAsJsonAsync($"/v1/Company/{companyId}", payload);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -281,16 +290,18 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Validation")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "PUT /v1/company/{id} changing TIN to duplicate should fail", Skip = "Endpoint not implemented yet")]
+        [Fact(DisplayName = "PUT /v1/company/{id} changing TIN to duplicate should fail")]
         public async Task UpdateCompany_DuplicateTin_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-            var token = await _factory.GenerateJwtTokenAsync(userId);
+            var token = await OpenCashFlow.Test.Utilities.JwtTokenGenerator.GenerateTokenAsync(_factory.Services, userId, role: "InstanceAdmin");
             var client = _factory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var companyId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-            var payload = new { TIN = "IT12345678901" };
+            var sourceTin = $"IT{Guid.NewGuid():N}"[..16];
+            var companyId = await CreateCompanyAsync(client, $"TIN Update Target {Guid.NewGuid():N}", tin: $"IT{Guid.NewGuid():N}"[..16]);
+            _ = await CreateCompanyAsync(client, $"TIN Update Source {Guid.NewGuid():N}", tin: sourceTin);
+            var payload = new { CompanyName = $"TIN Update Target Renamed {Guid.NewGuid():N}", TIN = sourceTin };
             var response = await client.PutAsJsonAsync($"/v1/Company/{companyId}", payload);
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         }
@@ -300,7 +311,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Validation")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "PUT /v1/company/{id} invalidating required fields should fail", Skip = "Endpoint not implemented yet")]
+        [Fact(DisplayName = "PUT /v1/company/{id} invalidating required fields should fail")]
         public async Task UpdateCompany_InvalidRequiredFields_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -321,15 +332,15 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Integration")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "DELETE /v1/company/{id} soft delete should succeed for admin", Skip = "Endpoint not implemented yet")]
+        [Fact(DisplayName = "DELETE /v1/company/{id} soft delete should succeed for admin")]
         public async Task DeleteCompany_Authorized_ShouldSucceed()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-            var token = await _factory.GenerateJwtTokenAsync(userId);
+            var token = await OpenCashFlow.Test.Utilities.JwtTokenGenerator.GenerateTokenAsync(_factory.Services, userId, role: "InstanceAdmin");
             var client = _factory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var companyId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            var companyId = await CreateCompanyAsync(client, $"Delete Target {Guid.NewGuid():N}");
             var response = await client.DeleteAsync($"/v1/Company/{companyId}");
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
@@ -357,16 +368,17 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Validation")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "DELETE /v1/company/{id} already deleted should fail", Skip = "Endpoint not implemented yet")]
+        [Fact(DisplayName = "DELETE /v1/company/{id} already deleted should fail")]
         public async Task DeleteCompany_AlreadyDeleted_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-            var token = await _factory.GenerateJwtTokenAsync(userId);
+            var token = await OpenCashFlow.Test.Utilities.JwtTokenGenerator.GenerateTokenAsync(_factory.Services, userId, role: "InstanceAdmin");
             var client = _factory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var companyId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-            _ = await client.DeleteAsync($"/v1/Company/{companyId}");
+            var companyId = await CreateCompanyAsync(client, $"Delete Twice Target {Guid.NewGuid():N}");
+            var first = await client.DeleteAsync($"/v1/Company/{companyId}");
+            Assert.Equal(HttpStatusCode.NoContent, first.StatusCode);
             var response = await client.DeleteAsync($"/v1/Company/{companyId}");
             Assert.True(response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.Conflict || response.StatusCode == HttpStatusCode.NotFound);
         }
@@ -376,7 +388,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Validation")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "DELETE /v1/company/{id} with active relations should fail", Skip = "Endpoint not implemented yet")]
+        [Fact(DisplayName = "DELETE /v1/company/{id} with active relations should fail")]
         public async Task DeleteCompany_WithActiveRelations_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -450,7 +462,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "BusinessRules")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "POST /v1/company with IsActive=false should succeed", Skip = "Endpoint not implemented yet")]
+        [Fact(DisplayName = "POST /v1/company with IsActive=false should succeed")]
         public async Task CreateCompany_IsActiveFalse_ShouldSucceed()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -468,7 +480,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "BusinessRules")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "GET /v1/company/all?isActive=true should filter active companies", Skip = "Filtering not implemented yet")]
+        [Fact(DisplayName = "GET /v1/company/all?isActive=true should filter active companies")]
         public async Task GetCompanies_FilterByIsActive_ShouldSucceed()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -478,6 +490,10 @@ namespace OpenCashFlow.Test.Tests
 
             var response = await client.GetAsync("/v1/Company/All?isActive=true");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var companies = await response.Content.ReadFromJsonAsync<IEnumerable<Company_Detail_DTO>>();
+            Assert.NotNull(companies);
+            Assert.All(companies!, company => Assert.True(company.IsActive));
         }
 
         // Verify expired company (EndingContract in the past) [OK]
@@ -485,16 +501,37 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "BusinessRules")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "GET /v1/company should reflect expired contract state", Skip = "No explicit expired state exposure implemented")]
-        public async Task VerifyCompanyExpiredContract_ShouldBeRecognized()
+        [Fact(DisplayName = "GET /v1/company should remain readable for expired self-hosted contract metadata")]
+        public async Task VerifyCompanyExpiredContract_ShouldRemainReadable()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
             var token = await _factory.GenerateJwtTokenAsync(userId);
             var client = _factory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.GetAsync("/v1/Company");
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var tenantId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            using var db = _factory.CreateDbContext();
+            var company = await db.Company_DS.FirstAsync(c => c.TenantID == tenantId);
+            var originalEndingContract = company.EndingContract;
+
+            try
+            {
+                company.EndingContract = DateTime.UtcNow.AddDays(-1);
+                await db.SaveChangesAsync();
+
+                var response = await client.GetAsync("/v1/Company");
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+                var dto = await response.Content.ReadFromJsonAsync<Company_Detail_DTO>();
+                Assert.NotNull(dto);
+                Assert.Equal(tenantId, dto!.TenantID);
+                Assert.True(dto.EndingContract < DateTime.UtcNow);
+            }
+            finally
+            {
+                company.EndingContract = originalEndingContract;
+                await db.SaveChangesAsync();
+            }
         }
 
         // Company with users over MaxUsers [FAIL on user creation]
@@ -502,7 +539,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "BusinessRules")]
         [Trait("Priority", "High")]
-        [Fact(DisplayName = "POST /v1/employee should fail when company exceeds MaxUsers", Skip = "MaxUsers enforcement not implemented in EmployeeService")]
+        [Fact(DisplayName = "POST /v1/employee should fail when company exceeds MaxUsers")]
         public async Task CreateEmployee_ExceedsMaxUsers_ShouldFail()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -510,10 +547,33 @@ namespace OpenCashFlow.Test.Tests
             var client = _factory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            // Here you would expect a 409 or 400 if MaxUsers is exceeded
-            var payload = new { UserName = $"user_{Guid.NewGuid():N}", Email = $"u_{Guid.NewGuid():N}@ex.com", TmpNewPassword = "Aa!23456" };
-            var response = await client.PostAsJsonAsync("/v1/Employee", payload);
-            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            var tenantId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            using var db = _factory.CreateDbContext();
+            var company = await db.Company_DS.FirstAsync(c => c.TenantID == tenantId);
+            var originalMaxUsers = company.MaxUsers;
+            var activeUsers = await db.Company_Staff_DS.CountAsync(s => s.TenantID == tenantId && !s.IsDeleted);
+
+            try
+            {
+                company.MaxUsers = activeUsers;
+                await db.SaveChangesAsync();
+
+                var payload = new
+                {
+                    UserFirstName = "Limit",
+                    UserLastName = "Exceeded",
+                    Email = $"limit_{Guid.NewGuid():N}@example.com",
+                    TmpNewPassword = "Aa!23456",
+                    TmpNewPasswordRepeat = "Aa!23456"
+                };
+                var response = await client.PostAsJsonAsync("/v1/Employee", payload);
+                Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            }
+            finally
+            {
+                company.MaxUsers = originalMaxUsers;
+                await db.SaveChangesAsync();
+            }
         }
         #endregion
 
@@ -523,7 +583,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Filtering")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "GET /v1/company/all?name=Scunio should filter by name", Skip = "Filtering not implemented yet")]
+        [Fact(DisplayName = "GET /v1/company/all?name=Scunio should filter by name")]
         public async Task SearchCompany_ByName_ShouldSucceed()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -531,8 +591,16 @@ namespace OpenCashFlow.Test.Tests
             var client = _factory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.GetAsync("/v1/Company/All?name=Scunio");
+            var name = $"FilterName{Guid.NewGuid():N}";
+            _ = await CreateCompanyAsync(client, name);
+
+            var response = await client.GetAsync($"/v1/Company/All?name={Uri.EscapeDataString(name)}");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var companies = await response.Content.ReadFromJsonAsync<IEnumerable<Company_Detail_DTO>>();
+            Assert.NotNull(companies);
+            Assert.Contains(companies!, company => company.CompanyName == name);
+            Assert.All(companies!, company => Assert.Contains(name, company.CompanyName));
         }
 
         // Company search by VAT / TIN [OK]
@@ -540,7 +608,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Filtering")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "GET /v1/company/all?tin=IT123 should filter by TIN", Skip = "Filtering not implemented yet")]
+        [Fact(DisplayName = "GET /v1/company/all?tin=IT123 should filter by TIN")]
         public async Task SearchCompany_ByTin_ShouldSucceed()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -548,8 +616,16 @@ namespace OpenCashFlow.Test.Tests
             var client = _factory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await client.GetAsync("/v1/Company/All?tin=IT123");
+            var tin = $"IT{Guid.NewGuid():N}"[..16];
+            _ = await CreateCompanyAsync(client, $"FilterTin {Guid.NewGuid():N}", tin: tin);
+
+            var response = await client.GetAsync($"/v1/Company/All?tin={Uri.EscapeDataString(tin)}");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var companies = await response.Content.ReadFromJsonAsync<IEnumerable<Company_Detail_DTO>>();
+            Assert.NotNull(companies);
+            Assert.Contains(companies!, company => company.NIN == tin);
+            Assert.All(companies!, company => Assert.Contains(tin, company.NIN ?? string.Empty));
         }
 
         // Company search by estimated revenue range [OK]
@@ -557,7 +633,7 @@ namespace OpenCashFlow.Test.Tests
         [Trait("Feature", "Company")]
         [Trait("Type", "Filtering")]
         [Trait("Priority", "Medium")]
-        [Fact(DisplayName = "GET /v1/company/all?revenueFrom=1000&revenueTo=100000 should filter by revenue range", Skip = "Filtering not implemented yet")]
+        [Fact(DisplayName = "GET /v1/company/all?revenueFrom=1000&revenueTo=100000 should filter by revenue range")]
         public async Task SearchCompany_ByRevenueRange_ShouldSucceed()
         {
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -565,10 +641,39 @@ namespace OpenCashFlow.Test.Tests
             var client = _factory.CreateClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
+            var companyName = $"RevenueFilter {Guid.NewGuid():N}";
+            _ = await CreateCompanyAsync(client, companyName, estimatedAnnualRevenue: 50000);
+
             var response = await client.GetAsync("/v1/Company/All?revenueFrom=1000&revenueTo=100000");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var companies = await response.Content.ReadFromJsonAsync<IEnumerable<Company_Detail_DTO>>();
+            Assert.NotNull(companies);
+            Assert.Contains(companies!, company => company.CompanyName == companyName);
+            Assert.All(companies!, company =>
+            {
+                Assert.NotNull(company.EstimatedAnnualRevenue);
+                Assert.InRange(company.EstimatedAnnualRevenue.Value, 1000, 100000);
+            });
         }
         #endregion
+
+        private static async Task<Guid> CreateCompanyAsync(HttpClient client, string companyName, string? tin = null, decimal? estimatedAnnualRevenue = null)
+        {
+            var response = await client.PostAsJsonAsync("/v1/Company", new
+            {
+                CompanyName = companyName,
+                TIN = tin,
+                EstimatedAnnualRevenue = estimatedAnnualRevenue,
+                MaxUsers = 10,
+                IsActive = true
+            });
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            var company = await response.Content.ReadFromJsonAsync<Company_Detail_DTO>();
+            Assert.NotNull(company);
+            return company!.TenantID;
+        }
 
     }
 }

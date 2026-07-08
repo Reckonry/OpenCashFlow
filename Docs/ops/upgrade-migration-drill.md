@@ -65,7 +65,7 @@ Status: **not fully performed in this branch**.
 
 Not performed:
 
-- clean install with an isolated disposable smoke stack;
+- upgrade using the isolated clean-install smoke stack as a post-migration verification harness;
 - upgrade from an older released database snapshot;
 - rollback test;
 - migration against a copied production-like dataset.
@@ -73,8 +73,7 @@ Not performed:
 Reason:
 
 - no stable production release or archived production-like database snapshot exists in the repository;
-- the current `development` branch does not contain a dedicated isolated clean-install smoke stack suitable as a
-  migration drill harness;
+- the isolated clean-install smoke stack proves only a fresh install path, not an upgrade from older schema/data;
 - the root Docker Compose file is suitable for local evaluation, but its fixed container names and standard ports make
   destructive automated migration drills unsafe on shared developer machines.
 
@@ -84,7 +83,7 @@ Future exact test plan:
 2. Restore it into a disposable PostgreSQL instance.
 3. Run the new release with `AUTO_MIGRATE=false`.
 4. Apply migrations explicitly.
-5. Run the clean-install smoke equivalent against the upgraded data.
+5. Run the clean-install smoke checks or equivalent post-upgrade checks against the upgraded data.
 6. Restore the pre-upgrade dump to prove rollback by restore.
 
 Until this drill is performed with a real prior schema/data snapshot, production upgrade readiness remains unproven.

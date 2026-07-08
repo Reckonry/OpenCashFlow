@@ -8,11 +8,14 @@ encryption, and storage targets to their environment.
 
 ## Local Evaluation Drill
 
-Prerequisites:
+Prerequisites for the root Docker Compose stack:
 
 - Docker and Docker Compose;
 - a running local evaluation stack started with `docker compose up --build`;
 - an explicitly disposable local database volume, or written approval to test against the current local volume.
+
+For an isolated clean-install smoke stack, see `Docs/testing/clean-install-smoke.md` and
+`scripts/smoke/clean-install-smoke.sh`.
 
 Representative data should include:
 
@@ -73,21 +76,20 @@ docker compose exec -T db dropdb -U postgres opencashflow_restore
 
 ## Local Result - 2026-07-08
 
-Status: **not performed in this branch**.
+Status: **not performed as part of the original ops documentation branch**.
 
 Reason:
 
-- the current `development` branch does not contain a dedicated isolated clean-install smoke stack;
-- the root `docker-compose.yml` uses fixed container names and standard host ports, so starting or resetting a second
-  destructive stack is unsafe on a workstation that may already contain local OpenCashFlow data;
-- this branch documents the procedure and intentionally does not run `docker compose down -v` against the standard
-  local volume.
+- the clean-install smoke stack is now present in `development`, but this backup/restore drill has not yet been
+  executed against it;
+- the root `docker-compose.yml` uses fixed container names and standard host ports, so destructive testing against the
+  default stack remains unsafe on a workstation that may already contain local OpenCashFlow data;
+- the documented procedure intentionally avoids `docker compose down -v` against the standard local volume.
 
 Future exact local proof:
 
-1. Start an explicitly disposable stack or use a dedicated smoke compose file with isolated project name, ports and
-   volumes.
-2. Create representative data: company/admin, login, payment and cash ledger.
+1. Start the isolated smoke stack with `SMOKE_KEEP_STACK=1 scripts/smoke/clean-install-smoke.sh`.
+2. Confirm representative data exists: company/admin, login, payment and cash ledger.
 3. Run `pg_dump --format=custom`.
 4. Restore into `opencashflow_restore`.
 5. Verify counts for `Companies`, `Payments` and `CashLedgers`.

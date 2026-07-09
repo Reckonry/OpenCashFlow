@@ -2,6 +2,8 @@
 
 OpenCashFlow includes a first-run setup wizard for fresh self-hosted installations.
 
+This flow is included in `0.1.0-preview.1`.
+
 The wizard configures application data only. It does not create PostgreSQL users, create databases, change database permissions, or perform infrastructure provisioning. Database connectivity must already be configured through Docker Compose, environment variables, or the host deployment configuration.
 
 ## Local Docker Flow

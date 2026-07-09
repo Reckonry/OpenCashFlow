@@ -13,6 +13,9 @@ and basic operational reporting.
 OpenCashFlow is not production-ready yet. The repository is being stabilized in public with a focus on self-hosted core
 workflows, clean architecture, security hardening, test coverage, and open-source project hygiene.
 
+Current preview package: `0.1.0-preview.1`. See
+[Docs/releases/0.1.0-preview.1.md](Docs/releases/0.1.0-preview.1.md).
+
 Use it for evaluation, local development, architecture review, and early feedback. Do not use it for regulated or
 business-critical financial operations until the release blockers in [Docs/ROADMAP.md](Docs/ROADMAP.md) are resolved.
 
@@ -103,6 +106,9 @@ reverse proxy configuration, and operational settings before exposing any instan
 On a fresh database, opening the WebApp redirects to `/Setup`. The first-run wizard creates the first company and admin
 user, generates a temporary password, shows it once, and then requires a password change after login. See
 [Docs/setup/first-run-setup-wizard.md](Docs/setup/first-run-setup-wizard.md).
+
+The application does not provision PostgreSQL users or databases from the WebApp. Database connectivity must already be
+provided by Docker Compose, environment variables, or host configuration.
 
 ### Run Manually
 

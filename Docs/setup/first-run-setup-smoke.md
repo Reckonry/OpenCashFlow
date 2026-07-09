@@ -4,6 +4,8 @@ Date: 2026-07-09
 
 Branch: `feature/first-run-setup-wizard`
 
+Release packaging note: `0.1.0-preview.1` includes the Docker runtime fix for the `libgssapi_krb5.so.2` warning observed during this smoke.
+
 ## Scope
 
 This smoke validated the first-run setup wizard against a clean Docker Compose stack.
@@ -108,6 +110,16 @@ The generated temporary password was searched explicitly in API and WebApp logs 
 | Second setup POST | Passed. `POST /v1/Setup` returned `409 Conflict`. |
 | Plaintext generated password in logs | Passed. Exact generated temporary password was not present in API or WebApp logs. |
 
+## Preview Release Validation
+
+The clean-install smoke script was rerun on `release/0.1.0-preview` after aligning it with the generated temporary password contract.
+
+Result:
+
+- `scripts/smoke/clean-install-smoke.sh` passed.
+- The script completed setup, read the generated temporary password from the setup response, logged in, changed the required password, logged in again, created a smoke payment, and verified the cash ledger effect.
+- The API Docker image in this branch includes `libgssapi-krb5-2`.
+
 ## Issues Found
 
 The API container logs this startup message:
@@ -119,6 +131,8 @@ Error: libgssapi_krb5.so.2: cannot open shared object file: No such file or dire
 
 The application still started and the health endpoint reported the database as healthy. This should be tracked separately because it creates noisy operational logs and may indicate a missing native package in the runtime image.
 
+This warning is addressed in the `0.1.0-preview.1` release branch by installing the `libgssapi-krb5-2` runtime package in the API image.
+
 During one repeated invalid-login check immediately after several auth attempts, the auth rate limiter returned `503 Service Unavailable`. That is consistent with rate limiting behavior during smoke repetition, not a setup failure.
 
 ## Screenshots
@@ -129,4 +143,4 @@ No screenshots were captured. The smoke used HTTP checks and saved local respons
 
 - The smoke did not exercise a full browser UI interaction beyond HTTP form submission.
 - The setup wizard currently creates the legacy company-level `CashBalance`, not a persisted Cash Custody `CashAccount`; the Cash Custody persistence model is not implemented yet.
-- The `libgssapi_krb5.so.2` startup log should be investigated in a separate Docker/runtime hardening task.
+- The `libgssapi_krb5.so.2` startup log was addressed after this smoke by adding the missing runtime package to the API Docker image.

@@ -131,6 +131,9 @@ The release Compose file uses published GHCR images instead of building from sou
 
 On a fresh database, open `http://localhost:5200` and complete the first-run setup wizard.
 
+For a step-by-step explanation of the release stack, `.env`, startup, updates, backups, and first-run setup, see
+[Docs/setup/docker-compose-release-install.md](Docs/setup/docker-compose-release-install.md).
+
 ### Run Manually
 
 Configure `DEFAULT_CONN_STRING` or `ConnectionStrings:DefaultConnectionString`, then run:

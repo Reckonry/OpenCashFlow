@@ -24,6 +24,33 @@ Representative data should include:
 - payment;
 - cash balance and cash ledger entry.
 
+## Automated Isolated Smoke Drill
+
+The preferred local drill uses the disposable clean-install smoke stack and does not touch the default local
+`docker-compose.yml` database volume:
+
+```bash
+scripts/smoke/backup-restore-smoke-drill.sh
+```
+
+The script:
+
+1. runs `scripts/smoke/clean-install-smoke.sh` with `SMOKE_KEEP_STACK=1`;
+2. creates a PostgreSQL custom-format backup from the smoke database;
+3. restores it into a second database named `opencashflow_restore` in the same isolated PostgreSQL container;
+4. verifies representative company, payment and cash ledger data;
+5. destroys only the disposable smoke stack and volume unless `BACKUP_RESTORE_KEEP_STACK=1` is set.
+
+Useful overrides:
+
+```bash
+SMOKE_API_PORT=16100 \
+SMOKE_WEB_PORT=16200 \
+SMOKE_DB_PORT=16432 \
+BACKUP_RESTORE_DB=opencashflow_restore_check \
+scripts/smoke/backup-restore-smoke-drill.sh
+```
+
 ## Commands
 
 Start the local evaluation stack:
@@ -76,26 +103,53 @@ docker compose exec -T db dropdb -U postgres opencashflow_restore
 
 ## Local Result - 2026-07-08
 
-Status: **not performed as part of the original ops documentation branch**.
+Status: **performed against the isolated clean-install smoke stack**.
 
-Reason:
+Script:
 
-- the clean-install smoke stack is now present in `development`, but this backup/restore drill has not yet been
-  executed against it;
-- the root `docker-compose.yml` uses fixed container names and standard host ports, so destructive testing against the
-  default stack remains unsafe on a workstation that may already contain local OpenCashFlow data;
-- the documented procedure intentionally avoids `docker compose down -v` against the standard local volume.
+```bash
+scripts/smoke/backup-restore-smoke-drill.sh
+```
 
-Future exact local proof:
+Backup command used:
 
-1. Start the isolated smoke stack with `SMOKE_KEEP_STACK=1 scripts/smoke/clean-install-smoke.sh`.
-2. Confirm representative data exists: company/admin, login, payment and cash ledger.
-3. Run `pg_dump --format=custom`.
-4. Restore into `opencashflow_restore`.
-5. Verify counts for `Companies`, `Payments` and `CashLedgers`.
-6. Destroy only the disposable stack/volume.
+```bash
+pg_dump -U postgres -d opencashflow --format=custom
+```
 
-Until this proof is run, backup/restore remains a production-readiness blocker.
+Restore command used:
+
+```bash
+pg_restore -U postgres -d opencashflow_restore --clean --if-exists
+```
+
+Verification queries:
+
+```sql
+select count(*) from "Companies";
+select count(*) from "Payments";
+select count(*) from "CashLedgers";
+select count(*) from "Companies"
+where "CompanyName" = 'OpenCashFlow Backup Restore Smoke Company';
+select count(*) from "Payments"
+where "Description" = 'Clean install smoke payment';
+select count(*) from "CashLedgers"
+where "RefType" = 'Payment' and "Delta" = 25.75;
+```
+
+Result:
+
+```text
+Companies: 1
+Payments: 1
+CashLedgers: 1
+SmokeCompanyMatches: 1
+SmokePaymentMatches: 1
+SmokeCashLedgerMatches: 1
+```
+
+This proves the disposable local smoke database can be backed up and restored. It does not prove production backup
+retention, encryption, off-host storage, restore ownership, RPO or RTO.
 
 ## Production Requirements
 

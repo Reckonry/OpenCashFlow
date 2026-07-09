@@ -76,7 +76,7 @@ docker compose -p opencashflow-smoke -f scripts/smoke/docker-compose.clean-insta
 
 on exit by default. This removes the disposable smoke database volume.
 
-To keep the stack after a failure for inspection:
+To keep the stack after a run for inspection or follow-up drills:
 
 ```bash
 SMOKE_KEEP_STACK=1 scripts/smoke/clean-install-smoke.sh
@@ -86,6 +86,13 @@ Then inspect logs with:
 
 ```bash
 docker compose -p opencashflow-smoke -f scripts/smoke/docker-compose.clean-install.yml logs
+```
+
+The backup/restore smoke drill uses this mode to keep the clean-install data available long enough to create and
+restore a PostgreSQL dump:
+
+```bash
+scripts/smoke/backup-restore-smoke-drill.sh
 ```
 
 ## Known Limits
@@ -99,4 +106,4 @@ Recommended future work:
 
 - add a browser-level smoke for Login, Setup, Payments, and Cash pages;
 - run this smoke in CI as an optional or scheduled job with Docker available;
-- add a backup/restore drill that runs after the smoke creates data.
+- extend the backup/restore smoke drill to cover larger representative datasets.

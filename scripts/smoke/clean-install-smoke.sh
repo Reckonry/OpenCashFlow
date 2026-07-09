@@ -19,8 +19,8 @@ COMPOSE_FILES=(
 
 cleanup() {
   local exit_code=$?
-  if [[ "${KEEP_STACK}" == "1" && "${exit_code}" != "0" ]]; then
-    echo "Smoke failed. Stack kept for inspection because SMOKE_KEEP_STACK=1."
+  if [[ "${KEEP_STACK}" == "1" ]]; then
+    echo "Smoke stack kept for inspection because SMOKE_KEEP_STACK=1."
     echo "Collect logs with: docker compose -p ${PROJECT_NAME} ${COMPOSE_FILES[*]} logs"
   else
     docker compose -p "${PROJECT_NAME}" "${COMPOSE_FILES[@]}" down -v --remove-orphans >/dev/null 2>&1 || true

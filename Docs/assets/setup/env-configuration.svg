@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 960 360" role="img" aria-labelledby="title desc">
+  <title id="title">Edit .env configuration</title>
+  <desc id="desc">A configuration file with important values highlighted: app URL, JWT secret, database password, SMTP.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f8fafc}.card{fill:#fff;stroke:#cbd5e1;stroke-width:2}.title{font:700 22px Arial,sans-serif;fill:#0f172a}.text{font:15px Arial,sans-serif;fill:#475569}.mono{font:15px Menlo,Consolas,monospace;fill:#111827}.warn{fill:#fef3c7;stroke:#f59e0b;stroke-width:2}.safe{fill:#dcfce7;stroke:#16a34a;stroke-width:2}.label{font:700 14px Arial,sans-serif;fill:#0f172a}
+    </style>
+  </defs>
+  <rect class="bg" width="960" height="360" rx="24"/>
+  <text class="title" x="42" y="54">Copy .env.example to .env, then edit it</text>
+  <text class="text" x="42" y="82">The release stack reads runtime settings from your local .env file.</text>
+
+  <rect class="card" x="72" y="116" width="520" height="196" rx="16"/>
+  <text class="mono" x="104" y="154">APP_URL=http://localhost:5200</text>
+  <text class="mono" x="104" y="186">JWT_SECRET=change-this-before-use</text>
+  <text class="mono" x="104" y="218">POSTGRES_PASSWORD=change-this-too</text>
+  <text class="mono" x="104" y="250">SMTP_HOST=</text>
+  <text class="mono" x="104" y="282">OPENCASHFLOW_VERSION=v0.1.0-preview.2</text>
+
+  <rect class="warn" x="638" y="126" width="250" height="72" rx="14"/>
+  <text class="label" x="662" y="154">Must change</text>
+  <text class="text" x="662" y="178">JWT secret and DB password.</text>
+
+  <rect class="safe" x="638" y="226" width="250" height="72" rx="14"/>
+  <text class="label" x="662" y="254">Optional for first run</text>
+  <text class="text" x="662" y="278">SMTP can stay empty initially.</text>
+</svg>

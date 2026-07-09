@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 960 360" role="img" aria-labelledby="title desc">
+  <title id="title">OpenCashFlow Docker Compose stack</title>
+  <desc id="desc">Three containers connected by Docker Compose: PostgreSQL database, API, and WebApp.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L8,3 z" fill="#1f2937"/>
+    </marker>
+    <style>
+      .bg{fill:#f8fafc}.panel{fill:#fff;stroke:#cbd5e1;stroke-width:2}.title{font:700 22px Arial,sans-serif;fill:#0f172a}.label{font:700 18px Arial,sans-serif;fill:#111827}.text{font:14px Arial,sans-serif;fill:#475569}.small{font:12px Arial,sans-serif;fill:#64748b}.api{fill:#2563eb}.web{fill:#059669}.db{fill:#7c3aed}.line{stroke:#1f2937;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="960" height="360" rx="24"/>
+  <text class="title" x="42" y="54">Docker Compose release stack</text>
+  <text class="text" x="42" y="82">Compose creates a private network and starts three services.</text>
+
+  <rect class="panel" x="70" y="128" width="220" height="138" rx="16"/>
+  <circle class="db" cx="115" cy="173" r="24"/>
+  <text class="label" x="154" y="166">db</text>
+  <text class="text" x="154" y="190">PostgreSQL</text>
+  <text class="small" x="92" y="236">Persistent volume: pgdata</text>
+
+  <rect class="panel" x="370" y="128" width="220" height="138" rx="16"/>
+  <circle class="api" cx="415" cy="173" r="24"/>
+  <text class="label" x="454" y="166">api</text>
+  <text class="text" x="454" y="190">OpenCashFlow API</text>
+  <text class="small" x="392" y="236">Health: localhost:5100</text>
+
+  <rect class="panel" x="670" y="128" width="220" height="138" rx="16"/>
+  <circle class="web" cx="715" cy="173" r="24"/>
+  <text class="label" x="754" y="166">webapp</text>
+  <text class="text" x="754" y="190">Browser UI</text>
+  <text class="small" x="692" y="236">Open: localhost:5200</text>
+
+  <path class="line" d="M292 197 H360"/>
+  <path class="line" d="M592 197 H660"/>
+  <text class="small" x="312" y="181">Host: db</text>
+  <text class="small" x="612" y="181">Host: api</text>
+</svg>

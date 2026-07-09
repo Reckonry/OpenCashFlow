@@ -4,6 +4,8 @@ OpenCashFlow preview releases are shipped as a Docker Compose stack.
 
 The release package is intended for local evaluation and early self-hosted testing. It is not a production-ready deployment profile. Before exposing OpenCashFlow to other users or networks, review the hardening guidance in `Docs/ops/`.
 
+For a picture-based walkthrough, see `Docs/setup/docker-compose-visual-guide.md`.
+
 ## Stack Layout
 
 The release stack runs three services:

@@ -2,9 +2,13 @@
 
 OpenCashFlow preview releases run as a Docker Compose stack with three services:
 
-- `db`
-- `api`
-- `webapp`
+![Docker Compose stack](assets/setup/docker-compose-stack.svg)
+
+- `db`: PostgreSQL database.
+- `api`: OpenCashFlow API.
+- `webapp`: browser-facing WebApp.
+
+The containers are separate on purpose. Docker Compose creates the private network and connects `webapp -> api -> db`.
 
 ## Minimal Install
 
@@ -13,6 +17,21 @@ curl -LO https://github.com/Reckonry/OpenCashFlow/releases/download/v0.1.0-previ
 tar -xzf OpenCashFlow-0.1.0-preview.2.tar.gz
 cd OpenCashFlow-0.1.0-preview.2
 cp .env.example .env
+```
+
+Edit `.env` before shared use:
+
+![Edit .env configuration](assets/setup/env-configuration.svg)
+
+At minimum, change:
+
+- `JWT_SECRET`
+- `POSTGRES_PASSWORD`
+- `APP_URL`, if users will open a URL other than `http://localhost:5200`
+
+Then start the stack:
+
+```bash
 docker compose -f docker-compose.release.yml up -d
 ```
 
@@ -22,32 +41,69 @@ Open:
 http://localhost:5200
 ```
 
-On a fresh database, complete `/Setup`.
+## First-Run Setup
 
-## Important Configuration
+On a fresh database, the WebApp redirects to `/Setup`.
 
-Edit `.env` before shared use:
+![First-run setup wizard](assets/setup/first-run-setup.svg)
 
-- change `JWT_SECRET`;
-- change `POSTGRES_PASSWORD`;
-- set `APP_URL` to the real WebApp URL;
-- configure SMTP if email features are needed.
+The setup wizard asks for:
 
-## Visual Guide
+- company name;
+- administrator first and last name;
+- administrator email;
+- language;
+- currency;
+- country;
+- timezone.
 
-The source repository includes a visual guide:
+The setup wizard creates application data only. It does not create PostgreSQL users, databases, TLS certificates, or infrastructure permissions.
 
-```text
-Docs/setup/docker-compose-visual-guide.md
-```
+Real screenshot captured from the Docker Compose smoke stack:
 
-## Manual Wiki Publishing
+![Real first-run setup form](assets/setup/screenshots/02-setup-form-filled.png)
+
+## Temporary Password
+
+After setup completes, OpenCashFlow shows a generated temporary administrator password exactly once.
+
+![Generated admin password shown once](assets/setup/generated-password-once.svg)
+
+Store it immediately. It is not shown again.
+
+The real screenshot below is masked before publishing so no generated secret is stored in the Wiki:
+
+![Real setup complete screen with password masked](assets/setup/screenshots/03-setup-complete-password-once-masked.png)
+
+## First Login
+
+Log in with the administrator email and the generated temporary password.
+
+![First login requires password change](assets/setup/first-login-password-change.svg)
+
+OpenCashFlow requires a password change before normal use.
+
+After setup is complete, `/Setup` is locked and redirects back to login:
+
+![Real login screen after setup lock](assets/setup/screenshots/04-setup-locked-after-completion.png)
+
+## Stop And Update
+
+Stop without deleting data:
 
 ```bash
-git clone https://github.com/Reckonry/OpenCashFlow.wiki.git
-cp Docs/wiki/*.md OpenCashFlow.wiki/
-cd OpenCashFlow.wiki
-git add .
-git commit -m "Add Docker Compose install guide"
-git push
+docker compose -f docker-compose.release.yml down
+```
+
+Update to a newer preview:
+
+```bash
+docker compose -f docker-compose.release.yml pull
+docker compose -f docker-compose.release.yml up -d
+```
+
+Back up the PostgreSQL volume before updates. The release package includes more detail in:
+
+```text
+Docs/setup/docker-compose-release-install.md
 ```

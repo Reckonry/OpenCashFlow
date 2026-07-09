@@ -1,25 +1,44 @@
 # OpenCashFlow Wiki
 
-OpenCashFlow is a Developer Preview / Early Self-Hosted Preview.
+OpenCashFlow is a **Developer Preview / Early Self-Hosted Preview** for small businesses that want a self-hosted cash control system.
 
-Start here:
+The current public preview is intended for evaluation, demos, and early feedback. It is **not production-ready**.
+
+## Start Here
 
 - [Docker Compose Install](Docker-Compose-Install)
-- [First-Run Setup Wizard](../setup/first-run-setup-wizard.md)
-- [Production Hardening](../ops/production-hardening.md)
-- [Backup And Restore Drill](../ops/backup-restore-drill.md)
+- [OpenCashFlow releases](https://github.com/Reckonry/OpenCashFlow/releases)
+- [Repository README](https://github.com/Reckonry/OpenCashFlow#readme)
 
-## Manual Wiki Publishing
+## What The Preview Includes
 
-This repository keeps wiki source files under `Docs/wiki/`. They are prepared for manual publishing only.
+- Docker Compose release package with `db`, `api`, and `webapp` services.
+- Published GHCR images for API and WebApp.
+- First-run setup wizard for a clean database.
+- Generated temporary administrator password shown once.
+- Forced password change on first login.
+- Setup lock after the instance is configured.
 
-```bash
-git clone https://github.com/Reckonry/OpenCashFlow.wiki.git
-cp Docs/wiki/*.md OpenCashFlow.wiki/
-cd OpenCashFlow.wiki
-git add .
-git commit -m "Add Docker Compose install guide"
-git push
+## What It Does Not Include Yet
+
+- Production deployment guarantee.
+- In-app PostgreSQL provisioning.
+- Full Cash Custody persistence.
+- Stable release support policy.
+- Enterprise support or SLA.
+
+## Wiki Source
+
+The canonical source for these Wiki pages is kept in the main repository under:
+
+```text
+Docs/wiki/
 ```
 
-Do not publish automatically from CI until the wiki workflow and permissions are explicitly reviewed.
+Visual assets used by the Wiki are prepared under:
+
+```text
+Docs/assets/setup/
+```
+
+Publish Wiki updates manually after reviewing the rendered Markdown.

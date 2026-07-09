@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 960 360" role="img" aria-labelledby="title desc">
+  <title id="title">First-run setup wizard</title>
+  <desc id="desc">The first-run setup form creates the first company and administrator.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f8fafc}.window{fill:#fff;stroke:#cbd5e1;stroke-width:2}.bar{fill:#0f172a}.title{font:700 22px Arial,sans-serif;fill:#0f172a}.text{font:15px Arial,sans-serif;fill:#475569}.label{font:700 13px Arial,sans-serif;fill:#334155}.field{fill:#f8fafc;stroke:#cbd5e1;stroke-width:2}.button{fill:#2563eb}.buttonText{font:700 15px Arial,sans-serif;fill:#fff}
+    </style>
+  </defs>
+  <rect class="bg" width="960" height="360" rx="24"/>
+  <text class="title" x="42" y="54">Fresh database redirects to /Setup</text>
+  <text class="text" x="42" y="82">The wizard creates application data. It does not provision PostgreSQL infrastructure.</text>
+
+  <rect class="window" x="230" y="112" width="500" height="210" rx="18"/>
+  <rect class="bar" x="230" y="112" width="500" height="40" rx="18"/>
+  <text class="buttonText" x="258" y="138">OpenCashFlow Setup</text>
+
+  <text class="label" x="270" y="184">Company name</text>
+  <rect class="field" x="270" y="196" width="180" height="34" rx="8"/>
+  <text class="label" x="500" y="184">Admin email</text>
+  <rect class="field" x="500" y="196" width="180" height="34" rx="8"/>
+  <text class="label" x="270" y="256">Language / Currency / Timezone</text>
+  <rect class="field" x="270" y="268" width="280" height="34" rx="8"/>
+  <rect class="button" x="570" y="264" width="110" height="42" rx="10"/>
+  <text class="buttonText" x="596" y="291">Create</text>
+</svg>

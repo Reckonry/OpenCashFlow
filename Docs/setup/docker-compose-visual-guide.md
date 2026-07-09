@@ -88,6 +88,10 @@ Enter:
 
 The setup wizard creates application data only. It does not provision PostgreSQL users, databases, permissions, TLS, or infrastructure.
 
+Real smoke screenshot from a clean Docker Compose stack:
+
+![Real first-run setup form](../assets/setup/screenshots/02-setup-form-filled.png)
+
 ## 6. Store The Temporary Password
 
 ![Generated admin password shown once](../assets/setup/generated-password-once.svg)
@@ -97,6 +101,10 @@ After setup completes, OpenCashFlow shows a generated temporary administrator pa
 Store it immediately. It is not shown again.
 
 Do not paste this password into issues, screenshots, logs, or support channels.
+
+The screenshot below is captured from the real WebApp. The generated password is intentionally masked before the image is saved.
+
+![Real setup complete screen with password masked](../assets/setup/screenshots/03-setup-complete-password-once-masked.png)
 
 ## 7. First Login And Password Change
 
@@ -108,6 +116,10 @@ Log in with:
 - generated temporary password.
 
 OpenCashFlow requires a password change before normal use.
+
+After setup is complete, `/Setup` is locked and redirects back to login:
+
+![Real login screen after setup lock](../assets/setup/screenshots/04-setup-locked-after-completion.png)
 
 ## 8. Stop, Update, And Back Up
 

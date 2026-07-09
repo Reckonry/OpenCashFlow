@@ -44,6 +44,7 @@ copy_dir() {
 }
 
 copy_file "docker-compose.yml" "docker-compose.yml"
+copy_file "docker-compose.release.yml" "docker-compose.release.yml"
 copy_file ".env.example" ".env.example"
 copy_file "README.md" "README.md"
 copy_file "LICENSE" "LICENSE"

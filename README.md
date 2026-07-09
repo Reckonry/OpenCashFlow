@@ -100,6 +100,10 @@ Local endpoints:
 The default Docker Compose configuration is for local evaluation. Change secrets, database credentials, TLS, backups,
 reverse proxy configuration, and operational settings before exposing any instance.
 
+On a fresh database, opening the WebApp redirects to `/Setup`. The first-run wizard creates the first company and admin
+user, generates a temporary password, shows it once, and then requires a password change after login. See
+[Docs/setup/first-run-setup-wizard.md](Docs/setup/first-run-setup-wizard.md).
+
 ### Run Manually
 
 Configure `DEFAULT_CONN_STRING` or `ConnectionStrings:DefaultConnectionString`, then run:

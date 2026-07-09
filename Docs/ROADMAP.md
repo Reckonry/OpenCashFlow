@@ -16,35 +16,40 @@ serious public self-hosted product.
 
 ## Short-Term Priorities
 
-1. Repository hygiene
-   - Remove tracked local/internal residue.
-   - Remove or archive legacy Admin source outside active `src`.
-   - Keep only sanitized environment examples.
+1. Database integration test migration
+   - Move historical database-level tests into an explicit integration-test suite or archive them with evidence.
+   - Prefer a repeatable Testcontainers-backed path for persistence constraints, tenant isolation, and migration checks.
+   - Keep excluded DB test coverage visible until it is migrated or intentionally retired.
 
-2. Test reliability
-   - Reduce skipped tests.
-   - Document remaining skipped tests with explicit risk and required fixes.
-   - Prioritize authorization, tenant isolation, company CRUD, payment isolation, cash ledger, and setup.
+2. Production hardening
+   - Validate TLS/reverse proxy, cookie/JWT settings, SMTP, logging, rate limiting, and operational defaults.
+   - Keep Docker Compose defaults clearly scoped to local evaluation.
+   - Turn production-readiness claims into evidence-backed checks before any stable release.
 
-3. Security posture
-   - Keep dependency advisories at zero.
-   - Continue CSP and frontend hardening.
-   - Document threat model, secrets management, backup/restore, and production hardening.
+3. Backup/restore drill
+   - Execute a real backup and restore against a fresh database.
+   - Document RPO/RTO assumptions and operator steps.
+   - Verify restored instances can pass a minimal smoke test.
 
-4. Developer experience
-   - Improve quickstart reliability.
-   - Add conservative CI quality gates.
-   - Document common local troubleshooting paths.
+4. Upgrade/migration drill
+   - Exercise EF migrations against a copied database.
+   - Document rollback expectations and release migration notes.
+   - Keep schema changes out of stable releases unless migration behavior is proven.
 
-5. UI maintainability
-   - Split very large Razor views.
-   - Move inline scripts/styles into static assets where practical.
-   - Preserve existing behavior while reducing maintenance risk.
+5. GitHub alert closeout
+   - Reconcile GitHub dependency alerts against the default branch and current dependency files.
+   - Classify any remaining alerts by NuGet, Docker base image, GitHub Action, frontend package, or stale removed file.
+   - Keep advisory status documented until the GitHub Security tab is clean or intentionally dismissed.
 
-6. Architecture cleanup
-   - Continue moving orchestration out of API services.
-   - Keep WebApp independent from Infrastructure.
-   - Keep Contracts limited to stable API/shared contracts.
+6. Frontend/static asset cleanup
+   - Continue extracting inline Razor scripts/styles into versioned static assets.
+   - Remove remaining CDN dependencies where local assets are available.
+   - Keep CSP free of `unsafe-inline` and `unsafe-eval`.
+
+7. Infrastructure/Contracts boundary reduction
+   - Review Infrastructure dependencies on public Contracts and remove DTO coupling where practical.
+   - Keep Contracts limited to stable API/shared boundary types.
+   - Keep EF entities owned by Infrastructure.
 
 ## Medium-Term Direction
 
@@ -58,12 +63,14 @@ serious public self-hosted product.
 
 Before a production-ready claim, the project needs:
 
-- no high-risk skipped tests without tracked justification;
+- explicit integration-test handling for database-level coverage;
 - documented backup and restore process;
-- documented upgrade/migration policy;
-- production secrets guidance;
+- verified backup and restore drill;
+- verified upgrade/migration drill;
+- production secrets and hardening guidance validated against real deployment settings;
 - security review of auth, reset-password, PIN/fast-login, tenant isolation, and authorization;
 - at least one repeatable full Docker smoke test;
+- GitHub dependency alert closeout;
 - clear release artifacts and versioning policy.
 
 ## Release Policy

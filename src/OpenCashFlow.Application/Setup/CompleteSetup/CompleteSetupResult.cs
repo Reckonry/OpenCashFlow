@@ -15,11 +15,12 @@ public sealed record CompleteSetupResult(
     bool Success,
     CompleteSetupFailure Failure,
     string? Message,
-    SetupStatusResult? Status)
+    SetupStatusResult? Status,
+    string? TemporaryAdminPassword)
 {
-    public static CompleteSetupResult Ok(SetupStatusResult status)
-        => new(true, CompleteSetupFailure.None, null, status);
+    public static CompleteSetupResult Ok(SetupStatusResult status, string temporaryAdminPassword)
+        => new(true, CompleteSetupFailure.None, null, status, temporaryAdminPassword);
 
     public static CompleteSetupResult Fail(CompleteSetupFailure failure, string message)
-        => new(false, failure, message, null);
+        => new(false, failure, message, null, null);
 }

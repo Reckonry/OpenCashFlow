@@ -1,0 +1,76 @@
+name: opencashflow-smoke
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: opencashflow-smoke-db
+    environment:
+      POSTGRES_DB: opencashflow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "${SMOKE_DB_PORT:-15432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build:
+      context: ../..
+      dockerfile: src/OpenCashFlow.API/Dockerfile
+    container_name: opencashflow-smoke-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      DEFAULT_CONN_STRING: "Host=db;Database=opencashflow;Username=postgres;Password=postgres"
+      AUTO_MIGRATE: "true"
+      JwtSettings__SecretKey: "${JWT_SECRET:-local-development-secret-key-change-before-production-0001}"
+      JwtSettings__Issuer: "http://api:8080"
+      JwtSettings__Audience: "http://webapp:8080"
+      Cors__AllowCredentials: "false"
+      AppUrl: "http://localhost:${SMOKE_WEB_PORT:-15200}"
+      Cors__AllowedOrigins__0: "http://localhost:${SMOKE_WEB_PORT:-15200}"
+      EmailConfiguration__From: "${SMTP_FROM:-noreply@example.local}"
+      EmailConfiguration__SmtpServer: "${SMTP_HOST:-}"
+      EmailConfiguration__Port: "${SMTP_PORT:-587}"
+      EmailConfiguration__UserName: "${SMTP_USERNAME:-}"
+      EmailConfiguration__Password: "${SMTP_PASSWORD:-}"
+    ports:
+      - "${SMOKE_API_PORT:-15100}:8080"
+
+  webapp:
+    build:
+      context: ../..
+      dockerfile: src/OpenCashFlow.WebApp/Dockerfile
+    container_name: opencashflow-smoke-webapp
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      Account__API: "http://api:8080"
+      Account__Login: "http://localhost:${SMOKE_WEB_PORT:-15200}/Login"
+      Account__FastLogin: "http://localhost:${SMOKE_WEB_PORT:-15200}/FastLogin"
+      Account__Logout: "http://localhost:${SMOKE_WEB_PORT:-15200}/Logout"
+      Account__AppUrl: "http://localhost:${SMOKE_WEB_PORT:-15200}/"
+      Account__CookieDomain: ""
+      Account__SessionCookieDomain: ""
+      JwtSettings__SecretKey: "${JWT_SECRET:-local-development-secret-key-change-before-production-0001}"
+      JwtSettings__Issuer: "http://api:8080"
+      JwtSettings__Audience: "http://webapp:8080"
+      EmailConfiguration__From: "${SMTP_FROM:-noreply@example.local}"
+      EmailConfiguration__SmtpServer: "${SMTP_HOST:-}"
+      EmailConfiguration__Port: "${SMTP_PORT:-587}"
+      EmailConfiguration__UserName: "${SMTP_USERNAME:-}"
+      EmailConfiguration__Password: "${SMTP_PASSWORD:-}"
+    ports:
+      - "${SMOKE_WEB_PORT:-15200}:8080"
+
+volumes:
+  pgdata:

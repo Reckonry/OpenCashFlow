@@ -22,22 +22,23 @@ namespace OpenCashFlow.WebApp.Services
             }
         }
 
-        public async Task<(bool Success, string? Message)> CompleteSetupAsync(SetupRequest_DTO request, CancellationToken cancellationToken = default)
+        public async Task<(bool Success, string? Message, SetupCompleted_DTO? Setup)> CompleteSetupAsync(SetupRequest_DTO request, CancellationToken cancellationToken = default)
         {
             var response = await _httpClient.PostAsJsonAsync("/v1/Setup", request, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
-                return (true, null);
+                var setup = await response.Content.ReadFromJsonAsync<SetupCompleted_DTO>(cancellationToken: cancellationToken);
+                return (true, null, setup);
             }
 
             if (response.StatusCode == HttpStatusCode.Conflict)
             {
-                return (false, "This instance is already configured.");
+                return (false, "This instance is already configured.", null);
             }
 
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogWarning("Setup failed with status {Status}: {Body}", response.StatusCode, body);
-            return (false, "Unable to complete setup. Check the fields and try again.");
+            return (false, "Unable to complete setup. Check the fields and try again.", null);
         }
     }
 }

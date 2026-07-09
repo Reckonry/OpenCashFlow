@@ -76,7 +76,7 @@ Planned module work is documented in [Docs/modules/architecture.md](Docs/modules
 ### Build And Test
 
 ```bash
-git clone https://github.com/<your-org-or-user>/OpenCashFlow.git
+git clone https://github.com/Reckonry/OpenCashFlow.git
 cd OpenCashFlow
 
 dotnet restore OpenCashFlow.sln
@@ -99,6 +99,10 @@ Local endpoints:
 
 The default Docker Compose configuration is for local evaluation. Change secrets, database credentials, TLS, backups,
 reverse proxy configuration, and operational settings before exposing any instance.
+
+On a fresh database, opening the WebApp redirects to `/Setup`. The first-run wizard creates the first company and admin
+user, generates a temporary password, shows it once, and then requires a password change after login. See
+[Docs/setup/first-run-setup-wizard.md](Docs/setup/first-run-setup-wizard.md).
 
 ### Run Manually
 

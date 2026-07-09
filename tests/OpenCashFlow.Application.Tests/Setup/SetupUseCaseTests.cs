@@ -33,16 +33,16 @@ public sealed class SetupUseCaseTests
     }
 
     [Fact]
-    public async Task CompleteSetup_WithWeakPassword_FailsBeforeWriter()
+    public async Task CompleteSetup_WithInvalidInput_FailsBeforeWriter()
     {
         var reader = new FakeSetupReader(new SetupStatusResult(true, false, false));
         var writer = new FakeSetupWriter();
         var useCase = new CompleteSetupUseCase(reader, writer);
 
-        var result = await useCase.ExecuteAsync(ValidCommand() with { AdminPassword = "weak" });
+        var result = await useCase.ExecuteAsync(ValidCommand() with { CompanyName = " " });
 
         Assert.False(result.Success);
-        Assert.Equal(CompleteSetupFailure.WeakPassword, result.Failure);
+        Assert.Equal(CompleteSetupFailure.InvalidInput, result.Failure);
         Assert.False(writer.Called);
     }
 
@@ -58,6 +58,9 @@ public sealed class SetupUseCaseTests
         Assert.True(result.Success);
         Assert.True(writer.Called);
         Assert.False(result.Status!.RequiresSetup);
+        Assert.NotNull(result.TemporaryAdminPassword);
+        Assert.Equal(result.TemporaryAdminPassword, writer.TemporaryAdminPassword);
+        Assert.True(IsStrongPassword(result.TemporaryAdminPassword));
     }
 
     private static CompleteSetupCommand ValidCommand()
@@ -65,7 +68,6 @@ public sealed class SetupUseCaseTests
         return new CompleteSetupCommand(
             "OpenCashFlow Test",
             "admin@example.local",
-            "Str0ng!Pass",
             "Admin",
             "User",
             "it",
@@ -88,11 +90,25 @@ public sealed class SetupUseCaseTests
     private sealed class FakeSetupWriter : ISetupWriter
     {
         public bool Called { get; private set; }
+        public string? TemporaryAdminPassword { get; private set; }
 
-        public Task<SetupStatusResult> CompleteAsync(CompleteSetupCommand command, CancellationToken cancellationToken = default)
+        public Task<SetupStatusResult> CompleteAsync(
+            CompleteSetupCommand command,
+            string temporaryAdminPassword,
+            CancellationToken cancellationToken = default)
         {
             Called = true;
+            TemporaryAdminPassword = temporaryAdminPassword;
             return Task.FromResult(new SetupStatusResult(false, true, true));
         }
+    }
+
+    private static bool IsStrongPassword(string password)
+    {
+        return password.Length >= 16
+            && password.Any(char.IsUpper)
+            && password.Any(char.IsLower)
+            && password.Any(char.IsDigit)
+            && password.Any(ch => !char.IsLetterOrDigit(ch));
     }
 }

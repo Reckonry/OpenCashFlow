@@ -19,12 +19,11 @@ namespace OpenCashFlow.Contracts.DTOs
         [EmailAddress]
         public required string AdminEmail { get; set; }
 
-        [Required]
-        [StringLength(128, MinimumLength = 8)]
-        public required string AdminPassword { get; set; }
+        // Kept optional for older clients. First-run setup now generates the temporary password server-side.
+        public string? AdminPassword { get; set; }
 
-        [Compare(nameof(AdminPassword))]
-        public required string ConfirmPassword { get; set; }
+        // Kept optional for older clients. First-run setup now generates the temporary password server-side.
+        public string? ConfirmPassword { get; set; }
 
         [Required]
         [StringLength(80)]
@@ -48,5 +47,13 @@ namespace OpenCashFlow.Contracts.DTOs
         [Required]
         [StringLength(2, MinimumLength = 2)]
         public string Country { get; set; } = "IT";
+    }
+
+    public class SetupCompleted_DTO
+    {
+        public required SetupStatus_DTO Status { get; set; }
+        public required string AdminEmail { get; set; }
+        public required string TemporaryAdminPassword { get; set; }
+        public string Message { get; set; } = "Setup completed. Store the temporary password now; it is shown only once.";
     }
 }

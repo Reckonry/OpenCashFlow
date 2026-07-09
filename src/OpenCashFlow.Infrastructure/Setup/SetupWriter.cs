@@ -14,7 +14,10 @@ namespace OpenCashFlow.Infrastructure.Setup;
 
 public sealed class SetupWriter(ApplicationDbContext db, ILogger<SetupWriter> logger) : ISetupWriter
 {
-    public async Task<SetupStatusResult> CompleteAsync(CompleteSetupCommand command, CancellationToken cancellationToken = default)
+    public async Task<SetupStatusResult> CompleteAsync(
+        CompleteSetupCommand command,
+        string temporaryAdminPassword,
+        CancellationToken cancellationToken = default)
     {
         var normalizedEmail = command.AdminEmail.Trim();
         var now = DateTime.UtcNow;
@@ -65,7 +68,8 @@ public sealed class SetupWriter(ApplicationDbContext db, ILogger<SetupWriter> lo
                 PrivacyPolicyAcepted = true,
                 PrivacyPolicyAcceptedDate = now,
                 PasswordSalt = salt,
-                PasswordHash = PasswordHasher.HashPasswordArgon2(command.AdminPassword, salt),
+                PasswordHash = PasswordHasher.HashPasswordArgon2(temporaryAdminPassword, salt),
+                UserMustChangePassword = true,
                 DateIns = now
             });
 

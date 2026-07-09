@@ -25,6 +25,25 @@ permissions:
 
 Skipped tests remain visible in CI output because the test command uses normal console verbosity. Skipped tests must be fixed or documented in the testing backlog before production-readiness claims.
 
+### `publish-preview-images.yml`
+
+Runs when a preview tag matching `v*-preview.*` is pushed.
+
+The workflow builds and publishes preview images to GitHub Container Registry:
+
+- `ghcr.io/reckonry/opencashflow-api:<tag>`
+- `ghcr.io/reckonry/opencashflow-webapp:<tag>`
+
+Permissions are limited to repository read access and package publishing:
+
+```yaml
+permissions:
+  contents: read
+  packages: write
+```
+
+The workflow is release packaging only. It does not deploy any environment.
+
 ### `zap-baseline.yml`
 
 Runs OWASP ZAP baseline scans for non-draft pull requests targeting `main`.

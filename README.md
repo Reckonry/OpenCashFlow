@@ -110,6 +110,27 @@ user, generates a temporary password, shows it once, and then requires a passwor
 The application does not provision PostgreSQL users or databases from the WebApp. Database connectivity must already be
 provided by Docker Compose, environment variables, or host configuration.
 
+### Run A Preview Package
+
+For tagged preview releases, download the package from GitHub Releases:
+
+```bash
+curl -LO https://github.com/Reckonry/OpenCashFlow/releases/download/v0.1.0-preview.1/OpenCashFlow-0.1.0-preview.1.tar.gz
+# or:
+# wget https://github.com/Reckonry/OpenCashFlow/releases/download/v0.1.0-preview.1/OpenCashFlow-0.1.0-preview.1.tar.gz
+tar -xzf OpenCashFlow-0.1.0-preview.1.tar.gz
+cd OpenCashFlow-0.1.0-preview.1
+cp .env.example .env
+docker compose -f docker-compose.release.yml up -d
+```
+
+The release Compose file uses published GHCR images instead of building from source:
+
+- `ghcr.io/reckonry/opencashflow-api:v0.1.0-preview.1`
+- `ghcr.io/reckonry/opencashflow-webapp:v0.1.0-preview.1`
+
+On a fresh database, open `http://localhost:5200` and complete the first-run setup wizard.
+
 ### Run Manually
 
 Configure `DEFAULT_CONN_STRING` or `ConnectionStrings:DefaultConnectionString`, then run:

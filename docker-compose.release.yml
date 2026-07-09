@@ -1,0 +1,72 @@
+name: opencashflow
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: opencashflow-db
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-opencashflow}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  api:
+    image: ghcr.io/reckonry/opencashflow-api:${OPENCASHFLOW_VERSION:-v0.1.0-preview.1}
+    container_name: opencashflow-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DEFAULT_CONN_STRING=Host=db;Database=${POSTGRES_DB:-opencashflow};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      - AUTO_MIGRATE=${AUTO_MIGRATE:-true}
+      - JwtSettings__SecretKey=${JWT_SECRET:-local-development-secret-key-change-before-production-0001}
+      - JwtSettings__Issuer=http://api:8080
+      - JwtSettings__Audience=http://webapp:8080
+      - Cors__AllowedOrigins__0=${APP_URL:-http://localhost:5200}
+      - Cors__AllowCredentials=false
+      - AppUrl=${APP_URL:-http://localhost:5200}
+      - EmailConfiguration__From=${SMTP_FROM:-noreply@example.local}
+      - EmailConfiguration__SmtpServer=${SMTP_HOST:-}
+      - EmailConfiguration__Port=${SMTP_PORT:-587}
+      - EmailConfiguration__UserName=${SMTP_USERNAME:-}
+      - EmailConfiguration__Password=${SMTP_PASSWORD:-}
+    ports:
+      - "${API_PORT:-5100}:8080"
+
+  webapp:
+    image: ghcr.io/reckonry/opencashflow-webapp:${OPENCASHFLOW_VERSION:-v0.1.0-preview.1}
+    container_name: opencashflow-webapp
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Account__API=http://api:8080
+      - Account__Login=${APP_URL:-http://localhost:5200}/Login
+      - Account__FastLogin=${APP_URL:-http://localhost:5200}/FastLogin
+      - Account__Logout=${APP_URL:-http://localhost:5200}/Logout
+      - Account__AppUrl=${APP_URL:-http://localhost:5200}/
+      - Account__CookieDomain=
+      - Account__SessionCookieDomain=
+      - JwtSettings__SecretKey=${JWT_SECRET:-local-development-secret-key-change-before-production-0001}
+      - JwtSettings__Issuer=http://api:8080
+      - JwtSettings__Audience=http://webapp:8080
+      - EmailConfiguration__From=${SMTP_FROM:-noreply@example.local}
+      - EmailConfiguration__SmtpServer=${SMTP_HOST:-}
+      - EmailConfiguration__Port=${SMTP_PORT:-587}
+      - EmailConfiguration__UserName=${SMTP_USERNAME:-}
+      - EmailConfiguration__Password=${SMTP_PASSWORD:-}
+    ports:
+      - "${WEBAPP_PORT:-5200}:8080"
+
+volumes:
+  pgdata:

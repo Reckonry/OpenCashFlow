@@ -199,8 +199,6 @@ setup_body="$(cat <<JSON
 {
   "companyName": "${COMPANY_NAME}",
   "adminEmail": "${ADMIN_EMAIL}",
-  "adminPassword": "${ADMIN_PASSWORD}",
-  "confirmPassword": "${ADMIN_PASSWORD}",
   "adminFirstName": "Smoke",
   "adminLastName": "Admin",
   "language": "en",
@@ -212,6 +210,28 @@ JSON
 )"
 setup_response="${WORK_DIR}/setup-response.json"
 request POST "${API_URL}/v1/Setup" "${setup_body}" "${setup_response}" "" 201
+temporary_admin_password="$(json_get "${setup_response}" temporaryAdminPassword)"
+
+login_body="$(cat <<JSON
+{
+  "username": "${ADMIN_EMAIL}",
+  "password": "${temporary_admin_password}"
+}
+JSON
+)"
+login_response="${WORK_DIR}/login-response.json"
+request POST "${API_URL}/v1/Authentication/login" "${login_body}" "${login_response}" "" 200
+
+token="$(json_get "${login_response}" data token)"
+
+change_password_body="$(cat <<JSON
+{
+  "newPassword": "${ADMIN_PASSWORD}"
+}
+JSON
+)"
+change_password_response="${WORK_DIR}/change-password-response.json"
+request POST "${API_URL}/v1/Authentication/change-password-required" "${change_password_body}" "${change_password_response}" "${token}" 200
 
 login_body="$(cat <<JSON
 {
@@ -220,7 +240,6 @@ login_body="$(cat <<JSON
 }
 JSON
 )"
-login_response="${WORK_DIR}/login-response.json"
 request POST "${API_URL}/v1/Authentication/login" "${login_body}" "${login_response}" "" 200
 
 token="$(json_get "${login_response}" data token)"

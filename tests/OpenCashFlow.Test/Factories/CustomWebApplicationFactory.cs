@@ -19,11 +19,13 @@ namespace OpenCashFlow.Test.Factories
         private readonly bool _useFakeAuth;
         private readonly string _dbIdentifier;
         private readonly bool _usePostgres;
+        private readonly bool _seedTestData;
 
-        public CustomWebApplicationFactory(string dbIdentifier, bool useFakeAuth = true)
+        public CustomWebApplicationFactory(string dbIdentifier, bool useFakeAuth = true, bool seedTestData = true)
         {
             _dbIdentifier = dbIdentifier;
             _useFakeAuth = useFakeAuth;
+            _seedTestData = seedTestData;
             // If dbIdentifier contains connection string keywords, use PostgreSQL
             _usePostgres = dbIdentifier.Contains("Host=") || dbIdentifier.Contains("Server=");
         }
@@ -111,7 +113,10 @@ namespace OpenCashFlow.Test.Factories
                     db.Database.EnsureCreated();
                 }
 
-                TestHelpers.SeedAllTestData(db);
+                if (_seedTestData)
+                {
+                    TestHelpers.SeedAllTestData(db);
+                }
             });
         }
 

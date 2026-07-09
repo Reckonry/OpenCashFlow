@@ -21,7 +21,7 @@
       @Html.AntiForgeryToken()
       <div class="card-body">
         <h1 class="h2 text-center mb-2">First setup</h1>
-        <p class="text-center text-secondary mb-4">Create the first company and instance administrator.</p>
+        <p class="text-center text-secondary mb-4">Create the first company and instance administrator. OpenCashFlow will generate a temporary password after setup.</p>
 
         @if (!string.IsNullOrWhiteSpace(ViewBag.ErrorMessage as string))
         {
@@ -55,19 +55,6 @@
           <span class="text-danger" asp-validation-for="AdminEmail"></span>
         </div>
 
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label" asp-for="AdminPassword">Password</label>
-            <input class="form-control" asp-for="AdminPassword" type="password" />
-            <span class="text-danger" asp-validation-for="AdminPassword"></span>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label" asp-for="ConfirmPassword">Confirm password</label>
-            <input class="form-control" asp-for="ConfirmPassword" type="password" />
-            <span class="text-danger" asp-validation-for="ConfirmPassword"></span>
-          </div>
-        </div>
-
         <div class="row g-3 mt-1">
           <div class="col-md-3">
             <label class="form-label" asp-for="Language">Language</label>
@@ -92,6 +79,10 @@
             <label class="form-label" asp-for="Timezone">Timezone</label>
             <input class="form-control" asp-for="Timezone" />
           </div>
+        </div>
+
+        <div class="alert alert-info mt-3 mb-0">
+          Database connection and PostgreSQL credentials are read from the container/environment configuration. This wizard only creates application data.
         </div>
 
         <div class="form-footer">

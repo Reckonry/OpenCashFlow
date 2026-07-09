@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using OpenCashFlow.Application.Setup.CompleteSetup;
 using OpenCashFlow.Application.Setup.GetSetupStatus;
 using OpenCashFlow.Contracts.DTOs;
@@ -23,6 +24,7 @@ namespace OpenCashFlow.API.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting("auth-limiter")]
         public async Task<IActionResult> Create([FromBody] SetupRequest_DTO request, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
@@ -33,7 +35,6 @@ namespace OpenCashFlow.API.Controllers
             var result = await completeSetupUseCase.ExecuteAsync(new CompleteSetupCommand(
                 request.CompanyName,
                 request.AdminEmail,
-                request.AdminPassword,
                 request.AdminFirstName,
                 request.AdminLastName,
                 request.Language,
@@ -43,7 +44,7 @@ namespace OpenCashFlow.API.Controllers
 
             if (result.Success && result.Status is not null)
             {
-                return CreatedAtAction(nameof(Status), ToDto(result.Status));
+                return CreatedAtAction(nameof(Status), ToCompletedDto(result.Status, request.AdminEmail, result.TemporaryAdminPassword!));
             }
 
             return result.Failure switch
@@ -62,6 +63,16 @@ namespace OpenCashFlow.API.Controllers
                 RequiresSetup = status.RequiresSetup,
                 HasCompanies = status.HasCompanies,
                 HasAdminUsers = status.HasAdminUsers
+            };
+        }
+
+        private static SetupCompleted_DTO ToCompletedDto(SetupStatusResult status, string adminEmail, string temporaryAdminPassword)
+        {
+            return new SetupCompleted_DTO
+            {
+                Status = ToDto(status),
+                AdminEmail = adminEmail.Trim(),
+                TemporaryAdminPassword = temporaryAdminPassword
             };
         }
     }

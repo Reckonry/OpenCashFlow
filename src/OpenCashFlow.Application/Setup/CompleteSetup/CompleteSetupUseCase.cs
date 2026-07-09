@@ -1,4 +1,5 @@
 using OpenCashFlow.Application.Setup.Ports;
+using System.Security.Cryptography;
 
 namespace OpenCashFlow.Application.Setup.CompleteSetup;
 
@@ -28,24 +29,52 @@ public sealed class CompleteSetupUseCase(ISetupReader setupReader, ISetupWriter 
             return CompleteSetupResult.Fail(CompleteSetupFailure.PartiallyConfigured, "Setup cannot continue because this instance is partially configured.");
         }
 
-        if (!IsStrongPassword(command.AdminPassword))
-        {
-            return CompleteSetupResult.Fail(
-                CompleteSetupFailure.WeakPassword,
-                "Admin password must be at least 8 characters and include upper, lower, digit, and special characters.");
-        }
-
-        var completedStatus = await setupWriter.CompleteAsync(command, cancellationToken);
-        return CompleteSetupResult.Ok(completedStatus);
+        var temporaryAdminPassword = GenerateTemporaryPassword();
+        var completedStatus = await setupWriter.CompleteAsync(command, temporaryAdminPassword, cancellationToken);
+        return CompleteSetupResult.Ok(completedStatus, temporaryAdminPassword);
     }
 
-    private static bool IsStrongPassword(string password)
+    private static string GenerateTemporaryPassword()
     {
-        return !string.IsNullOrWhiteSpace(password)
-            && password.Length >= 8
-            && password.Any(char.IsUpper)
-            && password.Any(char.IsLower)
-            && password.Any(char.IsDigit)
-            && password.Any(ch => !char.IsLetterOrDigit(ch));
+        const string upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+        const string lower = "abcdefghijkmnopqrstuvwxyz";
+        const string digits = "23456789";
+        const string symbols = "!@#$%^&*()-_=+";
+        const string all = upper + lower + digits + symbols;
+
+        Span<char> password =
+        [
+            Pick(upper),
+            Pick(lower),
+            Pick(digits),
+            Pick(symbols),
+            Pick(all),
+            Pick(all),
+            Pick(all),
+            Pick(all),
+            Pick(all),
+            Pick(all),
+            Pick(all),
+            Pick(all),
+            Pick(all),
+            Pick(all),
+            Pick(all),
+            Pick(all),
+            Pick(all),
+            Pick(all)
+        ];
+
+        for (var i = password.Length - 1; i > 0; i--)
+        {
+            var j = RandomNumberGenerator.GetInt32(i + 1);
+            (password[i], password[j]) = (password[j], password[i]);
+        }
+
+        return new string(password);
+    }
+
+    private static char Pick(string source)
+    {
+        return source[RandomNumberGenerator.GetInt32(source.Length)];
     }
 }

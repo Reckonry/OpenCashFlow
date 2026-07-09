@@ -1,5 +1,6 @@
 using OpenCashFlow.Contracts.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using OpenCashFlow.WebApp.Models.Setup;
 using OpenCashFlow.WebApp.Services;
 
 namespace OpenCashFlow.WebApp.Controllers
@@ -22,8 +23,6 @@ namespace OpenCashFlow.WebApp.Controllers
             {
                 CompanyName = string.Empty,
                 AdminEmail = string.Empty,
-                AdminPassword = string.Empty,
-                ConfirmPassword = string.Empty,
                 AdminFirstName = string.Empty,
                 Language = "it",
                 Currency = "EUR",
@@ -42,6 +41,9 @@ namespace OpenCashFlow.WebApp.Controllers
                 return View(model);
             }
 
+            model.AdminPassword = null;
+            model.ConfirmPassword = null;
+
             var result = await _setupAPIService.CompleteSetupAsync(model, cancellationToken);
             if (!result.Success)
             {
@@ -49,8 +51,17 @@ namespace OpenCashFlow.WebApp.Controllers
                 return View(model);
             }
 
-            TempData["SetupCompleted"] = "Setup completed. Sign in with the administrator account.";
-            return RedirectToAction(nameof(Login));
+            if (result.Setup is null || string.IsNullOrWhiteSpace(result.Setup.TemporaryAdminPassword))
+            {
+                ViewBag.ErrorMessage = "Setup completed but the temporary password was not returned. Reset the admin password before signing in.";
+                return View(model);
+            }
+
+            return View("SetupComplete", new SetupCompleteViewModel
+            {
+                AdminEmail = result.Setup.AdminEmail,
+                TemporaryAdminPassword = result.Setup.TemporaryAdminPassword
+            });
         }
     }
 }

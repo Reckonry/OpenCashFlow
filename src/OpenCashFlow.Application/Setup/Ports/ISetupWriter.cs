@@ -5,5 +5,8 @@ namespace OpenCashFlow.Application.Setup.Ports;
 
 public interface ISetupWriter
 {
-    Task<SetupStatusResult> CompleteAsync(CompleteSetupCommand command, CancellationToken cancellationToken = default);
+    Task<SetupStatusResult> CompleteAsync(
+        CompleteSetupCommand command,
+        string temporaryAdminPassword,
+        CancellationToken cancellationToken = default);
 }

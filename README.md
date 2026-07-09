@@ -134,6 +134,9 @@ On a fresh database, open `http://localhost:5200` and complete the first-run set
 For a step-by-step explanation of the release stack, `.env`, startup, updates, backups, and first-run setup, see
 [Docs/setup/docker-compose-release-install.md](Docs/setup/docker-compose-release-install.md).
 
+For a visual walkthrough of the Docker Compose release package, see
+[Docs/setup/docker-compose-visual-guide.md](Docs/setup/docker-compose-visual-guide.md).
+
 ### Run Manually
 
 Configure `DEFAULT_CONN_STRING` or `ConnectionStrings:DefaultConnectionString`, then run:

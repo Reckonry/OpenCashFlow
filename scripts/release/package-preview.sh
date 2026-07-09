@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="${1:-0.1.0-preview.1}"
+VERSION="${1:-0.1.0-preview.2}"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PACKAGE_NAME="OpenCashFlow-${VERSION}"
 RELEASE_DIR="${ROOT_DIR}/artifacts/releases"

@@ -13,8 +13,8 @@ and basic operational reporting.
 OpenCashFlow is not production-ready yet. The repository is being stabilized in public with a focus on self-hosted core
 workflows, clean architecture, security hardening, test coverage, and open-source project hygiene.
 
-Current preview package: `0.1.0-preview.1`. See
-[Docs/releases/0.1.0-preview.1.md](Docs/releases/0.1.0-preview.1.md).
+Current preview package: `0.1.0-preview.2`. See
+[Docs/releases/0.1.0-preview.2.md](Docs/releases/0.1.0-preview.2.md).
 
 Use it for evaluation, local development, architecture review, and early feedback. Do not use it for regulated or
 business-critical financial operations until the release blockers in [Docs/ROADMAP.md](Docs/ROADMAP.md) are resolved.
@@ -115,19 +115,19 @@ provided by Docker Compose, environment variables, or host configuration.
 For tagged preview releases, download the package from GitHub Releases:
 
 ```bash
-curl -LO https://github.com/Reckonry/OpenCashFlow/releases/download/v0.1.0-preview.1/OpenCashFlow-0.1.0-preview.1.tar.gz
+curl -LO https://github.com/Reckonry/OpenCashFlow/releases/download/v0.1.0-preview.2/OpenCashFlow-0.1.0-preview.2.tar.gz
 # or:
-# wget https://github.com/Reckonry/OpenCashFlow/releases/download/v0.1.0-preview.1/OpenCashFlow-0.1.0-preview.1.tar.gz
-tar -xzf OpenCashFlow-0.1.0-preview.1.tar.gz
-cd OpenCashFlow-0.1.0-preview.1
+# wget https://github.com/Reckonry/OpenCashFlow/releases/download/v0.1.0-preview.2/OpenCashFlow-0.1.0-preview.2.tar.gz
+tar -xzf OpenCashFlow-0.1.0-preview.2.tar.gz
+cd OpenCashFlow-0.1.0-preview.2
 cp .env.example .env
 docker compose -f docker-compose.release.yml up -d
 ```
 
 The release Compose file uses published GHCR images instead of building from source:
 
-- `ghcr.io/reckonry/opencashflow-api:v0.1.0-preview.1`
-- `ghcr.io/reckonry/opencashflow-webapp:v0.1.0-preview.1`
+- `ghcr.io/reckonry/opencashflow-api:v0.1.0-preview.2`
+- `ghcr.io/reckonry/opencashflow-webapp:v0.1.0-preview.2`
 
 On a fresh database, open `http://localhost:5200` and complete the first-run setup wizard.
 

@@ -22,6 +22,36 @@ first stable release.
 - Improve documentation and open-source contribution flow.
 - Continue Clean Architecture cleanup.
 
+## [0.1.0-preview.2] - 2026-07-09
+
+### Status
+
+- Developer Preview / Early Self-Hosted Preview.
+- Not production-ready.
+- Intended for local evaluation, contributor review, and early self-hosted feedback.
+
+### Added
+
+- GitHub Actions workflow for publishing preview Docker images on `v*-preview.*` tags.
+- GHCR image targets:
+  - `ghcr.io/reckonry/opencashflow-api:<tag>`;
+  - `ghcr.io/reckonry/opencashflow-webapp:<tag>`.
+- `docker-compose.release.yml` for running preview packages from published images instead of local build context.
+- Preview package install instructions using `curl` or `wget`.
+- Preview package now includes `docker-compose.release.yml`.
+
+### Changed
+
+- Default preview package version moved to `0.1.0-preview.2`.
+- Release Compose defaults now point to `v0.1.0-preview.2` images.
+
+### Known Limitations
+
+- OpenCashFlow remains a developer preview and is not suitable for regulated or business-critical production use.
+- The release Compose file is still an evaluation path and uses local defaults unless operators replace secrets and database credentials.
+- Cash Custody domain contracts exist, but persisted multi-cash-account custody is not implemented yet.
+- Cash forecast and Safe-to-Pay style decisions should be treated as WIP/experimental until Cash Custody persistence and reconciliation are complete.
+
 ## [0.1.0-preview.1] - 2026-07-09
 
 ### Status

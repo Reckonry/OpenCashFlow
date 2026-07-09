@@ -19,7 +19,7 @@ services:
       retries: 30
 
   api:
-    image: ghcr.io/reckonry/opencashflow-api:${OPENCASHFLOW_VERSION:-v0.1.0-preview.1}
+    image: ghcr.io/reckonry/opencashflow-api:${OPENCASHFLOW_VERSION:-v0.1.0-preview.2}
     container_name: opencashflow-api
     depends_on:
       db:
@@ -43,7 +43,7 @@ services:
       - "${API_PORT:-5100}:8080"
 
   webapp:
-    image: ghcr.io/reckonry/opencashflow-webapp:${OPENCASHFLOW_VERSION:-v0.1.0-preview.1}
+    image: ghcr.io/reckonry/opencashflow-webapp:${OPENCASHFLOW_VERSION:-v0.1.0-preview.2}
     container_name: opencashflow-webapp
     depends_on:
       api:

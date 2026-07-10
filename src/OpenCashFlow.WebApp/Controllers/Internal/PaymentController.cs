@@ -34,6 +34,7 @@ namespace OpenCashFlow.WebApp.Controllers.Internal
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> FilterPayments(Payment_Filter_DTO filters)
         {
             try
@@ -65,6 +66,7 @@ namespace OpenCashFlow.WebApp.Controllers.Internal
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreatePayment(Payment_Create_DTO dto)
         {
             if (!ModelState.IsValid)
@@ -99,6 +101,7 @@ namespace OpenCashFlow.WebApp.Controllers.Internal
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdatePayment(Payment_Update_DTO editDto)
         {
             if (!ModelState.IsValid)
@@ -118,6 +121,7 @@ namespace OpenCashFlow.WebApp.Controllers.Internal
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeletePayment(Guid paymentID)
         {
             if (paymentID == Guid.Empty)
@@ -162,6 +166,7 @@ namespace OpenCashFlow.WebApp.Controllers.Internal
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> GetCalendarEvents([FromBody] Payment_Filter_DTO filters)
         {
             try

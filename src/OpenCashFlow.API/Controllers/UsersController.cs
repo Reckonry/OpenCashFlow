@@ -11,6 +11,7 @@ using Asp.Versioning;
 namespace OpenCashFlow.API.Controllers
 {
     [ApiController]
+    [IgnoreAntiforgeryToken]
     [Authorize(Roles = "CompanyAdmin")]
     [Route("v{version:apiVersion}/Admin/Users")]
     [ApiVersion("1.0")]

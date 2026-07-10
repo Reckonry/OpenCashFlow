@@ -4,6 +4,7 @@ using OpenCashFlow.Test.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using OpenCashFlow.Infrastructure.Persistence;
 using OpenCashFlow.Contracts.DTOs;
+using OpenCashFlow.Contracts.Core;
 using OpenCashFlow.Infrastructure.Persistence.Entities;
 using System.Net;
 using System.Net.Http.Headers;
@@ -114,6 +115,34 @@ namespace OpenCashFlow.Test.Tests
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
 
+        }
+
+        [Trait("Layer", "API")]
+        [Trait("Feature", "Payments")]
+        [Trait("Type", "Security")]
+        [Trait("Priority", "High")]
+        [Fact(DisplayName = "POST /v1/payments should reject JWT supplied only by cookie")]
+        public async Task CreatePayment_WithJwtOnlyInCookie_ShouldFail()
+        {
+            var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            var token = await _factory.GenerateJwtTokenAsync(userId);
+            var client = _factory.CreateClient();
+            client.DefaultRequestHeaders.Add("Cookie", $"{Configuration.AuthCookieName}={token}");
+
+            var payment = new Payment_Create_DTO
+            {
+                TenantID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                UserID = userId,
+                Amount = 150,
+                EntryType = nameof(EntryTypeEnum.Income),
+                PaymentMethodID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                DocumentTypeID = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                Description = "Cookie-only JWT should not authenticate API requests"
+            };
+
+            var response = await client.PostAsJsonAsync("/v1/Payment", payment);
+
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
         // Payment creation [FAIL] (using an unauthorized employee)

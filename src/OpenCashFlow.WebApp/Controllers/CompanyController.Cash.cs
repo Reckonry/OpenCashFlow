@@ -94,6 +94,7 @@ namespace OpenCashFlow.WebApp.Controllers
         public class AdjustRequest { public decimal? Delta { get; set; } public string Reason { get; set; } = string.Empty; }
 
         [HttpPost("CashLedger/Adjust")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Adjust([FromBody] AdjustRequest request, CancellationToken ct)
         {
             var giClaim = User?.FindFirst("TenantID")?.Value;

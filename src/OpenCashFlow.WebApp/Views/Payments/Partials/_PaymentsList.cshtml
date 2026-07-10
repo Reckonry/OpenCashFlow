@@ -52,6 +52,9 @@
             $.ajax({
                 url: '/internal/Payment/DeletePayment',
                 method: 'POST',
+                headers: window.openCashFlowAntiForgeryHeaders
+                    ? window.openCashFlowAntiForgeryHeaders()
+                    : {},
                 data: { paymentID: paymentID },
                 success: function (resp) {
                     if (resp.success) {

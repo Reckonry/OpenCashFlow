@@ -10,6 +10,7 @@ using Asp.Versioning;
 namespace OpenCashFlow.API.Controllers
 {
     [ApiController]
+    [IgnoreAntiforgeryToken]
     [Route("v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
     [ApiVersion("2.0")]

@@ -194,6 +194,50 @@ namespace OpenCashFlow.WebApp.Controllers
             return await LoadEditAccountView(userId.Value);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Route("Account/RefreshSession")]
+        public async Task<IActionResult> RefreshSession(CancellationToken cancellationToken)
+        {
+            var tokenResult = await _authAPIService.RegenerateTokenAsync(cancellationToken);
+            if (!tokenResult.Success || tokenResult.Data == null || string.IsNullOrWhiteSpace(tokenResult.Data.Token))
+            {
+                _logger.LogWarning("Session refresh failed: {Message}", tokenResult.Message);
+                return Unauthorized(new { success = false });
+            }
+
+            var newToken = tokenResult.Data.Token;
+            var expirationTime = TryGetJwtExpiration(newToken)
+                ?? DateTimeOffset.UtcNow.AddMinutes(OpenCashFlow.Contracts.Core.Configuration.WebSessionDurationMinutes);
+
+            var authCookieOptions = new CookieOptions
+            {
+                Domain = _configuration["Account:CookieDomain"],
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
+                Expires = expirationTime
+            };
+
+            HttpContext.Response.Cookies.Append(OpenCashFlow.Contracts.Core.Configuration.AuthCookieName, newToken, authCookieOptions);
+
+            var infoCookieOptions = new CookieOptions
+            {
+                Domain = _configuration["Account:CookieDomain"],
+                HttpOnly = false,
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
+                Expires = expirationTime
+            };
+
+            HttpContext.Response.Cookies.Append(
+                OpenCashFlow.Contracts.Core.Configuration.AuthCookieName + ".Info",
+                expirationTime.ToUnixTimeSeconds().ToString(),
+                infoCookieOptions);
+
+            return Ok(new { success = true });
+        }
+
         private async Task<IActionResult> LoadEditAccountView(Guid userId)
         {
             var detail = await _employeeAPIService.GetEmployeeByIDAsync(userId);

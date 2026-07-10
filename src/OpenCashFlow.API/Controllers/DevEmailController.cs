@@ -6,6 +6,7 @@ namespace OpenCashFlow.API.Controllers
 {
 #if DEBUG
     [ApiController]
+    [IgnoreAntiforgeryToken]
     [Route("dev/email")]
     [AllowAnonymous]
     [ApiExplorerSettings(IgnoreApi = true)]

@@ -1,11 +1,13 @@
 @inject IHttpContextAccessor httpContextAccessor
 @inject IWebHostEnvironment Env
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 
 @{
     bool isFront = ViewData["isFront"] is bool isFrontValue && isFrontValue;
     ViewData["main"] = isFront ? "front-" : "";
     ViewData["frontVar"] = isFront ? "Front" : "";
     string bodyClass = isFront ? "body-marketing body-gradient" : "";
+    string? requestVerificationToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
 }
 
 <!DOCTYPE html>
@@ -25,6 +27,7 @@
         <meta name="robots" content="noindex,nofollow,noarchive" />
     }
     <meta name="description" content="" />
+    <meta name="request-verification-token" content="@requestVerificationToken" />
 
     <!-- Favicons -->
     <link rel="icon" type="image/png" href="~/favicon.png" />

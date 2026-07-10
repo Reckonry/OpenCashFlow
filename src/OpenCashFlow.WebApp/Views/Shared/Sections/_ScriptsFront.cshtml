@@ -6,6 +6,7 @@
 <environment exclude="Development">
     <script src="~/js/tabler.min.js" asp-append-version="true"></script>
 </environment>
+<script src="~/js/components/antiforgery.js" asp-append-version="true"></script>
 
 @if (User?.Identity?.IsAuthenticated ?? false)
 {
@@ -14,5 +15,5 @@
             data-disconnect-url="@Url.Content("~/Account/Disconnect")"
             data-auth-info-cookie-name="@(Configuration.AuthCookieName).Info"
             data-inactivity-minutes="@(Configuration.WebSessionDurationMinutes)"
-            data-refresh-url="@($"{_configuration["Account:API"]}/v1/Authentication/refresh")"></script>
+            data-refresh-url="@Url.Content("~/Account/RefreshSession")"></script>
 }

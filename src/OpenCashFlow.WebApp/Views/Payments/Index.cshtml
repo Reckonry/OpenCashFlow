@@ -22,6 +22,12 @@
     </script>
     @* <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script> *@
     <script>
+        function antiForgeryHeaders() {
+          return window.openCashFlowAntiForgeryHeaders
+            ? window.openCashFlowAntiForgeryHeaders()
+            : {};
+        }
+
         window.parseAsUtc = function parseAsUtc(input) {
           if (!input) return new Date();
 
@@ -578,6 +584,7 @@
           $.ajax({
             url: '/internal/Payment/DeletePayment',
             method: 'POST',
+            headers: antiForgeryHeaders(),
             data: { paymentID: paymentID },
             success: function(resp) {
               // Re-enable the button and restore the text
@@ -718,6 +725,7 @@
             $.ajax({
                 url: '/internal/Payment/FilterPayments',
                 method: 'POST',
+                headers: antiForgeryHeaders(),
                 data: formData,
                 success: function(resp) {
                     if (resp.success) {
@@ -862,6 +870,7 @@
             $.ajax({
                 url: '/internal/Payment/FilterPayments',
                 method: 'POST',
+                headers: antiForgeryHeaders(),
                 data: {
                     FromDate: dateIso + 'T00:00:00',
                     ToDate:   dateIso + 'T23:59:59',

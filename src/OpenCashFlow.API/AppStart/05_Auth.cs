@@ -45,14 +45,6 @@ public static class AuthAppStart
 
             options.Events = new JwtBearerEvents
             {
-                OnMessageReceived = context =>
-                {
-                    if (string.IsNullOrEmpty(context.Token))
-                    {
-                        context.Token = context.Request.Cookies[OpenCashFlow.Contracts.Core.Configuration.AuthCookieName];
-                    }
-                    return Task.CompletedTask;
-                },
                 OnAuthenticationFailed = context =>
                 {
                     context.Response.StatusCode = 401;

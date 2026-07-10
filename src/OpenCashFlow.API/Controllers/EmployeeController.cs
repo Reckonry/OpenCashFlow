@@ -8,6 +8,7 @@ using Asp.Versioning;
 namespace OpenCashFlow.API.Controllers
 {
     [ApiController, Authorize]
+    [IgnoreAntiforgeryToken]
     [Route("v{version:apiVersion}/")]
     [ApiVersion("1.0")]
     public partial class EmployeeController(IEmployeeService EmployeeService, ILogger<EmployeeController> logger) : Controller

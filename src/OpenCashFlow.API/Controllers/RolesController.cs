@@ -7,6 +7,7 @@ using Asp.Versioning;
 namespace OpenCashFlow.API.Controllers
 {
     [ApiController, Authorize]
+    [IgnoreAntiforgeryToken]
     [Route("v{version:apiVersion}/")]
     [ApiVersion("1.0")]
     public class RolesController(IRoleService roleService) : Controller
@@ -21,4 +22,3 @@ namespace OpenCashFlow.API.Controllers
         }
     }
 }
-

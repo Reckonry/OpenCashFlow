@@ -9,6 +9,7 @@ using OpenCashFlow.Contracts.DTOs;
 namespace OpenCashFlow.API.Controllers
 {
     [ApiController]
+    [IgnoreAntiforgeryToken]
     [AllowAnonymous]
     [Route("v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]

@@ -104,7 +104,10 @@
             try {
                 const response = await fetch(refreshUrl, {
                     method: "POST",
-                    credentials: "include"
+                    credentials: "same-origin",
+                    headers: window.openCashFlowAntiForgeryHeaders
+                        ? window.openCashFlowAntiForgeryHeaders()
+                        : {}
                 });
 
                 if (!response.ok) {

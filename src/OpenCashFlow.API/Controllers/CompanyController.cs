@@ -9,6 +9,7 @@ using OpenCashFlow.Application.Companies.Models;
 namespace OpenCashFlow.API.Controllers
 {
     [ApiController, Authorize(Policy = "CompanyMember")]
+    [IgnoreAntiforgeryToken]
     [Route("v{version:apiVersion}/")]
     [ApiVersion("1.0")]
     public partial class CompanyController(ICompanyService CompanyService, ILogger<CompanyController> logger) : Controller
